@@ -14,6 +14,11 @@ from gitgeist.schemas.features import (
     RepositoryFeatures,
     StaticFeatures,
 )
+from gitgeist.schemas.visual_latent import (
+    MaterialityDistribution,
+    VisualLatentAxes,
+    VisualLatentProfile,
+)
 
 __all__ = [
     "ChoiceDistribution",
@@ -24,6 +29,9 @@ __all__ = [
     "EmotionalState",
     "GitHistoryFeatures",
     "Hotspot",
+    "MaterialityDistribution",
     "RepositoryFeatures",
     "StaticFeatures",
+    "VisualLatentAxes",
+    "VisualLatentProfile",
 ]

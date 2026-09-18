@@ -19,6 +19,7 @@ except Exception:  # pragma: no cover
 
 from gitgeist.features.extractor import extract_features
 from gitgeist.interpretation.emotional_model import evaluate_emotional_state
+from gitgeist.mapping.latent_mapper import map_emotional_to_latent
 from gitgeist.schemas.emotional import (
     ChoiceDistribution,
     EmotionalChoices,
@@ -33,6 +34,11 @@ from gitgeist.schemas.features import (
     RepositoryFeatures,
     StaticFeatures,
 )
+from gitgeist.schemas.visual_latent import (
+    MaterialityDistribution,
+    VisualLatentAxes,
+    VisualLatentProfile,
+)
 
 __all__ = [
     "ChoiceDistribution",
@@ -43,9 +49,13 @@ __all__ = [
     "EmotionalState",
     "GitHistoryFeatures",
     "Hotspot",
+    "MaterialityDistribution",
     "RepositoryFeatures",
     "StaticFeatures",
+    "VisualLatentAxes",
+    "VisualLatentProfile",
     "__version__",
     "evaluate_emotional_state",
     "extract_features",
+    "map_emotional_to_latent",
 ]
