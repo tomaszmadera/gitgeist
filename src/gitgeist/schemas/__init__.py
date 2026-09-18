@@ -14,6 +14,12 @@ from gitgeist.schemas.features import (
     RepositoryFeatures,
     StaticFeatures,
 )
+from gitgeist.schemas.live_state import (
+    ColorPalette,
+    GeometryParameters,
+    LiveSimulationState,
+    MotionDynamics,
+)
 from gitgeist.schemas.visual_latent import (
     MaterialityDistribution,
     VisualLatentAxes,
@@ -22,14 +28,18 @@ from gitgeist.schemas.visual_latent import (
 
 __all__ = [
     "ChoiceDistribution",
+    "ColorPalette",
     "DocsSummaryFeatures",
     "EmotionalChoices",
     "EmotionalNouls",
     "EmotionalScores",
     "EmotionalState",
+    "GeometryParameters",
     "GitHistoryFeatures",
     "Hotspot",
+    "LiveSimulationState",
     "MaterialityDistribution",
+    "MotionDynamics",
     "RepositoryFeatures",
     "StaticFeatures",
     "VisualLatentAxes",
