@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gitgeist"
-version = "0.1.0-beta.2"
+version = "0.1.0-beta.3"
 description = "System do przedstawiania repozytorium w formie emocjonalnego portretu wizualnego"
 readme = "README.md"
 requires-python = ">=3.11"
