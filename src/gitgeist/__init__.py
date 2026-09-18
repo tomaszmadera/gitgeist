@@ -16,3 +16,22 @@ except Exception:  # pragma: no cover
         __version__ = version("gitgeist")
     except PackageNotFoundError:
         __version__ = "0.0.1"
+
+from gitgeist.features.extractor import extract_features
+from gitgeist.schemas.features import (
+    DocsSummaryFeatures,
+    GitHistoryFeatures,
+    Hotspot,
+    RepositoryFeatures,
+    StaticFeatures,
+)
+
+__all__ = [
+    "DocsSummaryFeatures",
+    "GitHistoryFeatures",
+    "Hotspot",
+    "RepositoryFeatures",
+    "StaticFeatures",
+    "__version__",
+    "extract_features",
+]
