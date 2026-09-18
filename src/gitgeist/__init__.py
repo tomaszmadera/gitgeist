@@ -18,6 +18,14 @@ except Exception:  # pragma: no cover
         __version__ = "0.0.1"
 
 from gitgeist.features.extractor import extract_features
+from gitgeist.interpretation.emotional_model import evaluate_emotional_state
+from gitgeist.schemas.emotional import (
+    ChoiceDistribution,
+    EmotionalChoices,
+    EmotionalNouls,
+    EmotionalScores,
+    EmotionalState,
+)
 from gitgeist.schemas.features import (
     DocsSummaryFeatures,
     GitHistoryFeatures,
@@ -27,11 +35,17 @@ from gitgeist.schemas.features import (
 )
 
 __all__ = [
+    "ChoiceDistribution",
     "DocsSummaryFeatures",
+    "EmotionalChoices",
+    "EmotionalNouls",
+    "EmotionalScores",
+    "EmotionalState",
     "GitHistoryFeatures",
     "Hotspot",
     "RepositoryFeatures",
     "StaticFeatures",
     "__version__",
+    "evaluate_emotional_state",
     "extract_features",
 ]
