@@ -10,4 +10,7 @@ def test_version() -> None:
         pyproject = tomllib.load(f)
     expected_version = pyproject["project"]["version"]
     assert gitgeist.__version__ == expected_version
-    assert len(expected_version.split(".")) == 3
+    base_version = expected_version.split("-")[0]
+    parts = base_version.split(".")
+    assert len(parts) == 3
+    assert all(p.isdigit() for p in parts)
