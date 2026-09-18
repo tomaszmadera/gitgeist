@@ -4,21 +4,25 @@ System do przedstawiania repozytorium w formie emocjonalnego portretu wizualnego
 
 ## Status
 
-Workspace został skonfigurowany. Kod produktu może jeszcze nie istnieć.
+Projekt zainicjalizowany (pakiet Python `gitgeist`).
 
 ## Wymagania
 
-- Runtime aplikacji: nie skonfigurowano.
-- Framework: nie skonfigurowano.
-- Środowisko lokalne: nie skonfigurowano.
+- Python >= 3.11 (rekomendowany 3.14)
+- Środowisko lokalne: `venv`
 
-## Uruchomienie lokalne
+## Instalacja i uruchomienie lokalne
 
-Polecenie uruchomienia aplikacji nie jest jeszcze skonfigurowane.
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -e ".[dev]"
+```
 
 ## Testy i weryfikacja
 
-Polecenia testów i weryfikacji aplikacji nie są jeszcze skonfigurowane.
+```bash
+.venv/bin/pytest tests
+```
 
 ## Dokumentacja
 
