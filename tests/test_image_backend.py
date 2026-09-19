@@ -2,6 +2,7 @@
 
 import base64
 import json
+import sys
 import urllib.error
 import urllib.request
 
@@ -11,10 +12,20 @@ from gitgeist.render.image_backend import (
     DEFAULT_API_URL,
     DEFAULT_MODEL,
     FakeImageBackend,
+    GeneratedImage,
     OpenRouterImageBackend,
+    detect_media_type,
+    normalize_to_png,
 )
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+JPEG_SAMPLE = b"\xff\xd8\xff\xe0" + b"jpeg-payload"
+WEBP_SAMPLE = b"RIFF\x24\x00\x00\x00WEBPVP8 payload"
+GARBAGE_SAMPLE = b"not-an-image"
+
+
+def make_png_payload(suffix: bytes = b"") -> bytes:
+    return PNG_SIGNATURE + suffix
 
 
 def make_url_response(payload: dict):
@@ -47,6 +58,36 @@ def make_bytes_response(payload: bytes):
     return FakeResponse()
 
 
+class TestDetectMediaType:
+    def test_detects_png(self):
+        assert detect_media_type(make_png_payload(b"data")) == "png"
+
+    def test_detects_jpeg(self):
+        assert detect_media_type(JPEG_SAMPLE) == "jpeg"
+
+    def test_detects_webp(self):
+        assert detect_media_type(WEBP_SAMPLE) == "webp"
+
+    def test_rejects_unknown_bytes(self):
+        with pytest.raises(ValueError, match="PNG, JPEG, or WebP"):
+            detect_media_type(GARBAGE_SAMPLE)
+
+    def test_rejects_empty_payload(self):
+        with pytest.raises(ValueError):
+            detect_media_type(b"")
+
+    def test_short_payload_is_not_webp(self):
+        with pytest.raises(ValueError):
+            detect_media_type(b"RIFFWEBP")
+
+
+class TestNormalizeToPng:
+    def test_missing_pillow_raises_value_error_with_hint(self, monkeypatch):
+        monkeypatch.setitem(sys.modules, "PIL", None)
+        with pytest.raises(ValueError, match="gitgeist\\[image\\]"):
+            normalize_to_png(JPEG_SAMPLE)
+
+
 class TestFakeImageBackend:
     def test_deterministic_same_prompt(self):
         backend = FakeImageBackend()
@@ -63,8 +104,10 @@ class TestFakeImageBackend:
     def test_produces_valid_png(self):
         backend = FakeImageBackend()
         image = backend.generate_image("any prompt")
-        assert image.startswith(PNG_SIGNATURE)
-        assert image.rstrip().endswith(b"IEND\xaeB`\x82")
+        assert isinstance(image, GeneratedImage)
+        assert image.media_type == "png"
+        assert image.image_bytes.startswith(PNG_SIGNATURE)
+        assert image.image_bytes.rstrip().endswith(b"IEND\xaeB`\x82")
 
     def test_rejects_non_string_prompt(self):
         backend = FakeImageBackend()
@@ -90,7 +133,8 @@ class TestOpenRouterImageBackend:
         monkeypatch.delenv("OPENROUTER_IMAGE_MODELS", raising=False)
         backend = OpenRouterImageBackend(api_url=DEFAULT_API_URL, api_key="test-key")
         result = backend.generate_image("draw the repo")
-        assert result == PNG_SIGNATURE + b"image"
+        assert result.image_bytes == make_png_payload(b"image")
+        assert result.media_type == "png"
         assert captured["url"] == DEFAULT_API_URL
         assert captured["method"] == "POST"
         assert captured["timeout"] == 120.0
@@ -107,7 +151,9 @@ class TestOpenRouterImageBackend:
         def fake_urlopen(request, timeout=None):
             captured["timeout"] = timeout
             captured["body"] = request.data
-            return make_url_response({"data": [{"b64_json": base64.b64encode(b"abc").decode()}]})
+            return make_url_response(
+                {"data": [{"b64_json": base64.b64encode(make_png_payload(b"abc")).decode()}]}
+            )
 
         monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
         backend = OpenRouterImageBackend(
@@ -117,17 +163,57 @@ class TestOpenRouterImageBackend:
         assert captured["timeout"] == 5.0
         assert json.loads(captured["body"])["model"] == "custom-model"
 
+    def test_b64_jpeg_response_is_detected_as_jpeg(self, monkeypatch):
+        monkeypatch.setattr(
+            urllib.request,
+            "urlopen",
+            lambda r, timeout=None: make_url_response(
+                {"data": [{"b64_json": base64.b64encode(JPEG_SAMPLE).decode()}]}
+            ),
+        )
+        backend = OpenRouterImageBackend(api_key="k")
+        result = backend.generate_image("p")
+        assert result.image_bytes == JPEG_SAMPLE
+        assert result.media_type == "jpeg"
+
+    def test_b64_webp_response_is_detected_as_webp(self, monkeypatch):
+        monkeypatch.setattr(
+            urllib.request,
+            "urlopen",
+            lambda r, timeout=None: make_url_response(
+                {"data": [{"b64_json": base64.b64encode(WEBP_SAMPLE).decode()}]}
+            ),
+        )
+        backend = OpenRouterImageBackend(api_key="k")
+        result = backend.generate_image("p")
+        assert result.image_bytes == WEBP_SAMPLE
+        assert result.media_type == "webp"
+
+    def test_b64_unknown_format_raises(self, monkeypatch):
+        monkeypatch.setattr(
+            urllib.request,
+            "urlopen",
+            lambda r, timeout=None: make_url_response(
+                {"data": [{"b64_json": base64.b64encode(GARBAGE_SAMPLE).decode()}]}
+            ),
+        )
+        backend = OpenRouterImageBackend(api_key="k")
+        with pytest.raises(ValueError, match="PNG, JPEG, or WebP"):
+            backend.generate_image("p")
+
     def test_api_key_from_environment(self, monkeypatch):
         monkeypatch.setenv("OPENROUTER_IMAGE_API_KEY", "env-key")
 
         def fake_urlopen(request, timeout=None):
             headers = dict(request.header_items())
             assert headers["Authorization"] == "Bearer env-key"
-            return make_url_response({"data": [{"b64_json": base64.b64encode(b"x").decode()}]})
+            return make_url_response(
+                {"data": [{"b64_json": base64.b64encode(make_png_payload(b"x")).decode()}]}
+            )
 
         monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
         backend = OpenRouterImageBackend()
-        assert backend.generate_image("p") == b"x"
+        assert backend.generate_image("p").image_bytes == make_png_payload(b"x")
 
     def test_missing_api_key_raises(self, monkeypatch):
         monkeypatch.delenv("OPENROUTER_IMAGE_API_KEY", raising=False)
@@ -141,7 +227,9 @@ class TestOpenRouterImageBackend:
 
         def fake_urlopen(request, timeout=None):
             captured["body"] = request.data
-            return make_url_response({"data": [{"b64_json": base64.b64encode(b"x").decode()}]})
+            return make_url_response(
+                {"data": [{"b64_json": base64.b64encode(make_png_payload(b"x")).decode()}]}
+            )
 
         monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
         backend = OpenRouterImageBackend(api_key="k")
@@ -164,7 +252,9 @@ class TestOpenRouterImageBackend:
 
         def fake_urlopen(request, timeout=None):
             captured["url"] = request.full_url
-            return make_url_response({"data": [{"b64_json": base64.b64encode(b"x").decode()}]})
+            return make_url_response(
+                {"data": [{"b64_json": base64.b64encode(make_png_payload(b"x")).decode()}]}
+            )
 
         monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
         monkeypatch.setenv("OPENROUTER_IMAGE_API_URL", "https://proxy.example.com/v1/images")
@@ -179,12 +269,13 @@ class TestOpenRouterImageBackend:
             calls.append(request)
             if len(calls) == 1:
                 return make_url_response({"data": [{"url": "https://img.example.com/portrait.png"}]})
-            return make_bytes_response(PNG_SIGNATURE + b"downloaded")
+            return make_bytes_response(make_png_payload(b"downloaded"))
 
         monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
         backend = OpenRouterImageBackend(api_key="k")
         result = backend.generate_image("p")
-        assert result == PNG_SIGNATURE + b"downloaded"
+        assert result.image_bytes == make_png_payload(b"downloaded")
+        assert result.media_type == "png"
         assert calls[1].full_url == "https://img.example.com/portrait.png"
         assert calls[1].get_method() == "GET"
         assert "Authorization" not in dict(calls[1].header_items())

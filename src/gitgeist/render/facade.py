@@ -8,11 +8,19 @@ from pydantic import BaseModel, ConfigDict
 from gitgeist.render.abstract_renderer import generate_abstract_simulation
 from gitgeist.render.character_renderer import generate_character_simulation
 from gitgeist.render.html_template import generate_live_html
-from gitgeist.render.image_backend import FakeImageBackend, ImageGenerationBackend
+from gitgeist.render.image_backend import (
+    FakeImageBackend,
+    ImageGenerationBackend,
+    detect_media_type,
+    normalize_to_png,
+)
 from gitgeist.render.prompt_composer import RepresentationMode, compose_prompt
 from gitgeist.schemas.live_state import LiveSimulationState
 from gitgeist.schemas.visual_latent import VisualLatentProfile
 from gitgeist.schemas.emotional import EmotionalState
+
+PORTRAIT_FILENAMES = {"png": "portrait.png", "jpeg": "portrait.jpg", "webp": "portrait.webp"}
+ImageFormat = Literal["native", "png"]
 
 
 class LiveRenderArtifacts(BaseModel):
@@ -88,6 +96,7 @@ class PromptRenderArtifacts(BaseModel):
 
     prompt_text: str
     image_bytes: bytes | None = None
+    media_type: str | None = None
     prompt_path: Path | None = None
     image_path: Path | None = None
 
@@ -99,6 +108,7 @@ def render_prompt(
     repository_name: str | None = None,
     backend: ImageGenerationBackend | None = None,
     output_dir: Path | str | None = None,
+    image_format: ImageFormat = "native",
 ) -> PromptRenderArtifacts:
     """Compose a prompt, generate a portrait image and optionally write artifacts.
 
@@ -108,23 +118,37 @@ def render_prompt(
         mode: Representation mode, either 'abstract' or 'character' (default 'abstract').
         repository_name: Optional display name for the repository.
         backend: ImageGenerationBackend used to generate the image; defaults to FakeImageBackend.
-        output_dir: Optional directory path to write 'prompt.txt' and 'portrait.png'.
+        output_dir: Optional directory path to write 'prompt.txt' and a portrait file named
+            after the detected media type ('portrait.png', 'portrait.jpg', 'portrait.webp').
+        image_format: 'native' keeps the detected format; 'png' converts non-PNG output
+            to PNG through Pillow.
 
     Returns:
-        PromptRenderArtifacts bundle with prompt text, image bytes and optional written paths.
+        PromptRenderArtifacts bundle with prompt text, image bytes, the detected media
+        type and optional written paths.
 
     Raises:
         TypeError: If emotional_state or profile is of unexpected type.
-        ValueError: If mode is not 'abstract' or 'character' or backend configuration is invalid.
+        ValueError: If mode is not 'abstract' or 'character', image_format is unknown,
+            the image bytes have an unrecognized format, or normalization is requested
+            without Pillow.
     """
     if not isinstance(emotional_state, EmotionalState):
         raise TypeError(f"Expected EmotionalState, got {type(emotional_state).__name__}")
     if not isinstance(profile, VisualLatentProfile):
         raise TypeError(f"Expected VisualLatentProfile, got {type(profile).__name__}")
+    if image_format not in ("native", "png"):
+        raise ValueError(f"Unsupported image format: {image_format!r}. Must be 'native' or 'png'.")
 
     prompt_text = compose_prompt(emotional_state, profile, mode=mode, repository_name=repository_name)
     selected_backend = backend if backend is not None else FakeImageBackend()
-    image_bytes = selected_backend.generate_image(prompt_text)
+    generated = selected_backend.generate_image(prompt_text)
+    image_bytes = generated.image_bytes
+    media_type = detect_media_type(image_bytes)
+
+    if image_format == "png" and media_type != "png":
+        image_bytes = normalize_to_png(image_bytes)
+        media_type = "png"
 
     prompt_path: Path | None = None
     image_path: Path | None = None
@@ -133,13 +157,14 @@ def render_prompt(
         out = Path(output_dir)
         out.mkdir(parents=True, exist_ok=True)
         prompt_path = out / "prompt.txt"
-        image_path = out / "portrait.png"
+        image_path = out / PORTRAIT_FILENAMES[media_type]
         prompt_path.write_text(prompt_text, encoding="utf-8")
         image_path.write_bytes(image_bytes)
 
     return PromptRenderArtifacts(
         prompt_text=prompt_text,
         image_bytes=image_bytes,
+        media_type=media_type,
         prompt_path=prompt_path,
         image_path=image_path,
     )

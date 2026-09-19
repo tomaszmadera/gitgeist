@@ -31,6 +31,7 @@ from gitgeist.schemas.visual_latent import VisualLatentProfile
 REPRESENTATION_MODES = ("character", "abstract")
 GENERATION_MODES = ("live", "prompt-to-image")
 BACKEND_CHOICES = ("fake", "openrouter")
+IMAGE_FORMAT_CHOICES = ("native", "png")
 DEFAULT_OUTPUT_ROOT = "gitgeist-output"
 GIT_TIMEOUT_SECONDS = 30
 
@@ -134,6 +135,8 @@ def command_render(args: argparse.Namespace) -> int:
             )
     elif args.backend is not None:
         return _error("--backend applies only to --mode prompt-to-image")
+    elif args.image_format != "native":
+        return _error("--image-format applies only to --mode prompt-to-image")
 
     written, state, profile = _analyze(repo_path, repository_name, output_dir)
 
@@ -157,6 +160,7 @@ def command_render(args: argparse.Namespace) -> int:
             backend=backend,
             repository_name=repository_name,
             output_dir=output_dir,
+            image_format=args.image_format,
         )
         written.extend(
             path for path in (artifacts.image_path, artifacts.prompt_path) if path is not None
@@ -211,6 +215,15 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         choices=BACKEND_CHOICES,
         help="image generation backend for --mode prompt-to-image (default: fake)",
+    )
+    render.add_argument(
+        "--image-format",
+        default="native",
+        choices=IMAGE_FORMAT_CHOICES,
+        help=(
+            "portrait format handling for --mode prompt-to-image: 'native' keeps the "
+            "detected format, 'png' converts non-PNG output through Pillow (default: native)"
+        ),
     )
     render.set_defaults(func=command_render)
     return parser

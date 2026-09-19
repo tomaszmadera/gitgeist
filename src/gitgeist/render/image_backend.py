@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import io
 import json
 import os
 import struct
 import urllib.request
 import zlib
 from abc import ABC, abstractmethod
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict
 
 DEFAULT_API_URL = "https://openrouter.ai/api/v1/images"
 DEFAULT_MODEL = "google/gemini-3.1-flash-lite-image"
@@ -18,13 +22,71 @@ API_KEY_ENV = "OPENROUTER_IMAGE_API_KEY"
 API_URL_ENV = "OPENROUTER_IMAGE_API_URL"
 MODELS_ENV = "OPENROUTER_IMAGE_MODELS"
 
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+JPEG_SIGNATURE = b"\xff\xd8\xff"
+RIFF_SIGNATURE = b"RIFF"
+WEBP_SIGNATURE = b"WEBP"
+
+ImageMediaType = Literal["png", "jpeg", "webp"]
+
+
+class GeneratedImage(BaseModel):
+    """Image bytes with the media type detected from the magic bytes."""
+
+    model_config = ConfigDict(frozen=True)
+
+    image_bytes: bytes
+    media_type: ImageMediaType
+
+
+def detect_media_type(data: bytes) -> ImageMediaType:
+    """Detect the image media type from magic bytes.
+
+    Raises:
+        ValueError: If the payload is not a recognizable PNG, JPEG, or WebP image.
+    """
+    if data.startswith(PNG_SIGNATURE):
+        return "png"
+    if data.startswith(JPEG_SIGNATURE):
+        return "jpeg"
+    if data[:4] == RIFF_SIGNATURE and data[8:12] == WEBP_SIGNATURE:
+        return "webp"
+    raise ValueError(
+        "unrecognized image format: expected PNG, JPEG, or WebP bytes; "
+        f"got {len(data)} byte(s) starting with {data[:12]!r}"
+    )
+
+
+def normalize_to_png(image_bytes: bytes) -> bytes:
+    """Convert non-PNG image bytes to PNG using Pillow.
+
+    Raises:
+        ValueError: If Pillow is not installed or the payload cannot be decoded.
+    """
+    try:
+        from PIL import Image
+    except ImportError as exc:
+        raise ValueError(
+            "PNG normalization requires Pillow; install it with: pip install gitgeist[image]"
+        ) from exc
+    try:
+        with Image.open(io.BytesIO(image_bytes)) as img:
+            if img.mode not in ("RGB", "RGBA"):
+                target = "RGBA" if ("A" in img.getbands() or "transparency" in img.info) else "RGB"
+                img = img.convert(target)
+            out = io.BytesIO()
+            img.save(out, format="PNG")
+            return out.getvalue()
+    except OSError as exc:
+        raise ValueError(f"cannot decode image payload for PNG normalization: {exc}") from exc
+
 
 class ImageGenerationBackend(ABC):
-    """Interface for backends turning a prompt into PNG image bytes."""
+    """Interface for backends turning a prompt into detected-format image bytes."""
 
     @abstractmethod
-    def generate_image(self, prompt: str) -> bytes:
-        """Return PNG image bytes generated from the prompt."""
+    def generate_image(self, prompt: str) -> GeneratedImage:
+        """Return image bytes with their detected media type for the prompt."""
         raise NotImplementedError
 
 
@@ -52,7 +114,7 @@ class OpenRouterImageBackend(ImageGenerationBackend):
         self.model = model if model is not None else _first_env_model() or DEFAULT_MODEL
         self.timeout = timeout
 
-    def generate_image(self, prompt: str) -> bytes:
+    def generate_image(self, prompt: str) -> GeneratedImage:
         if not isinstance(prompt, str):
             raise TypeError(f"Expected str prompt, got {type(prompt).__name__}")
         if not self.api_key:
@@ -74,7 +136,8 @@ class OpenRouterImageBackend(ImageGenerationBackend):
         )
         with urllib.request.urlopen(request, timeout=self.timeout) as response:
             body = json.loads(response.read().decode("utf-8"))
-        return self._extract_image_bytes(body)
+        image_bytes = self._extract_image_bytes(body)
+        return GeneratedImage(image_bytes=image_bytes, media_type=detect_media_type(image_bytes))
 
     def _extract_image_bytes(self, body: dict) -> bytes:
         data = body.get("data") if isinstance(body, dict) else None
@@ -121,7 +184,7 @@ class FakeImageBackend(ImageGenerationBackend):
 
     _SIZE = 16
 
-    def generate_image(self, prompt: str) -> bytes:
+    def generate_image(self, prompt: str) -> GeneratedImage:
         if not isinstance(prompt, str):
             raise TypeError(f"Expected str prompt, got {type(prompt).__name__}")
         width = height = self._SIZE
@@ -132,4 +195,7 @@ class FakeImageBackend(ImageGenerationBackend):
         while len(stream) < needed:
             stream.extend(hashlib.sha256(seed + counter.to_bytes(4, "big")).digest())
             counter += 1
-        return encode_png(width, height, bytes(stream[:needed]))
+        return GeneratedImage(
+            image_bytes=encode_png(width, height, bytes(stream[:needed])),
+            media_type="png",
+        )
