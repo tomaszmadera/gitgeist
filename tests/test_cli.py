@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from gitgeist.cli import main
-from gitgeist.render.image_backend import FakeImageBackend
+from gitgeist.render.image_backend import FakeImageBackend, GeneratedImage
 from gitgeist.schemas.emotional import EmotionalState
 from gitgeist.schemas.features import RepositoryFeatures
 from gitgeist.schemas.visual_latent import VisualLatentProfile
@@ -105,7 +105,7 @@ def test_render_live_writes_mode_and_required_artifacts(
 
 @pytest.mark.parametrize("representation", ["character", "abstract"])
 def test_render_prompt_writes_mode_and_required_artifacts(
-    clean_modular_repo: Path, representation: str, tmp_path: Path
+    clean_modular_repo: Path, representation: str, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     out_dir = tmp_path / f"prompt-{representation}"
     code = main(
@@ -127,6 +127,8 @@ def test_render_prompt_writes_mode_and_required_artifacts(
     prompt = (out_dir / "prompt.txt").read_text(encoding="utf-8")
     assert f"Representation mode: {representation}" in prompt
     assert (out_dir / "portrait.png").stat().st_size > 0
+    captured = capsys.readouterr()
+    assert str(out_dir / "portrait.png") in captured.out
 
 
 def test_render_openrouter_backend_without_api_key_fails_clean(
@@ -158,7 +160,7 @@ def test_render_openrouter_backend_without_api_key_fails_clean(
 
 
 class _ExplodingBackend(FakeImageBackend):
-    def generate_image(self, prompt: str) -> bytes:
+    def generate_image(self, prompt: str) -> "GeneratedImage":
         raise ValueError("image backend exploded")
 
 
@@ -233,6 +235,55 @@ def test_render_backend_with_live_mode_fails(
     )
     assert code == 1
     assert not out_dir.exists()
+
+
+def test_render_image_format_with_live_mode_fails(
+    clean_modular_repo: Path,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    out_dir = tmp_path / "live-with-image-format"
+    code = main(
+        [
+            "render",
+            str(clean_modular_repo),
+            "--representation",
+            "character",
+            "--mode",
+            "live",
+            "--image-format",
+            "png",
+            "-o",
+            str(out_dir),
+        ]
+    )
+    assert code == 1
+    captured = capsys.readouterr()
+    assert "--image-format" in captured.err
+    assert not out_dir.exists()
+
+
+def test_render_image_format_png_with_fake_backend_writes_png(
+    clean_modular_repo: Path, tmp_path: Path
+) -> None:
+    out_dir = tmp_path / "prompt-normalized"
+    code = main(
+        [
+            "render",
+            str(clean_modular_repo),
+            "--representation",
+            "character",
+            "--mode",
+            "prompt-to-image",
+            "--image-format",
+            "png",
+            "-o",
+            str(out_dir),
+        ]
+    )
+    assert code == 0
+    for name in PROMPT_ARTIFACTS:
+        assert (out_dir / name).is_file(), f"missing artifact: {name}"
 
 
 def test_render_requires_representation_and_mode(clean_modular_repo: Path) -> None:

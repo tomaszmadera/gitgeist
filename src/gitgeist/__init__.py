@@ -24,6 +24,7 @@ from gitgeist.mapping.latent_mapper import map_emotional_to_latent
 from gitgeist.render.facade import LiveRenderArtifacts, PromptRenderArtifacts, render_live, render_prompt
 from gitgeist.render.image_backend import (
     FakeImageBackend,
+    GeneratedImage,
     ImageGenerationBackend,
     OpenRouterImageBackend,
 )
@@ -64,6 +65,7 @@ __all__ = [
     "EmotionalState",
     "ExplanationArtifacts",
     "FakeImageBackend",
+    "GeneratedImage",
     "GeometryParameters",
     "GitHistoryFeatures",
     "Hotspot",

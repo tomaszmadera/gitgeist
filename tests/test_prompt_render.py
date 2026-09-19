@@ -1,11 +1,17 @@
 """Tests for the prompt rendering facade (render_prompt and artifacts)."""
 
+import io
+import sys
 from pathlib import Path
 
 import pytest
 
 from gitgeist.render.facade import PromptRenderArtifacts, render_prompt
-from gitgeist.render.image_backend import FakeImageBackend
+from gitgeist.render.image_backend import (
+    FakeImageBackend,
+    GeneratedImage,
+    detect_media_type,
+)
 from gitgeist.render.prompt_composer import compose_prompt
 from gitgeist.schemas.emotional import (
     ChoiceDistribution,
@@ -21,6 +27,9 @@ from gitgeist.schemas.visual_latent import (
 )
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+JPEG_SAMPLE = b"\xff\xd8\xff\xe0" + b"jpeg-payload"
+WEBP_SAMPLE = b"RIFF\x24\x00\x00\x00WEBPVP8 payload"
+GARBAGE_SAMPLE = b"not-an-image"
 
 
 def make_emotional_state() -> EmotionalState:
@@ -82,12 +91,30 @@ def make_profile() -> VisualLatentProfile:
 
 
 class StubBackend:
-    def __init__(self) -> None:
+    def __init__(self, media_type: str = "png", payload: bytes | None = None) -> None:
+        self.media_type = media_type
+        self.payload = payload if payload is not None else PNG_SIGNATURE + b"stub"
         self.seen_prompts: list[str] = []
 
-    def generate_image(self, prompt: str) -> bytes:
+    def generate_image(self, prompt: str) -> GeneratedImage:
         self.seen_prompts.append(prompt)
-        return PNG_SIGNATURE + b"stub"
+        return GeneratedImage(image_bytes=self.payload, media_type=self.media_type)
+
+
+def make_real_jpeg_bytes() -> bytes:
+    from PIL import Image
+
+    buffer = io.BytesIO()
+    Image.new("RGB", (4, 4), (250, 120, 40)).save(buffer, format="JPEG")
+    return buffer.getvalue()
+
+
+def make_real_webp_bytes() -> bytes:
+    from PIL import Image
+
+    buffer = io.BytesIO()
+    Image.new("RGB", (4, 4), (40, 200, 90)).save(buffer, format="WEBP")
+    return buffer.getvalue()
 
 
 def test_render_prompt_default_backend():
@@ -98,6 +125,7 @@ def test_render_prompt_default_backend():
     assert artifacts.prompt_text == compose_prompt(state, profile, mode="character")
     assert artifacts.image_bytes is not None
     assert artifacts.image_bytes.startswith(PNG_SIGNATURE)
+    assert artifacts.media_type == "png"
     assert artifacts.prompt_path is None
     assert artifacts.image_path is None
 
@@ -108,6 +136,7 @@ def test_render_prompt_uses_provided_backend():
     backend = StubBackend()
     artifacts = render_prompt(state, profile, backend=backend, repository_name="repo-x")
     assert artifacts.image_bytes == PNG_SIGNATURE + b"stub"
+    assert artifacts.media_type == "png"
     assert backend.seen_prompts == [artifacts.prompt_text]
 
 
@@ -122,6 +151,119 @@ def test_render_prompt_writes_artifacts(tmp_path: Path):
     assert artifacts.image_path.read_bytes() == artifacts.image_bytes
 
 
+def test_render_prompt_writes_jpeg_extension_for_jpeg_backend(tmp_path: Path):
+    state = make_emotional_state()
+    profile = make_profile()
+    output_dir = tmp_path / "out"
+    artifacts = render_prompt(
+        state,
+        profile,
+        backend=StubBackend(media_type="jpeg", payload=JPEG_SAMPLE),
+        output_dir=output_dir,
+    )
+    assert artifacts.image_path == output_dir / "portrait.jpg"
+    assert artifacts.media_type == "jpeg"
+    assert artifacts.image_path.read_bytes() == JPEG_SAMPLE
+    assert detect_media_type(artifacts.image_path.read_bytes()) == "jpeg"
+
+
+def test_render_prompt_writes_webp_extension_for_webp_backend(tmp_path: Path):
+    state = make_emotional_state()
+    profile = make_profile()
+    output_dir = tmp_path / "out"
+    artifacts = render_prompt(
+        state,
+        profile,
+        backend=StubBackend(media_type="webp", payload=WEBP_SAMPLE),
+        output_dir=output_dir,
+    )
+    assert artifacts.image_path == output_dir / "portrait.webp"
+    assert artifacts.media_type == "webp"
+    assert artifacts.image_path.read_bytes() == WEBP_SAMPLE
+
+
+def test_render_prompt_unknown_media_type_raises_without_image(tmp_path: Path):
+    state = make_emotional_state()
+    profile = make_profile()
+    output_dir = tmp_path / "out"
+    with pytest.raises(ValueError, match="PNG, JPEG, or WebP"):
+        render_prompt(
+            state,
+            profile,
+            backend=StubBackend(media_type="png", payload=GARBAGE_SAMPLE),
+            output_dir=output_dir,
+        )
+    assert not output_dir.exists()
+
+
+def test_render_prompt_png_normalization_converts_jpeg(tmp_path: Path):
+    pytest.importorskip("PIL")
+    state = make_emotional_state()
+    profile = make_profile()
+    output_dir = tmp_path / "out"
+    artifacts = render_prompt(
+        state,
+        profile,
+        backend=StubBackend(media_type="jpeg", payload=make_real_jpeg_bytes()),
+        output_dir=output_dir,
+        image_format="png",
+    )
+    assert artifacts.media_type == "png"
+    assert artifacts.image_path == output_dir / "portrait.png"
+    assert artifacts.image_bytes.startswith(PNG_SIGNATURE)
+    assert detect_media_type(artifacts.image_path.read_bytes()) == "png"
+
+
+def test_render_prompt_png_normalization_converts_webp(tmp_path: Path):
+    pytest.importorskip("PIL")
+    state = make_emotional_state()
+    profile = make_profile()
+    output_dir = tmp_path / "out"
+    artifacts = render_prompt(
+        state,
+        profile,
+        backend=StubBackend(media_type="webp", payload=make_real_webp_bytes()),
+        output_dir=output_dir,
+        image_format="png",
+    )
+    assert artifacts.media_type == "png"
+    assert artifacts.image_path == output_dir / "portrait.png"
+    assert detect_media_type(artifacts.image_bytes) == "png"
+
+
+def test_render_prompt_png_normalization_keeps_png_bytes(tmp_path: Path):
+    state = make_emotional_state()
+    profile = make_profile()
+    artifacts = render_prompt(
+        state,
+        profile,
+        backend=StubBackend(media_type="png", payload=PNG_SIGNATURE + b"kept"),
+        image_format="png",
+    )
+    assert artifacts.image_bytes == PNG_SIGNATURE + b"kept"
+    assert artifacts.media_type == "png"
+
+
+def test_render_prompt_png_normalization_without_pillow_raises(tmp_path: Path, monkeypatch):
+    monkeypatch.setitem(sys.modules, "PIL", None)
+    state = make_emotional_state()
+    profile = make_profile()
+    with pytest.raises(ValueError, match="gitgeist\\[image\\]"):
+        render_prompt(
+            state,
+            profile,
+            backend=StubBackend(media_type="jpeg", payload=JPEG_SAMPLE),
+            image_format="png",
+        )
+
+
+def test_render_prompt_rejects_unknown_image_format():
+    state = make_emotional_state()
+    profile = make_profile()
+    with pytest.raises(ValueError):
+        render_prompt(state, profile, image_format="webp")
+
+
 def test_render_prompt_without_output_writes_nothing(tmp_path: Path):
     state = make_emotional_state()
     profile = make_profile()
@@ -129,9 +271,21 @@ def test_render_prompt_without_output_writes_nothing(tmp_path: Path):
     assert list(tmp_path.iterdir()) == []
 
 
+def test_render_prompt_leaves_stale_portraits_in_other_formats_untouched(tmp_path: Path):
+    state = make_emotional_state()
+    profile = make_profile()
+    output_dir = tmp_path / "out"
+    output_dir.mkdir(parents=True)
+    stale_path = output_dir / "portrait.webp"
+    stale_path.write_bytes(WEBP_SAMPLE)
+    artifacts = render_prompt(state, profile, output_dir=output_dir)
+    assert artifacts.image_path == output_dir / "portrait.png"
+    assert stale_path.read_bytes() == WEBP_SAMPLE
+
+
 def test_render_prompt_backend_failure_writes_nothing(tmp_path: Path):
     class FailingBackend:
-        def generate_image(self, prompt: str) -> bytes:
+        def generate_image(self, prompt: str) -> GeneratedImage:
             raise ValueError("backend exploded")
 
     state = make_emotional_state()
