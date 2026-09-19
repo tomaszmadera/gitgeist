@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from gitgeist._version import current_engine_version
 from gitgeist.interpretation import evaluate_emotional_state
 from gitgeist.mapping import map_emotional_to_latent
 from gitgeist.schemas.emotional import (
@@ -207,7 +208,7 @@ def test_engine_version_handling() -> None:
     """Test default and overridden engine_version in map_emotional_to_latent."""
     state = create_sample_emotional_state()
     profile_default = map_emotional_to_latent(state)
-    assert profile_default.engine_version == "0.1.0-beta.2"
+    assert profile_default.engine_version == current_engine_version()
 
     profile_custom = map_emotional_to_latent(state, engine_version="0.2.0")
     assert profile_custom.engine_version == "0.2.0"

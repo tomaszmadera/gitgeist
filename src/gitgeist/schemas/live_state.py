@@ -4,6 +4,8 @@ import re
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from gitgeist._version import current_engine_version
+
 COLOR_REGEX = re.compile(
     r"^(?:#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*(?:0(?:\.\d+)?|1(?:\.0+)?|\.\d+)\s*)?\))$"
 )
@@ -67,5 +69,8 @@ class LiveSimulationState(BaseModel):
     dynamics: MotionDynamics = Field(description="Motion and rhythm parameters")
     geometry: GeometryParameters = Field(description="Geometric distribution parameters")
     dominant_material: str = Field(description="Dominant materiality identifier")
-    engine_version: str = Field(default="0.1.0-beta.3", description="Gitgeist engine version")
+    engine_version: str = Field(
+        default_factory=current_engine_version,
+        description="Gitgeist engine version",
+    )
     repository_name: str | None = Field(default=None, description="Analyzed repository name")

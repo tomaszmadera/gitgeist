@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from gitgeist._version import current_engine_version
+
 
 class VisualLatentAxes(BaseModel):
     """Normalized continuous visual latent axes in range [0.0, 1.0]."""
@@ -66,4 +68,4 @@ class VisualLatentProfile(BaseModel):
     dominant_features: list[str] = Field(default_factory=list)
     calculated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     source_commit: str | None = None
-    engine_version: str = "0.1.0-beta.2"
+    engine_version: str = Field(default_factory=current_engine_version)
