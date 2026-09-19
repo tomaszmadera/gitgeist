@@ -25,7 +25,7 @@ from gitgeist.render.facade import LiveRenderArtifacts, PromptRenderArtifacts, r
 from gitgeist.render.image_backend import (
     FakeImageBackend,
     ImageGenerationBackend,
-    OpenAICompatibleBackend,
+    OpenRouterImageBackend,
 )
 from gitgeist.render.prompt_composer import compose_prompt
 from gitgeist.schemas.emotional import (
@@ -72,7 +72,7 @@ __all__ = [
     "LiveSimulationState",
     "MaterialityDistribution",
     "MotionDynamics",
-    "OpenAICompatibleBackend",
+    "OpenRouterImageBackend",
     "PromptRenderArtifacts",
     "RepositoryFeatures",
     "StaticFeatures",

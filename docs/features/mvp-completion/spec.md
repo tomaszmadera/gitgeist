@@ -18,11 +18,11 @@ Domknąć lukę MVP Definition of Done (sekcja 25 dokumentu produktowego): dać 
 
 1. Moduł `src/gitgeist/cli.py` (argparse, bez nowych zależności) i konsolowy punkt wejścia `gitgeist` zarejestrowany w `pyproject.toml` (`[project.scripts]`).
 2. Polecenie `gitgeist analyze <repo_path> [-o DIR]`: pełny pipeline `extract_features` -> `evaluate_emotional_state` -> `map_emotional_to_latent` -> `explain`; zapis wymaganej pary artefaktów `profile.json` i `summary.md` do `DIR`; domyślnie `DIR = ./gitgeist-output/<repository_name>` względem katalogu roboczego procesu; `source_commit` ustawiane na HEAD repo (gdy repo jest repozytorium git).
-3. Polecenie `gitgeist render <repo_path> --representation {character,abstract} --mode {live,prompt-to-image} [-o DIR] [--backend {fake,openai-compatible}]`: pipeline jak w `analyze` plus artefakty trybu generacji:
+3. Polecenie `gitgeist render <repo_path> --representation {character,abstract} --mode {live,prompt-to-image} [-o DIR] [--backend {fake,openrouter}]`: pipeline jak w `analyze` plus artefakty trybu generacji:
    - `live`: `live-preview.html`, `live-state.json` (przez `render_live`);
    - `prompt-to-image`: `prompt.txt`, `portrait.png` (przez `render_prompt`);
    - oba tryby zapisują także wymaganą parę `profile.json` i `summary.md`.
-4. Backend obrazu: `fake` (domyślny, deterministyczny `FakeImageBackend`) oraz `openai-compatible` (`OpenAICompatibleBackend`, klucz z `GITGEIST_IMAGE_API_KEY`).
+4. Backend obrazu: `fake` (domyślny, deterministyczny `FakeImageBackend`) oraz `openrouter` (`OpenRouterImageBackend`, klucz z `OPENROUTER_IMAGE_API_KEY`).
 5. Testy zachowania aplikacji: `tests/test_cli.py` (end-to-end CLI) i `tests/test_mvp_behavior.py` (Testy 1, 2, 5, 6 z sekcji 29 na pełnym pipeline).
 
 ## Non-goals
@@ -54,7 +54,7 @@ Domknąć lukę MVP Definition of Done (sekcja 25 dokumentu produktowego): dać 
 
 ## Authorization
 
-Brak. Funkcja działa lokalnie na ścieżce podanej przez użytkownika; jedyne wyjście sieciowe to opcjonalny backend `openai-compatible` inicjowany jawnie przez użytkownika i wymagający klucza z `GITGEIST_IMAGE_API_KEY`.
+Brak. Funkcja działa lokalnie na ścieżce podanej przez użytkownika; jedyne wyjście sieciowe to opcjonalny backend `openrouter` inicjowany jawnie przez użytkownika i wymagający klucza z `OPENROUTER_IMAGE_API_KEY`.
 
 ## Data / API
 
@@ -63,11 +63,11 @@ Brak. Funkcja działa lokalnie na ścieżce podanej przez użytkownika; jedyne w
   - `<repo_path>`: istniejący katalog (wymagany);
   - `-o/--output DIR`: katalog artefaktów, domyślnie `./gitgeist-output/<repository_name>` względem katalogu roboczego procesu;
   - wyjście: pliki `profile.json`, `summary.md`.
-- `gitgeist render <repo_path> --representation {character,abstract} --mode {live,prompt-to-image} [-o DIR] [--backend {fake,openai-compatible}]`:
+- `gitgeist render <repo_path> --representation {character,abstract} --mode {live,prompt-to-image} [-o DIR] [--backend {fake,openrouter}]`:
   - `--representation` (wymagany): `character` albo `abstract`;
   - `--mode` (wymagany): `live` albo `prompt-to-image`;
   - `-o/--output DIR`: domyślnie `./gitgeist-output/<repository_name>` względem katalogu roboczego procesu;
-  - `--backend`: domyślnie `fake`; `openai-compatible` używa `GITGEIST_IMAGE_API_KEY`, domyślnego `base_url` i modelu z `image_backend.py`;
+  - `--backend`: domyślnie `fake`; `openrouter` używa `OPENROUTER_IMAGE_API_KEY`, domyślnego `api_url` i pierwszego modelu z `OPENROUTER_IMAGE_MODELS` (reszta domyśłów w `image_backend.py`);
   - wyjście: `profile.json`, `summary.md` plus `live-preview.html` i `live-state.json` (tryb `live`) albo `prompt.txt` i `portrait.png` (tryb `prompt-to-image`).
 - Wejście pipeline (bez zmian): `extract_features(Path)`, `evaluate_emotional_state(features, source_commit=...)`, `map_emotional_to_latent(state)`, `explain(features, state, profile, repository_name=<nazwa repo>, output_dir=DIR)`, `render_live(profile, mode=..., repository_name=..., output_dir=DIR)`, `render_prompt(state, profile, mode=..., backend=..., output_dir=DIR)`.
 - Kody wyjścia: `0` sukces; `1` błąd użycia lub wykonania (ścieżka, backend, zapis); `2` błąd argparse (domyślny).
@@ -77,7 +77,7 @@ Brak. Funkcja działa lokalnie na ścieżce podanej przez użytkownika; jedyne w
 - Katalog nie będący repozytorium git: pełny pipeline działa, `source_commit` jest `None`.
 - `-o` wskazuje zagnieżdżoną, nieistniejącą ścieżkę: katalogi powstają wraz z rodzicami.
 - Ponowne uruchomienie do tego samego `DIR`: nadpisanie artefaktów pełną treścią, bez duplikatów i resztek; przy domyślnym katalogu drugie przejście widzi ten sam snapshot repo (artefakty nie trafiają do analizowanego katalogu).
-- `--backend openai-compatible` bez klucza w środowisku: błąd użycia z komunikatem o `GITGEIST_IMAGE_API_KEY`, kod wyjścia 1, brak częściowych artefaktów obrazu.
+- `--backend openrouter` bez klucza w środowisku: błąd użycia z komunikatem o `OPENROUTER_IMAGE_API_KEY`, kod wyjścia 1, brak częściowych artefaktów obrazu.
 - `render` na repo non-git: działa jak `analyze`, z artefaktami trybu.
 - `--backend` przekazany z `--mode live`: błąd użycia z komunikatem, kod wyjścia 1; `--backend` dotyczy wyłącznie `--mode prompt-to-image`.
 
@@ -85,7 +85,7 @@ Brak. Funkcja działa lokalnie na ścieżce podanej przez użytkownika; jedyne w
 
 - Nieistniejąca ścieżka repo: komunikat na stderr, kod 1, brak tracebacku i brak artefaktów.
 - Nieznany tryb, reprezentacja albo backend odcina argparse (`2`).
-- Brak `GITGEIST_IMAGE_API_KEY` przy `openai-compatible`: jawny błąd, kod 1; nie ma cichego przełączenia na backend `fake`.
+- Brak `OPENROUTER_IMAGE_API_KEY` przy `openrouter`: jawny błąd, kod 1; nie ma cichego przełączenia na backend `fake`.
 - `OSError` i kontraktowe `ValueError` warstw niższych (np. uszkodzona odpowiedź backendu obrazu, błąd zapisu) docierają do granicy CLI i zamieniają się w komunikat na stderr z kodem 1, bez tracebacku; żadna warstwa nie tłumi błędów.
 
 ## Acceptance criteria
@@ -105,7 +105,7 @@ Brak. Funkcja działa lokalnie na ścieżce podanej przez użytkownika; jedyne w
   - `analyze` na fiksutrze git i non-git: kod 0, zestaw plików, roundtrip `profile.json`, komunikat o ścieżkach;
   - `render` w pełnym przecięciu representation x mode: kod 0 i komplet artefaktów trybu plus para wymagana;
   - domyślny katalog `./gitgeist-output/<repository_name>` (poza analizowanym repo) oraz `-o` z zagnieżdżeniem i nadpisaniem;
-  - `--backend openai-compatible` bez klucza: kod 1 i komunikat o `GITGEIST_IMAGE_API_KEY`;
+  - `--backend openrouter` bez klucza: kod 1 i komunikat o `OPENROUTER_IMAGE_API_KEY`;
   - nieistniejąca ścieżka: kod 1, stderr, brak tracebacku; zapis rzucający `OSError` wychodzi kodem 1.
 - `tests/test_mvp_behavior.py`:
   - Test 1: clean modular vs legacy chaotic na pełnym pipeline według reguły różnicowania;

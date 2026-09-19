@@ -23,14 +23,14 @@ from gitgeist.render.image_backend import (
     API_KEY_ENV,
     FakeImageBackend,
     ImageGenerationBackend,
-    OpenAICompatibleBackend,
+    OpenRouterImageBackend,
 )
 from gitgeist.schemas.emotional import EmotionalState
 from gitgeist.schemas.visual_latent import VisualLatentProfile
 
 REPRESENTATION_MODES = ("character", "abstract")
 GENERATION_MODES = ("live", "prompt-to-image")
-BACKEND_CHOICES = ("fake", "openai-compatible")
+BACKEND_CHOICES = ("fake", "openrouter")
 DEFAULT_OUTPUT_ROOT = "gitgeist-output"
 GIT_TIMEOUT_SECONDS = 30
 
@@ -63,8 +63,8 @@ def _head_commit(repo_path: Path) -> str | None:
 def _build_backend(name: str | None) -> ImageGenerationBackend:
     if name is None or name == "fake":
         return FakeImageBackend()
-    if name == "openai-compatible":
-        return OpenAICompatibleBackend()
+    if name == "openrouter":
+        return OpenRouterImageBackend()
     raise ValueError(f"Unsupported image backend: {name!r}. Must be one of {BACKEND_CHOICES}.")
 
 
@@ -127,7 +127,7 @@ def command_render(args: argparse.Namespace) -> int:
     backend: ImageGenerationBackend | None = None
     if args.mode == "prompt-to-image":
         backend = _build_backend(args.backend)
-        if isinstance(backend, OpenAICompatibleBackend) and not backend.api_key:
+        if isinstance(backend, OpenRouterImageBackend) and not backend.api_key:
             return _error(
                 f"missing API key for image generation backend; set {API_KEY_ENV} "
                 "or use --backend fake"
