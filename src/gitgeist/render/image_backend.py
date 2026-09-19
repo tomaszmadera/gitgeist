@@ -11,10 +11,12 @@ import urllib.request
 import zlib
 from abc import ABC, abstractmethod
 
-DEFAULT_BASE_URL = "https://api.openai.com/v1"
-DEFAULT_MODEL = "gpt-image-1"
+DEFAULT_API_URL = "https://openrouter.ai/api/v1/images"
+DEFAULT_MODEL = "google/gemini-3.1-flash-lite-image"
 DEFAULT_TIMEOUT = 120.0
-API_KEY_ENV = "GITGEIST_IMAGE_API_KEY"
+API_KEY_ENV = "OPENROUTER_IMAGE_API_KEY"
+API_URL_ENV = "OPENROUTER_IMAGE_API_URL"
+MODELS_ENV = "OPENROUTER_IMAGE_MODELS"
 
 
 class ImageGenerationBackend(ABC):
@@ -26,19 +28,28 @@ class ImageGenerationBackend(ABC):
         raise NotImplementedError
 
 
-class OpenAICompatibleBackend(ImageGenerationBackend):
-    """Backend calling an OpenAI-compatible images API over HTTP."""
+def _first_env_model() -> str | None:
+    raw = os.environ.get(MODELS_ENV)
+    if not raw:
+        return None
+    return next((entry.strip() for entry in raw.split(",") if entry.strip()), None)
+
+
+class OpenRouterImageBackend(ImageGenerationBackend):
+    """Backend calling the OpenRouter Image API over HTTP."""
 
     def __init__(
         self,
-        base_url: str = DEFAULT_BASE_URL,
+        api_url: str | None = None,
         api_key: str | None = None,
-        model: str = DEFAULT_MODEL,
+        model: str | None = None,
         timeout: float = DEFAULT_TIMEOUT,
     ) -> None:
-        self.base_url = base_url.rstrip("/")
+        self.api_url = (
+            api_url if api_url is not None else os.environ.get(API_URL_ENV) or DEFAULT_API_URL
+        ).rstrip("/")
         self.api_key = api_key if api_key is not None else os.environ.get(API_KEY_ENV)
-        self.model = model
+        self.model = model if model is not None else _first_env_model() or DEFAULT_MODEL
         self.timeout = timeout
 
     def generate_image(self, prompt: str) -> bytes:
@@ -53,7 +64,7 @@ class OpenAICompatibleBackend(ImageGenerationBackend):
             {"model": self.model, "prompt": prompt, "n": 1, "size": "1024x1024"}
         ).encode("utf-8")
         request = urllib.request.Request(
-            f"{self.base_url}/images/generations",
+            self.api_url,
             data=payload,
             headers={
                 "Authorization": f"Bearer {self.api_key}",

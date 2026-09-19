@@ -8,7 +8,7 @@ from gitgeist.render.html_template import generate_live_html
 from gitgeist.render.image_backend import (
     FakeImageBackend,
     ImageGenerationBackend,
-    OpenAICompatibleBackend,
+    OpenRouterImageBackend,
 )
 from gitgeist.render.palette import generate_palette
 from gitgeist.render.prompt_composer import compose_prompt
@@ -17,7 +17,7 @@ __all__ = [
     "FakeImageBackend",
     "ImageGenerationBackend",
     "LiveRenderArtifacts",
-    "OpenAICompatibleBackend",
+    "OpenRouterImageBackend",
     "PromptRenderArtifacts",
     "compose_prompt",
     "generate_abstract_simulation",

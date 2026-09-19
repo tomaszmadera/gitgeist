@@ -1,4 +1,4 @@
-"""Tests for image generation backends (fake and OpenAI-compatible)."""
+"""Tests for image generation backends (fake and OpenRouter)."""
 
 import base64
 import json
@@ -7,7 +7,12 @@ import urllib.request
 
 import pytest
 
-from gitgeist.render.image_backend import FakeImageBackend, OpenAICompatibleBackend
+from gitgeist.render.image_backend import (
+    DEFAULT_API_URL,
+    DEFAULT_MODEL,
+    FakeImageBackend,
+    OpenRouterImageBackend,
+)
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
@@ -67,7 +72,7 @@ class TestFakeImageBackend:
             backend.generate_image(123)
 
 
-class TestOpenAICompatibleBackend:
+class TestOpenRouterImageBackend:
     def test_request_shape_and_b64_response(self, monkeypatch):
         captured = {}
 
@@ -82,17 +87,18 @@ class TestOpenAICompatibleBackend:
             )
 
         monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
-        backend = OpenAICompatibleBackend(base_url="https://api.example.com/v1", api_key="test-key")
+        monkeypatch.delenv("OPENROUTER_IMAGE_MODELS", raising=False)
+        backend = OpenRouterImageBackend(api_url=DEFAULT_API_URL, api_key="test-key")
         result = backend.generate_image("draw the repo")
         assert result == PNG_SIGNATURE + b"image"
-        assert captured["url"] == "https://api.example.com/v1/images/generations"
+        assert captured["url"] == DEFAULT_API_URL
         assert captured["method"] == "POST"
         assert captured["timeout"] == 120.0
         authorization = captured["headers"]["Authorization"]
         assert authorization == "Bearer test-key"
         body = json.loads(captured["body"])
         assert body["prompt"] == "draw the repo"
-        assert body["model"] == "gpt-image-1"
+        assert body["model"] == DEFAULT_MODEL
         assert "test-key" not in captured["body"].decode()
 
     def test_custom_model_and_timeout(self, monkeypatch):
@@ -104,7 +110,7 @@ class TestOpenAICompatibleBackend:
             return make_url_response({"data": [{"b64_json": base64.b64encode(b"abc").decode()}]})
 
         monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
-        backend = OpenAICompatibleBackend(
+        backend = OpenRouterImageBackend(
             api_key="k", model="custom-model", timeout=5.0
         )
         backend.generate_image("p")
@@ -112,7 +118,7 @@ class TestOpenAICompatibleBackend:
         assert json.loads(captured["body"])["model"] == "custom-model"
 
     def test_api_key_from_environment(self, monkeypatch):
-        monkeypatch.setenv("GITGEIST_IMAGE_API_KEY", "env-key")
+        monkeypatch.setenv("OPENROUTER_IMAGE_API_KEY", "env-key")
 
         def fake_urlopen(request, timeout=None):
             headers = dict(request.header_items())
@@ -120,14 +126,51 @@ class TestOpenAICompatibleBackend:
             return make_url_response({"data": [{"b64_json": base64.b64encode(b"x").decode()}]})
 
         monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
-        backend = OpenAICompatibleBackend()
+        backend = OpenRouterImageBackend()
         assert backend.generate_image("p") == b"x"
 
     def test_missing_api_key_raises(self, monkeypatch):
-        monkeypatch.delenv("GITGEIST_IMAGE_API_KEY", raising=False)
-        backend = OpenAICompatibleBackend(api_key=None)
+        monkeypatch.delenv("OPENROUTER_IMAGE_API_KEY", raising=False)
+        backend = OpenRouterImageBackend(api_key=None)
         with pytest.raises(ValueError):
             backend.generate_image("p")
+
+    def test_first_env_model_is_used(self, monkeypatch):
+        monkeypatch.setenv("OPENROUTER_IMAGE_MODELS", " a/b , c/d ")
+        captured = {}
+
+        def fake_urlopen(request, timeout=None):
+            captured["body"] = request.data
+            return make_url_response({"data": [{"b64_json": base64.b64encode(b"x").decode()}]})
+
+        monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+        backend = OpenRouterImageBackend(api_key="k")
+        backend.generate_image("p")
+        assert backend.model == "a/b"
+        assert json.loads(captured["body"])["model"] == "a/b"
+
+    def test_explicit_model_overrides_env(self, monkeypatch):
+        monkeypatch.setenv("OPENROUTER_IMAGE_MODELS", "a/b,c/d")
+        backend = OpenRouterImageBackend(api_key="k", model="x/y")
+        assert backend.model == "x/y"
+
+    def test_models_env_without_entries_uses_default(self, monkeypatch):
+        monkeypatch.setenv("OPENROUTER_IMAGE_MODELS", " , ")
+        backend = OpenRouterImageBackend(api_key="k")
+        assert backend.model == DEFAULT_MODEL
+
+    def test_api_url_from_environment(self, monkeypatch):
+        captured = {}
+
+        def fake_urlopen(request, timeout=None):
+            captured["url"] = request.full_url
+            return make_url_response({"data": [{"b64_json": base64.b64encode(b"x").decode()}]})
+
+        monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+        monkeypatch.setenv("OPENROUTER_IMAGE_API_URL", "https://proxy.example.com/v1/images")
+        backend = OpenRouterImageBackend(api_key="k")
+        backend.generate_image("p")
+        assert captured["url"] == "https://proxy.example.com/v1/images"
 
     def test_url_response_is_downloaded(self, monkeypatch):
         calls = []
@@ -139,7 +182,7 @@ class TestOpenAICompatibleBackend:
             return make_bytes_response(PNG_SIGNATURE + b"downloaded")
 
         monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
-        backend = OpenAICompatibleBackend(api_key="k")
+        backend = OpenRouterImageBackend(api_key="k")
         result = backend.generate_image("p")
         assert result == PNG_SIGNATURE + b"downloaded"
         assert calls[1].full_url == "https://img.example.com/portrait.png"
@@ -148,13 +191,13 @@ class TestOpenAICompatibleBackend:
 
     def test_empty_data_raises(self, monkeypatch):
         monkeypatch.setattr(urllib.request, "urlopen", lambda r, timeout=None: make_url_response({"data": []}))
-        backend = OpenAICompatibleBackend(api_key="k")
+        backend = OpenRouterImageBackend(api_key="k")
         with pytest.raises(ValueError):
             backend.generate_image("p")
 
     def test_unsupported_image_payload_raises(self, monkeypatch):
         monkeypatch.setattr(urllib.request, "urlopen", lambda r, timeout=None: make_url_response({"data": [{}]}))
-        backend = OpenAICompatibleBackend(api_key="k")
+        backend = OpenRouterImageBackend(api_key="k")
         with pytest.raises(ValueError):
             backend.generate_image("p")
 
@@ -165,7 +208,7 @@ class TestOpenAICompatibleBackend:
             )
 
         monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
-        backend = OpenAICompatibleBackend(api_key="k")
+        backend = OpenRouterImageBackend(api_key="k")
         with pytest.raises(urllib.error.HTTPError):
             backend.generate_image("p")
 
@@ -174,7 +217,7 @@ class TestOpenAICompatibleBackend:
             raise urllib.error.URLError("name resolution failed")
 
         monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
-        backend = OpenAICompatibleBackend(api_key="k")
+        backend = OpenRouterImageBackend(api_key="k")
         with pytest.raises(urllib.error.URLError):
             backend.generate_image("p")
 
@@ -183,6 +226,6 @@ class TestOpenAICompatibleBackend:
             raise TimeoutError("connection timed out")
 
         monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
-        backend = OpenAICompatibleBackend(api_key="k", timeout=1.0)
+        backend = OpenRouterImageBackend(api_key="k", timeout=1.0)
         with pytest.raises(TimeoutError):
             backend.generate_image("p")

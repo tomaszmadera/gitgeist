@@ -129,13 +129,13 @@ def test_render_prompt_writes_mode_and_required_artifacts(
     assert (out_dir / "portrait.png").stat().st_size > 0
 
 
-def test_render_openai_backend_without_api_key_fails_clean(
+def test_render_openrouter_backend_without_api_key_fails_clean(
     clean_modular_repo: Path,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    monkeypatch.delenv("GITGEIST_IMAGE_API_KEY", raising=False)
+    monkeypatch.delenv("OPENROUTER_IMAGE_API_KEY", raising=False)
     out_dir = tmp_path / "should-not-exist"
     code = main(
         [
@@ -148,12 +148,12 @@ def test_render_openai_backend_without_api_key_fails_clean(
             "-o",
             str(out_dir),
             "--backend",
-            "openai-compatible",
+            "openrouter",
         ]
     )
     assert code == 1
     captured = capsys.readouterr()
-    assert "GITGEIST_IMAGE_API_KEY" in captured.err
+    assert "OPENROUTER_IMAGE_API_KEY" in captured.err
     assert not out_dir.exists()
 
 
@@ -212,7 +212,7 @@ def test_output_dir_that_is_a_file_fails_with_stderr_message(
     assert "Traceback" not in captured.err
 
 
-@pytest.mark.parametrize("backend", ["fake", "openai-compatible"])
+@pytest.mark.parametrize("backend", ["fake", "openrouter"])
 def test_render_backend_with_live_mode_fails(
     clean_modular_repo: Path, backend: str, tmp_path: Path
 ) -> None:
