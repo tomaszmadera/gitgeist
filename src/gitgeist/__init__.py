@@ -17,6 +17,7 @@ except Exception:  # pragma: no cover
     except PackageNotFoundError:
         __version__ = "0.0.1"
 
+from gitgeist.explain import ExplanationArtifacts, explain
 from gitgeist.features.extractor import extract_features
 from gitgeist.interpretation.emotional_model import evaluate_emotional_state
 from gitgeist.mapping.latent_mapper import map_emotional_to_latent
@@ -61,6 +62,7 @@ __all__ = [
     "EmotionalNouls",
     "EmotionalScores",
     "EmotionalState",
+    "ExplanationArtifacts",
     "FakeImageBackend",
     "GeometryParameters",
     "GitHistoryFeatures",
@@ -79,6 +81,7 @@ __all__ = [
     "__version__",
     "compose_prompt",
     "evaluate_emotional_state",
+    "explain",
     "extract_features",
     "map_emotional_to_latent",
     "render_live",
