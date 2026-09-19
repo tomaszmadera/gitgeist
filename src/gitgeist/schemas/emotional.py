@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from gitgeist._version import current_engine_version
+
 
 class EmotionalScores(BaseModel):
     """Continuous emotional and semantic metrics in range [0.0, 1.0]."""
@@ -86,4 +88,4 @@ class EmotionalState(BaseModel):
     choices: EmotionalChoices
     calculated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     source_commit: str | None = None
-    engine_version: str = "0.1.0-beta.1"
+    engine_version: str = Field(default_factory=current_engine_version)

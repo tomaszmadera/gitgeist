@@ -14,7 +14,7 @@ def evaluate_emotional_state(
     features: RepositoryFeatures,
     source_commit: str | None = None,
     calculated_at: datetime | None = None,
-    engine_version: str = "0.1.0-beta.1",
+    engine_version: str | None = None,
 ) -> EmotionalState:
     """Evaluate deterministic emotional state profile from repository features."""
     if not isinstance(features, RepositoryFeatures):
@@ -26,11 +26,14 @@ def evaluate_emotional_state(
 
     eval_time = calculated_at or features.extracted_at
 
-    return EmotionalState(
-        scores=scores,
-        nouls=nouls,
-        choices=choices,
-        calculated_at=eval_time,
-        source_commit=source_commit,
-        engine_version=engine_version,
-    )
+    kwargs = {
+        "scores": scores,
+        "nouls": nouls,
+        "choices": choices,
+        "calculated_at": eval_time,
+        "source_commit": source_commit,
+    }
+    if engine_version is not None:
+        kwargs["engine_version"] = engine_version
+
+    return EmotionalState(**kwargs)
