@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 
 from gitgeist import __version__
+from gitgeist.env import load_dotenv
 from gitgeist.explain import explain
 from gitgeist.features.extractor import extract_features
 from gitgeist.interpretation.emotional_model import evaluate_emotional_state
@@ -229,7 +230,9 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: list[str] | None = None, load_env: bool = True) -> int:
+    if load_env:
+        load_dotenv()
     parser = _build_parser()
     args = parser.parse_args(argv)
     try:

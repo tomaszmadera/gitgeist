@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -137,6 +138,7 @@ def test_render_openrouter_backend_without_api_key_fails_clean(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
+    monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("OPENROUTER_IMAGE_API_KEY", raising=False)
     out_dir = tmp_path / "should-not-exist"
     code = main(
@@ -157,6 +159,43 @@ def test_render_openrouter_backend_without_api_key_fails_clean(
     captured = capsys.readouterr()
     assert "OPENROUTER_IMAGE_API_KEY" in captured.err
     assert not out_dir.exists()
+
+
+def test_render_openrouter_backend_loads_api_key_from_dotenv(
+    clean_modular_repo: Path,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("OPENROUTER_IMAGE_API_KEY", raising=False)
+    (tmp_path / ".env").write_text("OPENROUTER_IMAGE_API_KEY=test-dotenv-key\n", encoding="utf-8")
+
+    captured_backend: dict[str, str | None] = {}
+
+    class _CaptureBackend(FakeImageBackend):
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            super().__init__()
+            self.api_key = os.environ.get("OPENROUTER_IMAGE_API_KEY")
+            captured_backend["api_key"] = self.api_key
+
+    monkeypatch.setattr("gitgeist.cli.OpenRouterImageBackend", _CaptureBackend)
+    out_dir = tmp_path / "dotenv-out"
+    code = main(
+        [
+            "render",
+            str(clean_modular_repo),
+            "--representation",
+            "character",
+            "--mode",
+            "prompt-to-image",
+            "-o",
+            str(out_dir),
+            "--backend",
+            "openrouter",
+        ]
+    )
+    assert code == 0
+    assert captured_backend.get("api_key") == "test-dotenv-key"
 
 
 class _ExplodingBackend(FakeImageBackend):
