@@ -17,6 +17,7 @@ except Exception:  # pragma: no cover
     except PackageNotFoundError:
         __version__ = "0.0.1"
 
+from gitgeist.env import find_dotenv, load_dotenv
 from gitgeist.explain import ExplanationArtifacts, explain
 from gitgeist.features.extractor import extract_features
 from gitgeist.interpretation.emotional_model import evaluate_emotional_state
@@ -85,6 +86,8 @@ __all__ = [
     "evaluate_emotional_state",
     "explain",
     "extract_features",
+    "find_dotenv",
+    "load_dotenv",
     "map_emotional_to_latent",
     "render_live",
     "render_prompt",

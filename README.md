@@ -60,6 +60,12 @@ Konfiguracja backendu `openrouter` (zmienne środowiskowe):
 - `OPENROUTER_IMAGE_API_URL`: pełny endpoint POST (domyślnie `https://openrouter.ai/api/v1/images`),
 - `OPENROUTER_IMAGE_MODELS`: modele rozdzielone przecinkami; używany jest pierwszy wpis (domyślnie `google/gemini-3.1-flash-lite-image`).
 
+Zmienne te można zdefiniować w pliku `.env`, który ładowany jest automatycznie przy każdym uruchomieniu. Kolejność źródeł (wyższy priorytet najpierw):
+
+1. Środowisko procesu (`export ...`),
+2. `.env` w bieżącym katalogu lub jego rodzicach (do granicy `.git`), albo plik wskazany przez `GITGEIST_ENV_FILE`,
+3. Plik użytkownika `~/.config/gitgeist/.env` (respektuje `XDG_CONFIG_HOME`) — globalny fallback działający z dowolnego katalogu.
+
 Bez klucza polecenie kończy się błędem z kodem 1 (nie ma cichego przełączenia na backend `fake`). Oba wywołania tworzą `prompt.txt` oraz portret o nazwie zgodnej z wykrytym formatem bajtów: `portrait.png`, `portrait.jpg` lub `portrait.webp`; wykryty typ mediów zwraca też `render_prompt` w polu `media_type`. Opcja `--backend` i `--image-format` dotyczą wyłącznie `--mode prompt-to-image`.
 
 ### Normalizacja portretu do PNG
