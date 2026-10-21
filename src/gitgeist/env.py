@@ -92,6 +92,7 @@ def load_dotenv(path: Path | str | None = None, override: bool = False) -> bool:
        regardless of the current working directory.
 
     Precedence: process environment > local .env > user-level .env.
+    Empty values in a .env file are skipped and do not shadow a later source.
     """
     if path is not None:
         return _load_env_file(Path(path), override=override)
@@ -117,6 +118,10 @@ def _load_env_file(env_path: Path, override: bool = False) -> bool:
 
     parsed = parse_dotenv(content)
     for key, value in parsed.items():
+        # An empty value (for example a copied .env.example) means "not set here",
+        # so it must not shadow a lower-priority source such as the user-level file.
+        if value == "":
+            continue
         if override or key not in os.environ:
             os.environ[key] = value
     return True
