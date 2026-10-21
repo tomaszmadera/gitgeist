@@ -2,7 +2,7 @@
 
 Path: `docs/features/visual-diversity/design.md`
 
-Status: proposal for review. It changes product contracts, so it needs your decision (see "Decision needed") before any spec is written. Evidence: `analysis.md`. Steps: `plan.md`.
+Status: proposal for review. It changes product contracts, so it needs your decision (see "Decision needed") before any spec is written. It has two interchangeable strategies: counters (measured features) and evaluation (an LLM scores a rubric); both produce the same `VisualSpec`. Evidence: `analysis.md`. Steps: `plan.md`.
 
 ## Goals
 
@@ -10,10 +10,11 @@ Status: proposal for review. It changes product contracts, so it needs your deci
 2. The main conclusions about a repository are readable at a glance, without a legend: size, age, whether it is alive, team shape, where change concentrates, care, sprawl.
 3. Controlled unpredictability: a stable look per repository (identity seed), an optional user seed for a new variation, and switchable styles, all set by config and CLI flags.
 4. Diversity is measured and guarded by tests.
+5. Two switchable strategies feed the same portrait format: `counters` (deterministic, default) and `evaluation` (an LLM judges the repository against a rubric).
 
 ## Non-goals
 
-- A semantic or LLM layer (JEV stays `unmet`, `docs/product/invariants.md:7-16`). The design works without it and can take its output later as one more trait.
+- JEV integration. It stays `unmet` (`docs/product/invariants.md:7-16`); the evaluation strategy is a separate, optional LLM path (see "Relation to the product contracts").
 - Literal programmer symbols or mascots. The prompt negative constraints stay.
 - Multi-commit timelines and comparison views (product section 16). The identity seed makes them possible later.
 
@@ -27,6 +28,8 @@ This is close to the document's own anti-example: `debt` drawn as cracks is near
 
 Because the product document outranks a design document, this needs an explicit product decision (ADR) amending sections 3 and 10. Recommended: accept the channel rule; keep the ban on props and symbols. If you reject it, goals 1 and 3 still apply, but goal 2 drops to "explained in `summary.md`" and the caption becomes the only at-a-glance reading.
 
+A second decision enables the evaluation strategy: an optional LLM interpretation path, while `docs/product/invariants.md` keeps JEV integration `unmet` and the current specs are deterministic-only. Details in "Relation to the product contracts".
+
 ## Architecture
 
 The layer order from the product document stays: features, interpretation, visual latent, renderer. Three things change inside it.
@@ -34,8 +37,10 @@ The layer order from the product document stays: features, interpretation, visua
 ```text
 repo
   -> features v2 (scalars + structure: layout, timeline, languages, hotspots, authors)
-  -> normalization (log + reference percentiles)
-  -> traits (9 decorrelated scalars) + existing emotional state (kept for explain)
+  -> strategy:
+       counters:   normalization (log + reference percentiles) -> 9 traits
+       evaluation: input bundle -> LLM evaluator -> rubric scores -> 9 traits
+  -> traits (9 scalars) + structure (always factual) + existing emotional state (kept for explain)
   -> VisualSpec (renderer-neutral scene: masses, rings, palette, marks, motion, style, seed)
   -> live abstract | live character | prompt abstract | prompt character
 ```
@@ -202,6 +207,187 @@ Pass the effective seed to the backend when the API accepts one (to verify for O
 
 That concrete directives make image models follow repository structure is an assumption. Plan stage 6 checks it with a small paid A/B run, after your approval.
 
+## Strategy 2: rubric evaluation
+
+The counter strategy (everything above) measures a repository. The evaluation strategy judges it: a language model scores the repository against a fixed rubric, and those scores drive the portrait. Both strategies produce the same `VisualSpec`, so every renderer, style, seed and flag works with either. Selected with `--strategy counters|evaluation` (config key `strategy`).
+
+### Why a second strategy
+
+Counters see size, history and file names. They cannot see whether the README explains the purpose, whether the tests test anything, or whether the code has a voice. A model reading a sample of the repository can. Different models, and different prompts, attend to different things and will judge the same repository differently. For a curiosity project that is a feature: the same repository seen through another model or another lens gives another, still grounded, portrait. Lenses are a switchable option (see "Lenses").
+
+### Rubric
+
+17 criteria, each scored 0 to 4. The shared anchors are: 0 absent or harmful, 1 weak, 2 typical for public repositories, 3 clearly good, 4 exemplary. Each criterion adds its own anchors for 0, 2 and 4 so the model has concrete reference points. `null` is allowed only when the bundle has no evidence for the criterion (for example code readability in a docs-only repository), and must carry a reason.
+
+| Id | Criterion | 0 | 2 | 4 |
+|---|---|---|---|---|
+| `purpose` | Purpose clarity | cannot tell what it is for | purpose stated, scope vague | one-sentence purpose, audience and limits clear |
+| `docs` | Documentation | none | README covers basic use | usage, concepts and reference, kept current |
+| `onboarding` | Onboarding | no way to install or run | install steps exist, some guessing | one command or short documented path to a working setup |
+| `readability` | Code readability | opaque names, huge functions | readable with effort | names and structure explain the code |
+| `architecture` | Architecture and modularity | one tangle | some separation, leaky boundaries | clear modules with stable interfaces |
+| `tests` | Test depth | no tests | tests for main paths | tests cover behavior and edge cases, readable as a spec |
+| `automation` | Automation and tooling | none | some scripts or CI | CI, lint, format and release automated |
+| `robustness` | Error handling and robustness | errors ignored or swallowed | common errors handled | failures explicit, inputs validated |
+| `consistency` | Consistency of conventions | each file its own style | mostly consistent | one style everywhere, enforced |
+| `maintenance` | Maintenance and liveliness | abandoned, open rot | occasional upkeep | steady, recent care |
+| `change_discipline` | Change discipline | giant unexplained commits | mixed | small, well-described commits |
+| `dependencies` | Dependency hygiene | many, unpinned or stale | reasonable | few, pinned, current |
+| `security` | Security hygiene | secrets or unsafe defaults visible | nothing alarming | safe defaults, documented handling of secrets |
+| `focus` | Scope focus | sprawling, unrelated parts | mostly one job | does one thing well |
+| `ambition` | Ambition and novelty | trivial copy of known things | useful, familiar | unusual idea or hard problem done well |
+| `voice` | Character and voice | no personality | some tone | a distinct, recognizable voice in docs and code |
+| `collaboration` | Collaboration readiness | closed to others | contributors could manage | contribution guide, templates, welcoming review history |
+
+Besides scores, the model must name its 3 strongest and 3 weakest criteria (distinct ids) and one `focal_path`: the file or directory that best explains its judgment.
+
+### Evaluator input bundle
+
+Built by gitgeist, deterministic for a given commit, saved as `evaluation-input.json` next to the other artifacts so you can see what the model saw.
+
+| Part | Content | Budget |
+|---|---|---|
+| features | features v2 JSON (`design.md` "Features v2") | full |
+| tree | relative paths of tracked files, depth-first, sorted | 2000 entries |
+| readme | README text | 8000 characters |
+| manifests | `pyproject.toml`, `package.json`, `Cargo.toml`, `go.mod` and similar | 4000 characters each |
+| code samples | top 3 hotspots, largest file per mass, one entry point, one test file; each cut to 200 lines | 60000 characters total |
+| git | counts and dates from features, last 30 commit subjects | 3000 characters |
+
+Total budget is set by `--eval-budget` (characters, default 90000, about 25000 tokens). Only tracked files are read. Files matching `.env*`, key and certificate patterns, binaries and `.agents/` are never included. API and CLI backends send the bundle to their provider, so the evaluation strategy runs only when a backend is configured explicitly; there is no default backend.
+
+### Evaluator contract
+
+```text
+Evaluator.evaluate(bundle: EvaluationBundle, rubric: Rubric, lens: Lens) -> RubricResult
+```
+
+Output JSON schema (`RubricResult`, Pydantic, frozen):
+
+```json
+{
+  "schema_version": "1",
+  "rubric_version": "1",
+  "prompt_version": "1",
+  "lens": "default",
+  "backend": "openrouter",
+  "model_id": "deepseek/<model>",
+  "bundle_sha256": "...",
+  "scores": {
+    "purpose": {"score": 3, "evidence": "README line 1 states the goal and audience", "refs": ["README.md"]}
+  },
+  "strengths": ["tests", "docs", "purpose"],
+  "weaknesses": ["onboarding", "dependencies", "collaboration"],
+  "focal_path": "src/core.py",
+  "summary": "max 300 characters"
+}
+```
+
+Validation, all errors fatal:
+
+- every rubric id present, no unknown ids;
+- `score` is an integer 0 to 4, or `null` with a non-empty reason in `evidence`;
+- `evidence` 1 to 240 characters; every path in `refs` and `focal_path` exists in the bundle tree;
+- `strengths` and `weaknesses` are 3 distinct valid ids each, with no overlap;
+- `rubric_version` and `prompt_version` match the ones sent.
+
+On invalid output, gitgeist re-asks once with the validation errors listed, and records that retry in the result. A second invalid answer is an error.
+
+Caching: key is SHA-256 of identity seed, `bundle_sha256`, rubric version, prompt version, lens, backend and model id. Results are stored in `~/.cache/gitgeist/evaluations/<key>.json`. A new commit changes the bundle and so the key; `--eval-refresh` ignores the cache. A cached result makes a run reproducible, because model output is not.
+
+Timeouts: 180 s for CLI backends, 120 s for HTTP, configurable.
+
+Failure behavior, per `AGENTS.md` (no silent fallback): a missing CLI binary, failed authentication, timeout, non-JSON output or a second validation failure stops the run with a non-zero exit and a message naming the backend and the cause. gitgeist never falls back to the counter strategy or to another backend on its own, and writes no portrait for a failed evaluation.
+
+### Adapters
+
+| Adapter | Call | Billing |
+|---|---|---|
+| `command` | any CLI that reads the prompt on stdin and prints JSON; command line from config | depends on the tool |
+| `grok-cli` | `grok -p` (non-interactive) | your subscription |
+| `gemini-cli` | `gemini -p` with a model flag (Gemini Pro on your plan); `agy` through `command` if it has a non-interactive mode (to verify) | your subscription |
+| `openrouter` | chat completions with a JSON schema response format; model from config (current DeepSeek or a Flash model); key in `OPENROUTER_EVAL_API_KEY` | paid per token |
+| `fake` | returns a fixed or seeded `RubricResult`; tests only | none |
+
+Exact flags for each CLI are checked when the adapter is built (plan stage 11). Temperature 0 where the backend supports it.
+
+Subscription backends cost no money per call but use your quota and send code to the provider; API backends cost money. Any run on your repositories needs your yes. Expected cost for one corpus run (12 repositories, about 25000 input tokens each) on a cheap API model is under 1 USD; check current prices before the run.
+
+### Lenses
+
+A lens is a prompt variant that changes what the model attends to. The rubric and output schema stay the same, so lenses are interchangeable. Selected with `--lens` (config key `evaluation.lens`), recorded in the result and shown in the caption.
+
+| Lens | Attends to |
+|---|---|
+| `default` | balanced reading of all criteria |
+| `newcomer` | first hour: README, onboarding, purpose |
+| `maintainer` | tests, robustness, change discipline, dependencies |
+| `craftsperson` | readability, architecture, consistency, voice |
+| `archaeologist` | history, maintenance, how the project changed |
+| `critic` | weakest points first, no benefit of the doubt |
+
+### Flat scores, the one real risk
+
+Disagreement between models is welcome. The risk is a dull result: a model gives most criteria 3 and every repository looks the same again.
+
+Measures, on the corpus after each run:
+
+- per-criterion standard deviation across repositories (0 to 4 scale);
+- modal share: share of all scores equal to the single most common value;
+- per-repository standard deviation across criteria;
+- after mapping, the same trait participation ratio and image distance `D` as the counter strategy.
+
+Targets: standard deviation at least 0.8 for 12 of 17 criteria; modal share at most 40%; per-repository standard deviation at least 0.7 for 10 of 12 repositories.
+
+Mitigations, in order of cost:
+
+1. Concrete anchors per criterion, with 2 defined as "typical", so 3 and 4 must be earned.
+2. Forced choice: 3 strengths and 3 weaknesses per repository; the mapping adds +1 and -1 to those criteria before scaling.
+3. Percentile scaling across the evaluated corpus (`--scale corpus` or `portfolio`), which spreads scores even when the raw range is narrow.
+4. Lenses that ask the model to look from one angle.
+5. Ranking mode (later): the model compares 4 repositories at a time per criterion, which forces differences.
+
+### Mapping rubric scores to traits
+
+Structure stays factual in both strategies: masses, timeline and rings count, language hues and hotspot positions come from features v2. What changes is the 9 trait values, so the same skeleton looks different depending on the judgment.
+
+Each criterion score becomes `s / 4` (forced-choice adjustment applied, clipped to [0, 1]), then is scaled with the active `--scale` mode. A trait is the mean of its criteria, ignoring `null` scores; a trait whose criteria are all `null` is an error unless the rubric marks it optional for that repository type (docs-only), in which case the trait is set to the corpus median and the caption says so.
+
+| Channel | Counter trait | Evaluation trait | Criteria |
+|---|---|---|---|
+| footprint | `size` | substance | `ambition`, `architecture` |
+| rings (count stays factual) | `age` | history craft: ring regularity and contrast | `change_discipline`, `maintenance` |
+| saturation and motion | `alive` | vitality | `maintenance`, `voice` |
+| strands | `crowd` | openness | `collaboration`, `onboarding` |
+| focal knot | `focus` | standout: knot size from the spread between strongest and weakest criteria; placed on `focal_path` | `strengths`, `weaknesses` |
+| edge quality | `care` | rigor | `tests`, `automation`, `robustness`, `consistency`, `readability` |
+| topology (masses stay factual) | `sprawl` | clarity: separation and alignment of masses | `architecture`, `focus` |
+| hatching | `prose` | communication | `purpose`, `docs` |
+| cracks | `debt` | risk (inverted) | `robustness`, `security`, `dependencies` |
+
+The HUD and caption name the strategy, backend, model and lens, and use the evaluation's top strength, top weakness and `summary` as the three plain conclusions.
+
+### Comparing the strategies
+
+Run both strategies on the 12-repository corpus from `analysis.md`, same styles and seeds, one evaluation backend and the `default` lens.
+
+- Trait-level: Spearman correlation per channel between counter and evaluation trait values across the 12 repositories.
+- Image-level: for each repository, distance `D` between its two portraits; compare with the nearest-neighbour distance inside each strategy.
+- Side-by-side contact sheet: one row per repository, columns counters and evaluation (and a second backend or lens if run).
+
+Acceptance:
+
+1. The evaluation strategy alone meets the diversity targets of the counter strategy (nearest-neighbour median `D` at least 0.40) and the flat-score targets above.
+2. For at least 8 of 12 repositories, the cross-strategy distance is at least the median nearest-neighbour distance inside the counter strategy: the two portraits of one repository differ as much as two different repositories do.
+3. Mean absolute Spearman correlation across channels is at most 0.8; if every channel is above 0.9, the evaluation adds nothing and the strategy is reconsidered.
+4. Your review of the side-by-side sheet.
+
+The comparison run calls an LLM backend and needs your yes.
+
+### Relation to the product contracts
+
+`docs/product/invariants.md:7-16` records the JEV integration as `unmet`, and the current specs (`docs/features/feature-extraction/spec.md`, `docs/features/emotional-state-model/spec.md`) describe a deterministic-only interpretation. The product document does foresee a stronger LLM summarizing the repository and choosing important traits (`docs/product/emotional-repository-portrait-system.md:360-366`). The evaluation strategy is an optional LLM interpretation path; it is not JEV, and its existence must not be reported as meeting the `jev-real-integration` invariant (its `blocking_scope` forbids that). Stage 0 records a product decision that enables this path, keeps the counter strategy as the default, and keeps the invariant `unmet`.
+
 ## Configuration and CLI
 
 New flags on `gitgeist render` (and on `analyze` where they affect `profile.json`):
@@ -215,6 +401,13 @@ New flags on `gitgeist render` (and on `analyze` where they affect `profile.json
 | `--palette` | `language`, `seeded` | `language` |
 | `--caption` | `on`, `off` | `on` |
 | `--prompt-name` | flag | off |
+| `--strategy` | `counters`, `evaluation` | `counters` |
+| `--evaluator` | `command`, `grok-cli`, `gemini-cli`, `openrouter`, `fake` | none; required with `--strategy evaluation` |
+| `--lens` | `default`, `newcomer`, `maintainer`, `craftsperson`, `archaeologist`, `critic` | `default` |
+| `--eval-budget` | characters | 90000 |
+| `--eval-refresh` | flag | off |
+
+Config keys: `strategy`, and an `[evaluation]` table with `backend`, `model`, `command`, `lens`, `budget`, `timeout_seconds`. API keys stay in `.env` (`OPENROUTER_EVAL_API_KEY`), never in the config file.
 
 Optional config file, same keys, precedence: CLI, then `./gitgeist.toml`, then `~/.config/gitgeist/config.toml` (same directory as the existing user `.env`, `src/gitgeist/env.py:68-71`), then defaults. Unknown keys are an error, not ignored.
 
@@ -229,6 +422,7 @@ Metrics live on `VisualSpec`, not on pixels, so tests are fast and deterministic
 - Monotonicity: each trait rises with its input.
 - Determinism and seeds: same repository and seed give identical spec and HTML; another user seed keeps traits and structure identical and changes free fields; a fixture commit that touches one file keeps the identity seed and moves no mass by more than a small threshold.
 - Reference corpus check (offline dev script, not CI): trait participation ratio and maximum |r|, reported with each engine version. Target: no trait pair above |r| 0.8.
+- Evaluation strategy: contract tests with the `fake` evaluator (schema validation, every invalid case, the single re-ask, cache key and hit, timeout and missing-binary errors, no fallback); bundle builder tests (budget limits, excluded files, determinism); mapping tests (criteria to traits, `null` handling, forced-choice adjustment). No test calls a real backend.
 - Image check (dev script): headless Chrome contact sheet and distance `D` from `analysis.md`. Baseline nearest-neighbour median: 0.255 (abstract), 0.164 (character). Mockup: 0.462. Target for stage 4 and 5: at least 0.40 on the 12-repository corpus.
 
 ## Mockup
@@ -244,4 +438,5 @@ What it shows: `is-odd` and `z` are pale and faded (dormant for years), `lua` ha
 - Readability competes with variety. The language-hue rule and fixed channels make portraits learnable but can make same-stack repositories look related. `--palette seeded` and the style pool are the release valve.
 - A corpus table must be kept current. Without it, `absolute` scaling is less even; the 12-repository prototype used percentiles inside the corpus.
 - Prompt adherence of image models is unverified (stage 6).
+- Evaluation strategy: the only real risk is flat, uninteresting scores (see "Flat scores, the one real risk"). Differences between models and lenses are intended. Model output is not reproducible without the cache.
 - `profile.json` changes shape; `engine_version` must change and the README determinism claim for `analyze` must be rechecked.
