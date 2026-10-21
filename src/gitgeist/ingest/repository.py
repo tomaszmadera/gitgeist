@@ -19,6 +19,8 @@ IGNORED_DIRS = {
     "build",
     ".idea",
     ".vscode",
+    # Default artifact directory of the CLI; scanning it makes reruns non-deterministic.
+    "gitgeist-output",
 }
 
 BINARY_EXTENSIONS = {
