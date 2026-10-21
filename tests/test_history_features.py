@@ -114,3 +114,24 @@ def test_git_history_non_linear_dates(tmp_path: Path) -> None:
     assert features.first_commit_date <= features.last_commit_date
     assert features.first_commit_date.day == 1
     assert features.last_commit_date.day == 10
+
+
+def _git(repo_dir: Path, *args: str) -> None:
+    subprocess.run(["git", *args], cwd=repo_dir, check=True, capture_output=True)
+
+
+def test_git_history_author_name_with_pipe_keeps_name_and_date(tmp_path: Path) -> None:
+    repo_dir = tmp_path / "pipe-author-repo"
+    repo_dir.mkdir()
+    _git(repo_dir, "init", "-b", "main")
+    _git(repo_dir, "config", "user.name", "Ada | Lovelace")
+    _git(repo_dir, "config", "user.email", "ada@test.local")
+    (repo_dir / "f1.txt").write_text("1")
+    _git(repo_dir, "add", ".")
+    _git(repo_dir, "commit", "-m", "commit 1")
+
+    raw_history = extract_git_history(repo_dir)
+
+    assert raw_history.authors == ["Ada | Lovelace"]
+    assert raw_history.first_commit_date is not None
+    assert raw_history.last_commit_date is not None
