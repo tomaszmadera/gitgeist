@@ -1,5 +1,5 @@
 # Backlog
 
-Ten plik przechowuje wyłącznie odłożone pomysły dotyczące projektu. Nie jest aktywnym planem realizacji.
+This file holds only deferred ideas for the project. It is not an active plan.
 
-Nowe pozycje dopisuj jako pojedyncze punkty. Gdy pomysł wchodzi do realizacji, usuń go stąd i utwórz właściwą specyfikację lub rekord zadania.
+Add new items as single bullet points. When an idea moves into work, remove it from here and create a proper specification or task record.
