@@ -2,11 +2,11 @@
 
 Path: `docs/features/visual-diversity/plan.md`
 
-Status: proposal. Nothing here is approved or started. Evidence: `analysis.md`. Target design: `design.md`.
+Status: proposal. Nothing here is approved or started. Evidence: `analysis.md`. Target design: `design.md`. Stages 0 to 8 build the counter strategy and the shared portrait format; stages 9 to 13 add the evaluation strategy.
 
 ## Classification
 
-Per `AGENTS.md`, the whole change is `large` development: several independently demonstrable units (features, spec model, two live renderers, prompt, CLI). It runs under the spec-driven workflow with a task record, an approved spec and plan per standard stage, and independent review. Small stages follow the small-development route. Stages 0 and 1 can start before any spec is approved.
+Per `AGENTS.md`, the whole change is `large` development: several independently demonstrable units (features, spec model, two live renderers, prompt, CLI, evaluator). It runs under the spec-driven workflow with a task record, an approved spec and plan per standard stage, and independent review. Small stages follow the small-development route. Stages 0 and 1 can start before any spec is approved.
 
 ## Stages
 
@@ -17,8 +17,10 @@ Size: decision only.
 1. Accept, change or reject the channel rule in `design.md` ("Decision needed"), and record it as a product decision amending sections 3 and 10 of `docs/product/emotional-repository-portrait-system.md`.
 2. Pick the first styles: recommended `orbits` (abstract) and `creature` (character).
 3. Approve the default scale mode for the first release: recommended `absolute` until the corpus table exists.
+4. Enable or reject the evaluation strategy (`design.md` "Strategy 2: rubric evaluation"). If enabled, record a product decision that: allows an optional LLM interpretation path next to the deterministic one; keeps `counters` as the default; keeps the `jev-real-integration` invariant in `docs/product/invariants.md` as `unmet` (the evaluation strategy is not JEV); and notes that `docs/features/feature-extraction/spec.md` and `docs/features/emotional-state-model/spec.md` stay deterministic-only, with the evaluation path specified separately.
+5. Pick the first evaluation backend for the comparison run: recommended `grok-cli` or `gemini-cli` (your subscriptions, no per-call charge), with `openrouter` as the paid option.
 
-Acceptance: a decision record exists; `design.md` is updated to match.
+Acceptance: decision records exist; `design.md` is updated to match.
 
 ### Stage 1: measurement harness and bug fixes
 
@@ -115,6 +117,59 @@ Size: small per style once stage 3 to 5 exist.
 
 Acceptance per style: it draws every channel (channel isolation test on rendered spec), and the golden diversity test still passes.
 
+### Stage 9: evaluator contract
+
+Size: standard. Needs a spec (new `docs/features/evaluation-strategy/spec.md`).
+
+- `EvaluationBundle` builder with budgets and exclusions; `evaluation-input.json` artifact.
+- `RubricResult` schema and validation, single re-ask, cache, timeouts, error behavior without fallback.
+- `Evaluator` interface and the `fake` adapter.
+
+Acceptance:
+
+1. Contract tests from `design.md` "Testing diversity" pass with the `fake` evaluator; no test calls a real backend.
+2. The bundle is deterministic for a fixture commit and never contains `.env*`, key files, binaries or `.agents/`.
+3. Every failure path exits non-zero with a message naming backend and cause.
+
+### Stage 10: rubric, prompt and lenses
+
+Size: standard (the rubric and prompt are a contract with their own versions).
+
+- Rubric v1 (17 criteria, anchors) and prompt v1 as versioned package data.
+- Lenses `default`, `newcomer`, `maintainer`, `craftsperson`, `archaeologist`, `critic`.
+- Flat-score measures as a dev script: per-criterion spread, modal share, per-repository spread.
+
+Acceptance:
+
+1. Prompt rendering tests: the prompt contains every criterion with its anchors, the bundle, the lens text and the output schema; the version strings match.
+2. With your yes, a dry run on 2 of your repositories through one subscription backend returns valid results.
+
+### Stage 11: adapters
+
+Size: small per adapter.
+
+- `command`, `grok-cli`, `gemini-cli`, `openrouter`. Exact CLI flags and the OpenRouter JSON schema option are verified while building each one.
+
+Acceptance per adapter: a test with a stub executable or a local HTTP stub covers success, non-JSON output, timeout and missing binary or key; the key never appears in logs or artifacts.
+
+### Stage 12: rubric-to-trait mapping and the strategy switch
+
+Size: small, as an amendment to the stage 3 spec.
+
+- Mapping table from `design.md` "Mapping rubric scores to traits", forced-choice adjustment, `null` handling, `focal_path` as knot position.
+- `--strategy counters|evaluation`, `--evaluator`, `--lens`, `--eval-budget`, `--eval-refresh`, config keys `strategy` and `[evaluation]`.
+- HUD and caption show strategy, backend, model and lens.
+
+Acceptance: mapping tests with fixed `RubricResult` fixtures; both strategies produce a `VisualSpec` that passes the same schema and golden-structure tests; `--strategy evaluation` without a backend is an error.
+
+### Stage 13: strategy comparison
+
+Size: small (analysis, no product change). Needs your yes, because it calls an LLM backend.
+
+- Run both strategies on the 12-repository corpus; write `docs/features/visual-diversity/comparison.md` with trait correlations, distances, flat-score measures and a side-by-side contact sheet.
+
+Acceptance: the four criteria in `design.md` "Comparing the strategies". If they fail, the report says which mitigation from "Flat scores, the one real risk" to try next.
+
 ## Order and dependencies
 
 ```text
@@ -123,12 +178,15 @@ Acceptance per style: it draws every channel (channel isolation test on rendered
                3 -> 6
                3 -> 7
           4, 5 -> 8
+0, 2 -> 9 -> 10 -> 11
+       3, 9 -> 12
+4, 5, 11, 12 -> 13
 ```
 
-Stages 4 and 6 can run in parallel after stage 3. The first visible change for you is stage 4.
+Stages 4 and 6 can run in parallel after stage 3. Stages 9 to 11 can run in parallel with stages 3 to 5. The first visible change for you is stage 4; the first evaluation portrait comes after stage 12.
 
 ## Out of scope
 
-- JEV or LLM interpretation (`docs/product/invariants.md`).
+- JEV integration (`docs/product/invariants.md`); the evaluation strategy does not change that invariant.
 - Multi-commit timelines and comparison views (product section 16).
 - Changes to the open PR #1 branch `docs/readme-en-and-review-fixes`.
