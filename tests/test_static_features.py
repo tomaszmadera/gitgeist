@@ -86,3 +86,17 @@ def test_scan_repository_case_insensitive_ignored_dirs(tmp_path: Path) -> None:
     assert scan.file_count == 1
     assert scan.directory_count == 1
     assert "src/app.py" in [p.as_posix() for p in scan.relative_file_paths]
+
+
+def test_scan_repository_tree_skips_default_output_dir(tmp_path: Path) -> None:
+    (tmp_path / "app.py").write_text("print('app')", encoding="utf-8")
+    output_dir = tmp_path / "gitgeist-output" / tmp_path.name
+    output_dir.mkdir(parents=True)
+    (output_dir / "summary.md").write_text("# TODO: earlier run\n", encoding="utf-8")
+    (output_dir / "profile.json").write_text("{}", encoding="utf-8")
+
+    scan = scan_repository_tree(tmp_path)
+
+    assert [p.as_posix() for p in scan.relative_file_paths] == ["app.py"]
+    assert scan.directory_count == 0
+    assert scan.todo_count == 0

@@ -79,6 +79,17 @@ def test_analyze_rerun_overwrites_with_stable_summary(
     assert (out_dir / "summary.md").read_text(encoding="utf-8") == summary_first
 
 
+def test_analyze_rerun_from_inside_repo_keeps_stable_summary(
+    clean_modular_repo: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(clean_modular_repo)
+    out_dir = clean_modular_repo / "gitgeist-output" / clean_modular_repo.name
+    assert main(["analyze", "."]) == 0
+    summary_first = (out_dir / "summary.md").read_text(encoding="utf-8")
+    assert main(["analyze", "."]) == 0
+    assert (out_dir / "summary.md").read_text(encoding="utf-8") == summary_first
+
+
 @pytest.mark.parametrize("representation", ["character", "abstract"])
 def test_render_live_writes_mode_and_required_artifacts(
     clean_modular_repo: Path, representation: str, tmp_path: Path

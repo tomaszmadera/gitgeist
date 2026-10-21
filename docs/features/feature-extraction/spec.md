@@ -45,7 +45,7 @@ Zbudować moduł deterministycznej ekstrakcji cech repozytorium (Warstwa 1 w arc
 - Funkcja `extract_features(repo_path: Path) -> RepositoryFeatures` przyjmuje ścieżkę do katalogu i zwraca w pełni zwalidowany model `RepositoryFeatures`.
 - Jeśli ścieżka nie istnieje lub nie jest katalogiem, funkcja podnosi `FileNotFoundError` lub `NotADirectoryError`.
 - Jeśli ścieżka jest katalogiem, ale nie jest repozytorium Git (brak `.git` lub błąd `git rev-parse`), moduł generuje cechy statyczne i dokumentacji, a dla cech historii Git zwraca pusty/domyślny profil `GitHistoryFeatures(is_git_repo=False, commit_count=0, ...)`.
-- Skanowanie plików ściśle ignoruje katalogi `.git`, `.venv`, `venv`, `node_modules`, `__pycache__`, `.pytest_cache`, `.eggs`, `dist`, `build`.
+- Skanowanie plików ściśle ignoruje katalogi `.git`, `.venv`, `venv`, `node_modules`, `__pycache__`, `.pytest_cache`, `.eggs`, `dist`, `build`, `.idea`, `.vscode` oraz domyślny katalog artefaktów CLI `gitgeist-output` (inaczej kolejne uruchomienie z wnętrza repozytorium skanuje artefakty poprzedniego).
 
 ## Business rules
 
