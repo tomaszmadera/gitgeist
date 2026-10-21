@@ -120,7 +120,9 @@ def extract_git_history(repo_path: Path) -> RawGitHistory:
 
     try:
         stat_res = subprocess.run(
-            ["git", "log", "--numstat", "--format="],
+            # --no-renames keeps real paths instead of "old => new" pseudo-paths;
+            # core.quotePath=false keeps non-ASCII paths unescaped.
+            ["git", "-c", "core.quotePath=false", "log", "--numstat", "--no-renames", "--format="],
             cwd=repo_path,
             capture_output=True,
             text=True,

@@ -135,3 +135,24 @@ def test_git_history_author_name_with_pipe_keeps_name_and_date(tmp_path: Path) -
     assert raw_history.authors == ["Ada | Lovelace"]
     assert raw_history.first_commit_date is not None
     assert raw_history.last_commit_date is not None
+
+
+def test_git_history_file_changes_use_real_paths_for_renames_and_non_ascii(
+    tmp_path: Path,
+) -> None:
+    repo_dir = tmp_path / "rename-repo"
+    repo_dir.mkdir()
+    _git(repo_dir, "init", "-b", "main")
+    _git(repo_dir, "config", "user.name", "Tester")
+    _git(repo_dir, "config", "user.email", "tester@test.local")
+    (repo_dir / "old.py").write_text("print(1)\n" * 20, encoding="utf-8")
+    (repo_dir / "zażółć.py").write_text("print(2)\n", encoding="utf-8")
+    _git(repo_dir, "add", ".")
+    _git(repo_dir, "commit", "-m", "commit 1")
+    _git(repo_dir, "mv", "old.py", "new.py")
+    _git(repo_dir, "commit", "-m", "rename")
+
+    raw_history = extract_git_history(repo_dir)
+
+    assert set(raw_history.file_changes) == {"old.py", "new.py", "zażółć.py"}
+    assert not any("=>" in path for path in raw_history.file_changes)
