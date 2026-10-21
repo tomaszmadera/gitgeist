@@ -8,6 +8,8 @@ from datetime import datetime
 from pathlib import Path
 
 GIT_TIMEOUT_SECONDS = 30
+# ASCII unit separator: cannot appear in author names, unlike "|".
+FIELD_SEPARATOR = "\x1f"
 
 
 @dataclass(frozen=True)
@@ -77,7 +79,7 @@ def extract_git_history(repo_path: Path) -> RawGitHistory:
     # Extract commits and authors
     try:
         log_res = subprocess.run(
-            ["git", "log", "--format=%H|%an|%aI"],
+            ["git", "log", "--format=%H%x1f%an%x1f%aI"],
             cwd=repo_path,
             capture_output=True,
             text=True,
@@ -101,7 +103,7 @@ def extract_git_history(repo_path: Path) -> RawGitHistory:
     dates: list[datetime] = []
 
     for line in lines:
-        parts = line.split("|", 2)
+        parts = line.split(FIELD_SEPARATOR, 2)
         if len(parts) >= 3:
             authors.append(parts[1].strip())
             dt = _parse_iso_date(parts[2])
@@ -118,7 +120,9 @@ def extract_git_history(repo_path: Path) -> RawGitHistory:
 
     try:
         stat_res = subprocess.run(
-            ["git", "log", "--numstat", "--format="],
+            # --no-renames keeps real paths instead of "old => new" pseudo-paths;
+            # core.quotePath=false keeps non-ASCII paths unescaped.
+            ["git", "-c", "core.quotePath=false", "log", "--numstat", "--no-renames", "--format="],
             cwd=repo_path,
             capture_output=True,
             text=True,
