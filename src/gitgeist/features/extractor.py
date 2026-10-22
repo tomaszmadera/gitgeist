@@ -7,6 +7,7 @@ from pathlib import Path
 
 from gitgeist.features.history import compute_history_features
 from gitgeist.features.static import compute_static_features
+from gitgeist.features.structure import assign_hotspot_masses, compute_structure_features
 from gitgeist.ingest.docs_summary import extract_docs_summary
 from gitgeist.ingest.git_history import extract_git_history
 from gitgeist.ingest.repository import scan_repository_tree
@@ -20,7 +21,7 @@ def extract_features(repo_path: Path | str) -> RepositoryFeatures:
         repo_path: Path to repository root directory.
 
     Returns:
-        RepositoryFeatures containing static, git history, and docs features.
+        RepositoryFeatures containing static, git history, docs and structure features.
 
     Raises:
         FileNotFoundError: If the specified path does not exist.
@@ -40,6 +41,10 @@ def extract_features(repo_path: Path | str) -> RepositoryFeatures:
     # 2. Compute features
     static_features = compute_static_features(scan_res)
     history_features = compute_history_features(git_raw)
+    structure_features = compute_structure_features(scan_res, git_raw)
+    history_features = history_features.model_copy(
+        update={"hotspots": assign_hotspot_masses(history_features.hotspots, structure_features.masses)}
+    )
     docs_features = DocsSummaryFeatures(
         has_readme=docs_raw.has_readme,
         readme_length_chars=docs_raw.readme_length_chars,
@@ -53,4 +58,5 @@ def extract_features(repo_path: Path | str) -> RepositoryFeatures:
         static=static_features,
         history=history_features,
         docs=docs_features,
+        structure=structure_features,
     )
