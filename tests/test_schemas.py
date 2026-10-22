@@ -2,7 +2,10 @@ from datetime import datetime, timezone
 import json
 from gitgeist.schemas.features import (
     Hotspot,
+    LanguageShare,
+    Mass,
     StaticFeatures,
+    StructureFeatures,
     GitHistoryFeatures,
     DocsSummaryFeatures,
     RepositoryFeatures,
@@ -105,3 +108,79 @@ def test_repository_features_serialization_roundtrip() -> None:
     assert restored.history.commit_count == 10
     assert restored.history.hotspots[0].change_count == 8
     assert restored.docs.has_readme is True
+
+
+def _v2_features() -> RepositoryFeatures:
+    return RepositoryFeatures(
+        repository_path="/test/repo",
+        extracted_at=datetime(2026, 9, 18, 12, 0, 0, tzinfo=timezone.utc),
+        static=StaticFeatures(
+            file_count=3,
+            code_bytes=120,
+            code_file_count=2,
+            test_file_count=1,
+            test_ratio=0.5,
+            doc_ratio=0.3333,
+            todo_density=333.33,
+            top_level_directory_count=1,
+            language_shares=[LanguageShare(name="Python", file_count=2, share=0.6667)],
+        ),
+        history=GitHistoryFeatures(
+            is_git_repo=True,
+            commit_count=2,
+            hotspots=[Hotspot(path="src/app.py", change_count=2, change_share=0.6667, mass="src")],
+            timeline_start="2026-01",
+            timeline=[1, 0, 1],
+            active_months_ratio=0.6667,
+            top_author_share=1.0,
+            top3_author_share=1.0,
+        ),
+        docs=DocsSummaryFeatures(),
+        structure=StructureFeatures(
+            masses=[
+                Mass(name="src", file_count=2, file_share=0.6667, churn_share=0.6667,
+                     dominant_language="Python", test_file_share=0.5),
+                Mass(name="other", is_merged=True, file_count=1, file_share=0.3333, churn_share=0.3333),
+            ],
+            hotspot_concentration=-0.3333,
+        ),
+    )
+
+
+def test_v2_models_defaults() -> None:
+    assert Mass(name=".").is_merged is False
+    assert Mass(name=".").dominant_language is None
+    assert StructureFeatures().masses == []
+    assert StructureFeatures().hotspot_concentration == 0.0
+    assert Hotspot(path="a.py", change_count=1).mass is None
+    assert StaticFeatures().language_shares == []
+    assert GitHistoryFeatures().timeline == []
+    assert GitHistoryFeatures().timeline_start is None
+
+
+def test_v2_features_json_roundtrip() -> None:
+    features = _v2_features()
+
+    restored = RepositoryFeatures.model_validate(json.loads(json.dumps(features.model_dump(mode="json"))))
+
+    assert restored == features
+    assert restored.structure.masses[1].is_merged is True
+
+
+def test_older_json_without_v2_fields_validates() -> None:
+    data = _v2_features().model_dump(mode="json")
+    del data["structure"]
+    for key in ("code_bytes", "code_file_count", "test_file_count", "test_ratio", "doc_ratio",
+                "todo_density", "top_level_directory_count", "language_shares"):
+        del data["static"][key]
+    for key in ("timeline_start", "timeline", "active_months_ratio", "top_author_share", "top3_author_share"):
+        del data["history"][key]
+    for hotspot in data["history"]["hotspots"]:
+        del hotspot["change_share"], hotspot["mass"]
+
+    restored = RepositoryFeatures.model_validate(data)
+
+    assert restored.structure == StructureFeatures()
+    assert restored.static.language_shares == []
+    assert restored.history.timeline == []
+    assert restored.history.hotspots[0].mass is None
