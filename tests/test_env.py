@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -25,6 +26,27 @@ def isolated_environ(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     sandbox = tmp_path / "_cwd"
     (sandbox / ".git").mkdir(parents=True)
     monkeypatch.chdir(sandbox)
+
+
+SENTINEL_NAME = "GITGEIST_TEST_SENTINEL_SECRET"
+SENTINEL_VALUE = "fake-sentinel-value-not-a-real-secret"
+
+
+@pytest.fixture(scope="module")
+def real_environ_sentinel() -> Iterator[None]:
+    # Module scope runs before the function-scoped isolated_environ fixture,
+    # so this sets the sentinel in the real process environment.
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setenv(SENTINEL_NAME, SENTINEL_VALUE)
+        yield
+
+
+def test_isolated_environ_hides_the_real_environment(real_environ_sentinel: None) -> None:
+    # Regression test for the os.environ dump with secrets in a failing test_env
+    # assertion. Never put os.environ itself in an assert: on failure pytest
+    # would print its full contents.
+    sentinel_visible = SENTINEL_NAME in os.environ
+    assert not sentinel_visible, "test_env sees the real process environment"
 
 
 def _set_home(monkeypatch: pytest.MonkeyPatch, home: Path) -> None:
