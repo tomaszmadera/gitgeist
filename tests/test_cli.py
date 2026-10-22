@@ -242,6 +242,9 @@ def test_render_openrouter_backend_loads_api_key_from_dotenv(
 ) -> None:
     monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("OPENROUTER_IMAGE_API_KEY", raising=False)
+    # tests/conftest.py points GITGEIST_ENV_FILE at a missing file; this test
+    # exercises the default search for .env from the working directory.
+    monkeypatch.delenv("GITGEIST_ENV_FILE", raising=False)
     (tmp_path / ".env").write_text("OPENROUTER_IMAGE_API_KEY=test-dotenv-key\n", encoding="utf-8")
 
     captured_backend: dict[str, str | None] = {}
