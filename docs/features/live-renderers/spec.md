@@ -34,7 +34,7 @@ Zbudować silnik renderowania wizualnego w czasie rzeczywistym dla Warstwy 4 (Li
    - Pętla animacji `requestAnimationFrame`, responsywne skalowanie do okna przeglądarki, wizualna informacja o profilu latentnym i trybie.
 7. Fasada i API renderera (`src/gitgeist/render/facade.py` oraz `src/gitgeist/__init__.py`):
    - Klasa wynikowa `LiveRenderArtifacts` zawierająca treść HTML, słownik/JSON stanu oraz opcjonalne zapisane ścieżki.
-   - Funkcja `render_live(profile: VisualLatentProfile, mode: Literal["abstract", "character"] = "abstract", repository_name: str | None = None, output_dir: Path | str | None = None) -> LiveRenderArtifacts`.
+   - Funkcja `render_live(profile: VisualLatentProfile, mode: Literal["abstract", "character"] = "abstract", repository_name: str | None = None, output_dir: Path | str | None = None, *, identity: IdentitySeed) -> LiveRenderArtifacts`.
 8. Zestaw testów jednostkowych i integracyjnych pokrywających schematy, wyliczanie parametrów renderera, generowanie plików wyjściowych, determinizm i obsługę obu trybów.
 
 ## Non-goals
@@ -49,7 +49,7 @@ Zbudować silnik renderowania wizualnego w czasie rzeczywistym dla Warstwy 4 (Li
 - Funkcja `render_live` przyjmuje obiekt `VisualLatentProfile` i opcjonalny tryb (`abstract` lub `character`, domyślnie `abstract`).
 - Zwraca obiekt `LiveRenderArtifacts` zawierający wyrenderowany dokument HTML (`live-preview.html`) oraz zwalidowany stan symulacji (`live-state.json`).
 - Jeśli podano `output_dir`, funkcja deterministycznie zapisuje oba pliki do wskazanego katalogu.
-- Identyczny `VisualLatentProfile` i tryb dają w 100% identyczny stan symulacji `LiveSimulationState` oraz identyczny dokument HTML.
+- Identical `VisualLatentProfile`, mode and identity seed give an identical `LiveSimulationState` and HTML document. The generator `seed` comes only from the identity seed and the mode, never from profile values or HEAD: the identity seed is the SHA-256 of the sorted root commit hashes (the directory name without Git), and `render_live` writes it to `identity-seed.json` when `output_dir` is set (amended 2026-10-22, visual-diversity plan stage 1).
 - Dokument HTML osadza w sobie stan JSON oraz kod silnika Canvas, umożliwiając natychmiastowe uruchomienie bez połączenia internetowego i bez błędu CORS.
 
 ## Business rules

@@ -1,6 +1,7 @@
 """Tests for live renderers (palette, dynamics, abstract, character, HTML, facade)."""
 
 import colorsys
+import hashlib
 import json
 from pathlib import Path
 import pytest
@@ -11,6 +12,7 @@ from gitgeist.schemas.visual_latent import (
     VisualLatentAxes,
     VisualLatentProfile,
 )
+from gitgeist.schemas.identity import IdentitySeed
 from gitgeist.schemas.live_state import LiveSimulationState
 from gitgeist.render.palette import generate_palette
 from gitgeist.render.dynamics import generate_dynamics
@@ -18,6 +20,13 @@ from gitgeist.render.abstract_renderer import generate_abstract_simulation
 from gitgeist.render.character_renderer import generate_character_simulation
 from gitgeist.render.html_template import generate_live_html
 from gitgeist.render.facade import LiveRenderArtifacts, render_live
+
+# Fixed identity: sha256("sample-root").
+SAMPLE_IDENTITY = IdentitySeed(
+    identity_seed=hashlib.sha256(b"sample-root").hexdigest(),
+    source="root-commits",
+    root_commits=["sample-root"],
+)
 
 
 @pytest.fixture
@@ -92,7 +101,9 @@ def test_generate_dynamics_rhythm_impact(sample_profile: VisualLatentProfile):
 
 
 def test_generate_abstract_simulation(sample_profile: VisualLatentProfile):
-    state = generate_abstract_simulation(sample_profile, repository_name="repo1")
+    state = generate_abstract_simulation(
+        sample_profile, repository_name="repo1", identity_seed=SAMPLE_IDENTITY.identity_seed
+    )
     assert state.representation_mode == "abstract"
     assert state.repository_name == "repo1"
     assert isinstance(state, LiveSimulationState)
@@ -100,7 +111,9 @@ def test_generate_abstract_simulation(sample_profile: VisualLatentProfile):
 
 
 def test_generate_character_simulation(sample_profile: VisualLatentProfile):
-    state = generate_character_simulation(sample_profile, repository_name="repo2")
+    state = generate_character_simulation(
+        sample_profile, repository_name="repo2", identity_seed=SAMPLE_IDENTITY.identity_seed
+    )
     assert state.representation_mode == "character"
     assert state.repository_name == "repo2"
     assert isinstance(state, LiveSimulationState)
@@ -108,7 +121,9 @@ def test_generate_character_simulation(sample_profile: VisualLatentProfile):
 
 
 def test_generate_live_html(sample_profile: VisualLatentProfile):
-    state = generate_abstract_simulation(sample_profile, repository_name="gitgeist-test")
+    state = generate_abstract_simulation(
+        sample_profile, repository_name="gitgeist-test", identity_seed=SAMPLE_IDENTITY.identity_seed
+    )
     html = generate_live_html(state)
     assert "<!DOCTYPE html>" in html
     assert "<canvas" in html
@@ -119,7 +134,9 @@ def test_generate_live_html(sample_profile: VisualLatentProfile):
 
 
 def test_render_live_facade_abstract(sample_profile: VisualLatentProfile):
-    artifacts = render_live(sample_profile, mode="abstract", repository_name="gitgeist-abstract")
+    artifacts = render_live(
+        sample_profile, mode="abstract", repository_name="gitgeist-abstract", identity=SAMPLE_IDENTITY
+    )
     assert isinstance(artifacts, LiveRenderArtifacts)
     assert artifacts.state.representation_mode == "abstract"
     assert "<!DOCTYPE html>" in artifacts.html_content
@@ -128,7 +145,9 @@ def test_render_live_facade_abstract(sample_profile: VisualLatentProfile):
 
 
 def test_render_live_facade_character(sample_profile: VisualLatentProfile):
-    artifacts = render_live(sample_profile, mode="character", repository_name="gitgeist-character")
+    artifacts = render_live(
+        sample_profile, mode="character", repository_name="gitgeist-character", identity=SAMPLE_IDENTITY
+    )
     assert isinstance(artifacts, LiveRenderArtifacts)
     assert artifacts.state.representation_mode == "character"
     assert "<!DOCTYPE html>" in artifacts.html_content
@@ -138,7 +157,7 @@ def test_render_live_facade_character(sample_profile: VisualLatentProfile):
 
 def test_render_live_save_to_disk(sample_profile: VisualLatentProfile, tmp_path: Path):
     out_dir = tmp_path / "renders" / "run_1"
-    artifacts = render_live(sample_profile, mode="abstract", output_dir=out_dir)
+    artifacts = render_live(sample_profile, mode="abstract", output_dir=out_dir, identity=SAMPLE_IDENTITY)
 
     assert artifacts.html_path is not None
     assert artifacts.json_path is not None
@@ -151,12 +170,12 @@ def test_render_live_save_to_disk(sample_profile: VisualLatentProfile, tmp_path:
 
 def test_render_live_invalid_mode(sample_profile: VisualLatentProfile):
     with pytest.raises(ValueError, match="Unsupported representation mode"):
-        render_live(sample_profile, mode="unsupported")  # type: ignore[arg-type]
+        render_live(sample_profile, mode="unsupported", identity=SAMPLE_IDENTITY)  # type: ignore[arg-type]
 
 
 def test_render_live_invalid_profile():
     with pytest.raises(TypeError, match="Expected VisualLatentProfile"):
-        render_live("not-a-profile")  # type: ignore[arg-type]
+        render_live("not-a-profile", identity=SAMPLE_IDENTITY)  # type: ignore[arg-type]
 
 
 def _hex_hue(hex_color: str) -> float:
@@ -228,8 +247,8 @@ def test_seed_ignores_calculated_at(sample_profile: VisualLatentProfile):
         update={"calculated_at": sample_profile.calculated_at.replace(hour=1, minute=2)}
     )
     for generator in (generate_abstract_simulation, generate_character_simulation):
-        state_a = generator(sample_profile)
-        state_b = generator(shifted)
+        state_a = generator(sample_profile, identity_seed=SAMPLE_IDENTITY.identity_seed)
+        state_b = generator(shifted, identity_seed=SAMPLE_IDENTITY.identity_seed)
         assert state_a.seed == state_b.seed
 
 
@@ -245,7 +264,7 @@ def test_render_live_extreme_axis_values(extreme: float):
         dominant_features=["sharpness"],
     )
     for mode in ("abstract", "character"):
-        artifacts = render_live(profile, mode=mode, repository_name="extreme")
+        artifacts = render_live(profile, mode=mode, repository_name="extreme", identity=SAMPLE_IDENTITY)
         assert "<!DOCTYPE html>" in artifacts.html_content
         assert "NaN" not in artifacts.html_content
         assert artifacts.state.palette.aura.startswith("rgba(")
@@ -253,7 +272,9 @@ def test_render_live_extreme_axis_values(extreme: float):
 
 def test_generate_live_html_escapes_repository_name(sample_profile: VisualLatentProfile):
     state = generate_abstract_simulation(
-        sample_profile, repository_name='"><script>alert(1)</script>'
+        sample_profile,
+        repository_name='"><script>alert(1)</script>',
+        identity_seed=SAMPLE_IDENTITY.identity_seed,
     )
     html = generate_live_html(state)
 
@@ -268,3 +289,16 @@ def test_generate_live_html_escapes_repository_name(sample_profile: VisualLatent
     embedded = html[start:end]
     parsed = json.loads(embedded)
     assert parsed["repository_name"] == '"><script>alert(1)</script>'
+
+
+def test_render_live_requires_identity_seed_model(sample_profile: VisualLatentProfile):
+    with pytest.raises(TypeError, match="Expected IdentitySeed"):
+        render_live(sample_profile, identity="not-an-identity")  # type: ignore[arg-type]
+
+
+def test_render_live_writes_identity_seed_json(sample_profile: VisualLatentProfile, tmp_path: Path):
+    artifacts = render_live(sample_profile, output_dir=tmp_path, identity=SAMPLE_IDENTITY)
+
+    assert artifacts.identity_seed_path == tmp_path / "identity-seed.json"
+    written = IdentitySeed.model_validate_json(artifacts.identity_seed_path.read_text(encoding="utf-8"))
+    assert written == SAMPLE_IDENTITY

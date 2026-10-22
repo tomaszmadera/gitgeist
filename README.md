@@ -39,7 +39,7 @@ Writes `profile.json` and `summary.md` to `./gitgeist-output/<repo-name>`, relat
 .venv/bin/gitgeist render /path/to/repo --representation abstract --mode live
 ```
 
-Adds `live-preview.html` and `live-state.json` next to `profile.json` and `summary.md`.
+Adds `live-preview.html`, `live-state.json` and `identity-seed.json` next to `profile.json` and `summary.md`. The identity seed comes from the repository's root commits, so new commits do not reshuffle the picture.
 
 ### Portrait from an image generator
 

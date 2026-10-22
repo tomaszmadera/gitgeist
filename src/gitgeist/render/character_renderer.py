@@ -1,35 +1,36 @@
 """Character mode live simulation generator."""
 
 import hashlib
-import json
 from gitgeist.render.dynamics import generate_dynamics
 from gitgeist.render.palette import generate_palette
 from gitgeist.schemas.live_state import GeometryParameters, LiveSimulationState
 from gitgeist.schemas.visual_latent import VisualLatentProfile
 
 
-def _compute_deterministic_seed(profile: VisualLatentProfile, salt: str = "character") -> int:
-    """Derive an integer seed from invariant profile values (never timestamps)."""
-    invariant = {
-        "axes": profile.axes.model_dump(),
-        "materiality": profile.materiality.model_dump(),
-        "dominant_features": profile.dominant_features,
-        "source_commit": profile.source_commit,
-    }
-    s = f"{salt}:{json.dumps(invariant, sort_keys=True)}"
-    digest = hashlib.sha256(s.encode("utf-8")).hexdigest()
+def _compute_deterministic_seed(identity_seed: str, salt: str = "character") -> int:
+    """Derive the generator seed from the repository identity seed and the mode.
+
+    Profile values and HEAD are not used, so new commits do not reshuffle
+    the picture (product section 16.2, identity persistence).
+    """
+    digest = hashlib.sha256(f"{salt}:{identity_seed}".encode("utf-8")).hexdigest()
     return int(digest[:8], 16)
 
 
 def generate_character_simulation(
     profile: VisualLatentProfile,
     repository_name: str | None = None,
+    *,
+    identity_seed: str,
 ) -> LiveSimulationState:
-    """Generate a complete LiveSimulationState for Character mode."""
+    """Generate a complete LiveSimulationState for Character mode.
+
+    ``identity_seed`` is ``IdentitySeed.identity_seed`` of the repository.
+    """
     axes = profile.axes
     palette = generate_palette(profile)
     dynamics = generate_dynamics(profile)
-    seed = _compute_deterministic_seed(profile, salt="character")
+    seed = _compute_deterministic_seed(identity_seed, salt="character")
 
     # Character mode primarily uses bilateral symmetry (2), unless symmetry is very low (1)
     # or highly crystalline / radial (4)
