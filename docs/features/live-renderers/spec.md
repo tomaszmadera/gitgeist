@@ -34,7 +34,7 @@ Zbudować silnik renderowania wizualnego w czasie rzeczywistym dla Warstwy 4 (Li
    - Pętla animacji `requestAnimationFrame`, responsywne skalowanie do okna przeglądarki, wizualna informacja o profilu latentnym i trybie.
 7. Fasada i API renderera (`src/gitgeist/render/facade.py` oraz `src/gitgeist/__init__.py`):
    - Klasa wynikowa `LiveRenderArtifacts` zawierająca treść HTML, słownik/JSON stanu oraz opcjonalne zapisane ścieżki.
-   - Funkcja `render_live(profile: VisualLatentProfile, mode: Literal["abstract", "character"] = "abstract", repository_name: str | None = None, output_dir: Path | str | None = None) -> LiveRenderArtifacts`.
+   - Funkcja `render_live(profile: VisualLatentProfile, mode: Literal["abstract", "character"] = "abstract", repository_name: str | None = None, output_dir: Path | str | None = None, *, identity: IdentitySeed) -> LiveRenderArtifacts`.
 8. Zestaw testów jednostkowych i integracyjnych pokrywających schematy, wyliczanie parametrów renderera, generowanie plików wyjściowych, determinizm i obsługę obu trybów.
 
 ## Non-goals
@@ -46,10 +46,10 @@ Zbudować silnik renderowania wizualnego w czasie rzeczywistym dla Warstwy 4 (Li
 
 ## Behaviour
 
-- Funkcja `render_live` przyjmuje obiekt `VisualLatentProfile` i opcjonalny tryb (`abstract` lub `character`, domyślnie `abstract`).
+- Funkcja `render_live` przyjmuje obiekt `VisualLatentProfile`, opcjonalny tryb (`abstract` lub `character`, domyślnie `abstract`) oraz wymagany argument nazwany `identity` (`IdentitySeed`).
 - Zwraca obiekt `LiveRenderArtifacts` zawierający wyrenderowany dokument HTML (`live-preview.html`) oraz zwalidowany stan symulacji (`live-state.json`).
-- Jeśli podano `output_dir`, funkcja deterministycznie zapisuje oba pliki do wskazanego katalogu.
-- Identyczny `VisualLatentProfile` i tryb dają w 100% identyczny stan symulacji `LiveSimulationState` oraz identyczny dokument HTML.
+- Jeśli podano `output_dir`, funkcja deterministycznie zapisuje do wskazanego katalogu `live-preview.html`, `live-state.json` i `identity-seed.json`.
+- Identyczny `VisualLatentProfile`, tryb i ziarno tożsamości dają identyczny stan symulacji `LiveSimulationState` oraz identyczny dokument HTML. Ziarno generatora (`seed`) zależy wyłącznie od ziarna tożsamości i trybu, nigdy od wartości profilu ani od HEAD. Ziarno tożsamości to SHA-256 posortowanych hashy commitów korzeniowych (gdy ścieżka nie jest korzeniem repozytorium Git z commitami: SHA-256 nazwy katalogu); `render_live` zapisuje je do `identity-seed.json`, gdy podano `output_dir` (poprawka z 2026-10-22, etap 1 planu visual-diversity).
 - Dokument HTML osadza w sobie stan JSON oraz kod silnika Canvas, umożliwiając natychmiastowe uruchomienie bez połączenia internetowego i bez błędu CORS.
 
 ## Business rules
@@ -82,6 +82,8 @@ none
   - `mode`: `Literal["abstract", "character"] = "abstract"`
   - `repository_name`: `str | None = None`
   - `output_dir`: `Path | str | None = None`
+  - `identity`: `IdentitySeed` (wymagane, tylko jako argument nazwany; `gitgeist.compute_identity_seed(repo_path)`)
+- Generatory trybów: `generate_abstract_simulation(profile, repository_name=None, *, identity_seed: str)` i `generate_character_simulation(profile, repository_name=None, *, identity_seed: str)`, gdzie `identity_seed` to `IdentitySeed.identity_seed`.
 - Wyjście:
   - `LiveRenderArtifacts`:
     - `state`: `LiveSimulationState`
@@ -89,11 +91,13 @@ none
     - `state_json`: `str`
     - `html_path`: `Path | None` (jeśli zapisano do pliku)
     - `json_path`: `Path | None` (jeśli zapisano do pliku)
+    - `identity_seed_path`: `Path | None` (jeśli zapisano do pliku)
 - Publiczne modele:
   - `gitgeist.schemas.live_state.ColorPalette`
   - `gitgeist.schemas.live_state.MotionDynamics`
   - `gitgeist.schemas.live_state.GeometryParameters`
   - `gitgeist.schemas.live_state.LiveSimulationState`
+  - `gitgeist.schemas.identity.IdentitySeed`
   - `gitgeist.render.LiveRenderArtifacts`
   - `gitgeist.render_live`
 
@@ -105,7 +109,7 @@ none
 
 ## Errors
 
-- Przekazanie obiektu innego niż `VisualLatentProfile` rzuca `TypeError`.
+- Przekazanie obiektu innego niż `VisualLatentProfile` albo `identity` innego typu niż `IdentitySeed` rzuca `TypeError`.
 - Przekazanie nieznanego trybu reprezentacji (np. `"surreal"`) rzuca `ValueError`.
 - Błąd zapisu do pliku rzuca standardowy wyjątek `OSError`.
 - Brak cichych fallbacków ukrywających niepoprawne dane.

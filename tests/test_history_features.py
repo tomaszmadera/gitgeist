@@ -1,4 +1,5 @@
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 import pytest
 from gitgeist.features.history import compute_history_features
@@ -156,3 +157,50 @@ def test_git_history_file_changes_use_real_paths_for_renames_and_non_ascii(
 
     assert set(raw_history.file_changes) == {"old.py", "new.py", "zażółć.py"}
     assert not any("=>" in path for path in raw_history.file_changes)
+
+
+def test_git_history_keeps_date_of_commit_with_malformed_zone(tmp_path: Path) -> None:
+    # Real case from the requests repository: commit 5e6ecdad stores the zone
+    # "+051800", which git prints as "+518:00" in %aI and Python cannot parse.
+    repo_dir = tmp_path / "malformed-zone-repo"
+    repo_dir.mkdir()
+    _git(repo_dir, "init", "-b", "main")
+    (repo_dir / "f1.txt").write_text("1")
+    _git(repo_dir, "add", ".")
+    tree = subprocess.run(
+        ["git", "write-tree"], cwd=repo_dir, check=True, capture_output=True, text=True
+    ).stdout.strip()
+    root_object = (
+        f"tree {tree}\n"
+        "author Zone Author <zone@test.local> 1293876000 +0000\n"
+        "committer Zone Author <zone@test.local> 1293876000 +0000\n"
+        "\nroot commit\n"
+    )
+    root = _hash_commit_object(repo_dir, root_object)
+    malformed_object = (
+        f"tree {tree}\nparent {root}\n"
+        "author Zone Author <zone@test.local> 1313584730 +051800\n"
+        "committer Zone Author <zone@test.local> 1313584730 +051800\n"
+        "\ncommit with a malformed zone\n"
+    )
+    head = _hash_commit_object(repo_dir, malformed_object)
+    _git(repo_dir, "update-ref", "refs/heads/main", head)
+
+    raw_history = extract_git_history(repo_dir)
+
+    assert raw_history.commit_count == 2
+    assert raw_history.first_commit_date == datetime.fromtimestamp(1293876000, timezone.utc)
+    assert raw_history.last_commit_date == datetime.fromtimestamp(1313584730, timezone.utc)
+    assert compute_history_features(raw_history).repository_age_days == 228
+
+
+def _hash_commit_object(repo_dir: Path, content: str) -> str:
+    # --literally: git refuses to write a commit with a malformed zone otherwise.
+    return subprocess.run(
+        ["git", "hash-object", "-t", "commit", "-w", "--literally", "--stdin"],
+        cwd=repo_dir,
+        input=content,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
