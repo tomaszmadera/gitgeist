@@ -2,7 +2,7 @@
 
 Path: `docs/features/visual-diversity/plan.md`
 
-Status: proposal. Nothing here is approved or started. Evidence: `analysis.md`. Target design: `design.md`. Stages 0 to 8 build the counter strategy and the shared portrait format; stages 9 to 13 add the evaluation strategy.
+Status: stage 0 decided on 2026-10-22; stages 1 to 13 are not started. Evidence: `analysis.md`. Target design: `design.md`. Stages 0 to 8 build the counter strategy and the shared portrait format; stages 9 to 13 add the evaluation strategy.
 
 ## Classification
 
@@ -14,13 +14,15 @@ Per `AGENTS.md`, the whole change is `large` development: several independently 
 
 Size: decision only.
 
-1. Accept, change or reject the channel rule in `design.md` ("Decision needed"), and record it as a product decision amending sections 3 and 10 of `docs/product/emotional-repository-portrait-system.md`.
-2. Pick the first styles: recommended `orbits` (abstract) and `creature` (character).
-3. Approve the default scale mode for the first release: recommended `absolute` until the corpus table exists.
-4. Enable or reject the evaluation strategy (`design.md` "Strategy 2: rubric evaluation"). If enabled, record a product decision that: allows an optional LLM interpretation path next to the deterministic one; keeps `counters` as the default; keeps the `jev-real-integration` invariant in `docs/product/invariants.md` as `unmet` (the evaluation strategy is not JEV); and notes that `docs/features/feature-extraction/spec.md` and `docs/features/emotional-state-model/spec.md` stay deterministic-only, with the evaluation path specified separately.
-5. Pick the first evaluation backend for the comparison run: recommended `grok-cli` or `gemini-cli` (your subscriptions, no per-call charge), with `openrouter` as the paid option.
+Status: decided by you on 2026-10-22.
 
-Acceptance: decision records exist; `design.md` is updated to match.
+1. Channel rule: accepted. One trait per abstract visual channel, including cracks for TODO and debt density; the ban on "one trait -> one prop" stays for props and character items. Recorded in `docs/decisions/0001-trait-per-abstract-channel.md`, which amends sections 3 and 10 of `docs/product/emotional-repository-portrait-system.md` for abstract channels.
+2. First styles: `orbits` (abstract) and `creature` (character).
+3. Default scale mode: `absolute`.
+4. Evaluation strategy: enabled as an opt-in with `--strategy evaluation`; `counters` stays the default; `jev-real-integration` stays `unmet`; the feature-extraction and emotional-state-model specs stay deterministic-only. Recorded in `docs/decisions/0002-optional-llm-evaluation-strategy.md`.
+5. First evaluation backend: the Antigravity CLI `agy` (Google Gemini models), adapter id `agy`, called as `agy -p --print-timeout <seconds>`. You call this path "gemini-cli"; the `gemini` binary is not used.
+
+Acceptance: decision records exist; `design.md` is updated to match. Met on 2026-10-22.
 
 ### Stage 1: measurement harness and bug fixes
 
@@ -142,13 +144,13 @@ Size: standard (the rubric and prompt are a contract with their own versions).
 Acceptance:
 
 1. Prompt rendering tests: the prompt contains every criterion with its anchors, the bundle, the lens text and the output schema; the version strings match.
-2. With your yes, a dry run on 2 of your repositories through one subscription backend returns valid results.
+2. With your yes, a dry run on 2 of your repositories through `agy` returns valid results.
 
 ### Stage 11: adapters
 
 Size: small per adapter.
 
-- `command`, `grok-cli`, `gemini-cli`, `openrouter`. Exact CLI flags and the OpenRouter JSON schema option are verified while building each one.
+- `agy` first (Antigravity CLI, Google Gemini models), then `command`, `grok-cli`, `openrouter`. Exact CLI flags and the OpenRouter JSON schema option are verified while building each one.
 
 Acceptance per adapter: a test with a stub executable or a local HTTP stub covers success, non-JSON output, timeout and missing binary or key; the key never appears in logs or artifacts.
 
