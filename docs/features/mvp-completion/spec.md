@@ -47,7 +47,7 @@ Domknąć lukę MVP Definition of Done (sekcja 25 dokumentu produktowego): dać 
 ## Business rules
 
 - Nazwa konsolowa to `gitgeist`; odstępstwo od przykładu `repo-portrait` w sekcji 22 wynika z nazwy pakietu (`pyproject.toml` `name = "gitgeist"`, README); przykład produktowy jest wcześniejszy względem zmiany nazwy.
-- Nazwy i zestaw plików artefaktów są zgodne z sekcją 23; CLI nie tworzy artefaktów opcjonalnych (`timeline.json`, `comparison.json`, `identity-seed.json`, `critique.json`).
+- Nazwy i zestaw plików artefaktów są zgodne z sekcją 23; CLI nie tworzy artefaktów opcjonalnych (`timeline.json`, `comparison.json`, `critique.json`). Exception: `render --mode live` writes `identity-seed.json` (amended 2026-10-22, visual-diversity plan stage 1, see `docs/features/live-renderers/spec.md`).
 - Różnicowanie (DoD 7, Test 1 z sekcji 29) jest mierzalne: dla par różnych repozytoriów testowych profil ma co najmniej 3 osie różniące się o `>= 0.1`, co najmniej 3 scores różniące się o `>= 0.1` oraz inną dominującą materiałowość. Dowód z fiksür `clean_modular_repo` i `legacy_chaotic_repo`: 13 z 14 osi i 9 z 10 scores różni się o `>= 0.1`, materiałowość `crystalline` vs `organic`.
 - Wspólny rdzeń trybów (Testy 5 i 6): wartości osi, kwalifikatory i dominanta materiałowości w `prompt.txt` są równe wartościom w `live-state.json` wygenerowanym z tego samego snapshotu.
 - Brak repozytorium git nie jest błędem: `source_commit` pozostaje `None`, pipeline używa domyślnych wartości non-git (jak w istniejących testach `non_git_dir`).
