@@ -41,7 +41,8 @@ def test_analyze_git_repo_writes_required_artifacts(
     code = main(["analyze", str(clean_modular_repo)])
     assert code == 0
     out_dir = tmp_path / "gitgeist-output" / clean_modular_repo.name
-    _assert_required_artifacts(out_dir)
+    repository, _emotional, _visual = _assert_required_artifacts(out_dir)
+    assert [m["name"] for m in repository["structure"]["masses"]] == [".", "src", "tests", ".github", "docs"]
     assert not (clean_modular_repo / "gitgeist-output").exists()
     captured = capsys.readouterr()
     assert str(out_dir / "profile.json") in captured.out
