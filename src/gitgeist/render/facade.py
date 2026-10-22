@@ -15,6 +15,7 @@ from gitgeist.render.image_backend import (
     normalize_to_png,
 )
 from gitgeist.render.prompt_composer import RepresentationMode, compose_prompt
+from gitgeist.schemas.identity import IdentitySeed
 from gitgeist.schemas.live_state import LiveSimulationState
 from gitgeist.schemas.visual_latent import VisualLatentProfile
 from gitgeist.schemas.emotional import EmotionalState
@@ -33,6 +34,7 @@ class LiveRenderArtifacts(BaseModel):
     state_json: str
     html_path: Path | None = None
     json_path: Path | None = None
+    identity_seed_path: Path | None = None
 
 
 def render_live(
@@ -40,6 +42,8 @@ def render_live(
     mode: Literal["abstract", "character"] = "abstract",
     repository_name: str | None = None,
     output_dir: Path | str | None = None,
+    *,
+    identity: IdentitySeed,
 ) -> LiveRenderArtifacts:
     """Render a live interactive preview and simulation state from a VisualLatentProfile.
 
@@ -47,22 +51,31 @@ def render_live(
         profile: VisualLatentProfile instance to render.
         mode: Representation mode, either 'abstract' or 'character' (default 'abstract').
         repository_name: Optional display name for the repository.
-        output_dir: Optional directory path to write 'live-preview.html' and 'live-state.json'.
+        output_dir: Optional directory path to write 'live-preview.html', 'live-state.json'
+            and 'identity-seed.json'.
+        identity: Repository identity seed (``gitgeist.ingest.identity.compute_identity_seed``);
+            the generator seed is derived from it and the mode only.
 
     Returns:
         LiveRenderArtifacts bundle with HTML, JSON and optional written file paths.
 
     Raises:
-        TypeError: If profile is not an instance of VisualLatentProfile.
+        TypeError: If profile is not a VisualLatentProfile or identity is not an IdentitySeed.
         ValueError: If mode is not 'abstract' or 'character'.
     """
     if not isinstance(profile, VisualLatentProfile):
         raise TypeError(f"Expected VisualLatentProfile, got {type(profile).__name__}")
+    if not isinstance(identity, IdentitySeed):
+        raise TypeError(f"Expected IdentitySeed, got {type(identity).__name__}")
 
     if mode == "abstract":
-        state = generate_abstract_simulation(profile, repository_name=repository_name)
+        state = generate_abstract_simulation(
+            profile, repository_name=repository_name, identity_seed=identity.identity_seed
+        )
     elif mode == "character":
-        state = generate_character_simulation(profile, repository_name=repository_name)
+        state = generate_character_simulation(
+            profile, repository_name=repository_name, identity_seed=identity.identity_seed
+        )
     else:
         raise ValueError(f"Unsupported representation mode: {mode!r}. Must be 'abstract' or 'character'.")
 
@@ -71,14 +84,17 @@ def render_live(
 
     html_path: Path | None = None
     json_path: Path | None = None
+    identity_seed_path: Path | None = None
 
     if output_dir is not None:
         out = Path(output_dir)
         out.mkdir(parents=True, exist_ok=True)
         html_path = out / "live-preview.html"
         json_path = out / "live-state.json"
+        identity_seed_path = out / "identity-seed.json"
         html_path.write_text(html_content, encoding="utf-8")
         json_path.write_text(state_json, encoding="utf-8")
+        identity_seed_path.write_text(identity.model_dump_json(indent=2), encoding="utf-8")
 
     return LiveRenderArtifacts(
         state=state,
@@ -86,6 +102,7 @@ def render_live(
         state_json=state_json,
         html_path=html_path,
         json_path=json_path,
+        identity_seed_path=identity_seed_path,
     )
 
 

@@ -182,3 +182,23 @@ def test_load_dotenv_local_env_takes_precedence_over_user_file(
 
     assert load_dotenv() is True
     assert os.environ.get("SHARED_VAR") == "from-local-file"
+
+
+def test_load_dotenv_empty_local_value_does_not_shadow_user_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("SHARED_KEY", raising=False)
+    monkeypatch.delenv("GITGEIST_ENV_FILE", raising=False)
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
+    user_file = tmp_path / "config" / "gitgeist" / ".env"
+    user_file.parent.mkdir(parents=True)
+    user_file.write_text("SHARED_KEY=from-user-file\n", encoding="utf-8")
+
+    local_dir = tmp_path / "project"
+    local_dir.mkdir()
+    (local_dir / ".git").mkdir()
+    (local_dir / ".env").write_text("SHARED_KEY=\n", encoding="utf-8")
+    monkeypatch.chdir(local_dir)
+
+    assert load_dotenv() is True
+    assert os.environ.get("SHARED_KEY") == "from-user-file"

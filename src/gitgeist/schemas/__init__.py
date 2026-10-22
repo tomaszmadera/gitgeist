@@ -14,6 +14,7 @@ from gitgeist.schemas.features import (
     RepositoryFeatures,
     StaticFeatures,
 )
+from gitgeist.schemas.identity import IdentitySeed
 from gitgeist.schemas.live_state import (
     ColorPalette,
     GeometryParameters,
@@ -37,6 +38,7 @@ __all__ = [
     "GeometryParameters",
     "GitHistoryFeatures",
     "Hotspot",
+    "IdentitySeed",
     "LiveSimulationState",
     "MaterialityDistribution",
     "MotionDynamics",

@@ -20,6 +20,7 @@ except Exception:  # pragma: no cover
 from gitgeist.env import find_dotenv, load_dotenv
 from gitgeist.explain import ExplanationArtifacts, explain
 from gitgeist.features.extractor import extract_features
+from gitgeist.ingest.identity import compute_identity_seed
 from gitgeist.interpretation.emotional_model import evaluate_emotional_state
 from gitgeist.mapping.latent_mapper import map_emotional_to_latent
 from gitgeist.render.facade import LiveRenderArtifacts, PromptRenderArtifacts, render_live, render_prompt
@@ -44,6 +45,7 @@ from gitgeist.schemas.features import (
     RepositoryFeatures,
     StaticFeatures,
 )
+from gitgeist.schemas.identity import IdentitySeed
 from gitgeist.schemas.live_state import (
     ColorPalette,
     GeometryParameters,
@@ -70,6 +72,7 @@ __all__ = [
     "GeometryParameters",
     "GitHistoryFeatures",
     "Hotspot",
+    "IdentitySeed",
     "ImageGenerationBackend",
     "LiveRenderArtifacts",
     "LiveSimulationState",
@@ -83,6 +86,7 @@ __all__ = [
     "VisualLatentProfile",
     "__version__",
     "compose_prompt",
+    "compute_identity_seed",
     "evaluate_emotional_state",
     "explain",
     "extract_features",
