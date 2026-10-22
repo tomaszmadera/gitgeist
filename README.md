@@ -97,6 +97,14 @@ The same repository state gives a byte-identical `summary.md`. `profile.json` di
 .venv/bin/pytest tests
 ```
 
+## Measuring visual diversity
+
+`tools/diversity_report.py` is a development tool, not part of the package. It runs the pipeline on several repositories (read-only, offline) and writes per-layer JSON, saturation counts, participation ratios, prompt overlap, live screenshots, contact sheets and the image distance `D` (definition in the script). Screenshots need Pillow (`dev` extra) and Chrome or Chromium.
+
+```bash
+.venv/bin/python tools/diversity_report.py run --out tmp/diversity /path/to/repo-a /path/to/repo-b /path/to/repo-c
+```
+
 ## Documentation
 
 The documents are in Polish.
