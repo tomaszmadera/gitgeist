@@ -24,6 +24,7 @@ Zbudować moduł deterministycznej ekstrakcji cech repozytorium (Warstwa 1 w arc
    - `GitHistoryFeatures`: liczba commitów, unikalni autorzy, data pierwszego i ostatniego commitu, wiek repozytorium (dni), tempo zmian (velocity), sumaryczny churn (dodane/usunięte linie), lista hotspotów (najczęściej modyfikowane pliki).
    - `DocsSummaryFeatures`: obecność README, długość README, fragment początkowy, typ licencji (jeśli występuje).
    - `RepositoryFeatures`: zbiorczy model łączący powyższe, ze znacznikiem czasu ekstrakcji i ścieżką repozytorium.
+   - Cechy v2 (addytywnie, z wartościami domyślnymi; definicje w [docs/features/features-v2-normalization/spec.md](../features-v2-normalization/spec.md)): `StaticFeatures` zyskuje `code_bytes`, `code_file_count`, `test_file_count`, `test_ratio`, `doc_ratio`, `todo_density`, `top_level_directory_count`, `language_shares`; `GitHistoryFeatures` zyskuje `timeline_start`, `timeline`, `active_months_ratio`, `top_author_share`, `top3_author_share`; `Hotspot` zyskuje `change_share` i `mass`; nowe modele `LanguageShare`, `Mass` i `StructureFeatures` (masy katalogów, `hotspot_concentration`) w polu `RepositoryFeatures.structure`.
 3. **Ingestory repozytorium (`src/gitgeist/ingest/`)**:
    - `repository.py`: skanowanie drzewa plików z pomijaniem katalogów ignorowanych (`.git`, `.venv`, `node_modules`, itp.).
    - `git_history.py`: analiza logu commitów Git przez komendy `git log` w sposób deterministyczny.
@@ -65,6 +66,7 @@ from gitgeist.schemas.features import RepositoryFeatures
 from gitgeist.features.extractor import extract_features
 
 features: RepositoryFeatures = extract_features(Path("/path/to/repo"))
+features.structure  # StructureFeatures: masy katalogów i hotspot_concentration (features-v2-normalization)
 ```
 
 Model `RepositoryFeatures` musi być serializowalny do formatu JSON za pomocą standardowej metody Pydantic `.model_dump_json()`.
@@ -96,7 +98,9 @@ Model `RepositoryFeatures` musi być serializowalny do formatu JSON za pomocą s
 - `tests/test_static_features.py`: testy zliczania plików, głębokości katalogów, wykrywania języków i TODO.
 - `tests/test_history_features.py`: testy parsowania logów Git, wykrywania commitów, autorów, churnu i hotspotów.
 - `tests/test_extractor.py`: testy integracyjne funkcji `extract_features` na repozytoriach testowych (w tym katalog nie-git).
+- `tests/test_structure_features.py`: testy mas katalogów, `hotspot_concentration` i przypisania hotspotów do mas. Testy cech v2 w plikach powyżej oraz testy normalizacji (`tests/test_normalization.py`, `tests/test_quantile_table.py`) opisuje [docs/features/features-v2-normalization/spec.md](../features-v2-normalization/spec.md) w "Required tests".
 
 ## Relevant SDD / ADR
 
 - [docs/product/emotional-repository-portrait-system.md](file:///F:/projects/gitgeist/docs/product/emotional-repository-portrait-system.md)
+- [docs/features/features-v2-normalization/spec.md](../features-v2-normalization/spec.md) (cechy v2 i `StructureFeatures`)
