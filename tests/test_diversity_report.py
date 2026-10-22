@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -115,3 +116,38 @@ def test_frozen_copy_rejects_page_without_head(tmp_path: Path) -> None:
 
     with pytest.raises(SystemExit, match="expected one <head>"):
         report.frozen_copy(html)
+
+
+def test_run_without_images_writes_normalized_layer(
+    minimal_repo: Path, legacy_chaotic_repo: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    out = tmp_path / "out"
+
+    code = report.main([
+        "run", "--out", str(out), "--no-images", "--reference-time", "2026-03-16T10:00:00Z",
+        f"minimal={minimal_repo}", f"legacy={legacy_chaotic_repo}",
+    ])
+
+    assert code == 0
+    layers = json.loads((out / "layers.json").read_text(encoding="utf-8"))
+    for layer in layers.values():
+        assert set(layer["normalized"]) == {"absolute", "corpus"}
+        assert layer["normalized"]["absolute"]["table_version"] is None
+        assert layer["normalized"]["corpus"]["table_version"] == "1"
+        assert len(layer["normalized"]["absolute"]["inputs"]) == 13
+    data = json.loads((out / "report.json").read_text(encoding="utf-8"))
+    assert data["reference_time"] == "2026-03-16T10:00:00+00:00"
+    assert "ci" not in data["normalized"]["absolute"]
+    # Both fixtures have one author: authors sits at the lower anchor without clipping.
+    assert data["normalized"]["absolute"]["authors"] == {"zero_or_one": 2, "clipped": 0, "of": 2}
+    markdown = (out / "report.md").read_text(encoding="utf-8")
+    assert "## Normalized inputs" in markdown
+    assert "| authors | 2/2 | 0/2 |" in markdown
+    capsys.readouterr()
+
+
+def test_extract_time_prints_positive_median(minimal_repo: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    code = report.main(["extract-time", "--runs", "2", str(minimal_repo)])
+
+    assert code == 0
+    assert float(capsys.readouterr().out.strip()) > 0

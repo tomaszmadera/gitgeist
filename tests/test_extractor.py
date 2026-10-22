@@ -1,6 +1,9 @@
 from pathlib import Path
 import pytest
+from gitgeist.explain import explain
 from gitgeist.features.extractor import extract_features
+from gitgeist.interpretation.emotional_model import evaluate_emotional_state
+from gitgeist.mapping.latent_mapper import map_emotional_to_latent
 from gitgeist.schemas.features import RepositoryFeatures
 
 
@@ -77,3 +80,55 @@ def test_docs_summary_priority_and_lgpl(tmp_path: Path) -> None:
     assert features.docs.has_readme is True
     assert features.docs.readme_snippet == "# Markdown Readme"
     assert features.docs.license_type == "LGPL"
+
+
+_V2_FIELDS = {
+    "static": ("code_bytes", "code_file_count", "test_file_count", "test_ratio", "doc_ratio",
+               "todo_density", "top_level_directory_count", "language_shares"),
+    "history": ("timeline_start", "timeline", "active_months_ratio", "top_author_share", "top3_author_share"),
+}
+
+
+def _without_v2(features: RepositoryFeatures) -> RepositoryFeatures:
+    """The same features with every v2 field reset to its default."""
+    data = features.model_dump()
+    del data["structure"]
+    for block, keys in _V2_FIELDS.items():
+        for key in keys:
+            del data[block][key]
+    for hotspot in data["history"]["hotspots"]:
+        del hotspot["change_share"], hotspot["mass"]
+    return RepositoryFeatures.model_validate(data)
+
+
+@pytest.mark.parametrize(
+    "fixture",
+    ["minimal_repo", "clean_modular_repo", "legacy_chaotic_repo", "timeline_repo", "wide_repo", "non_git_dir"],
+)
+def test_v2_fields_do_not_change_downstream_layers(fixture: str, request: pytest.FixtureRequest) -> None:
+    features = extract_features(request.getfixturevalue(fixture))
+    baseline = _without_v2(features)
+    assert baseline != features
+
+    state = evaluate_emotional_state(features)
+    baseline_state = evaluate_emotional_state(baseline)
+    profile = map_emotional_to_latent(state)
+    baseline_profile = map_emotional_to_latent(baseline_state)
+
+    assert state == baseline_state
+    assert profile == baseline_profile
+    assert explain(features, state, profile).summary_md == explain(baseline, baseline_state, baseline_profile).summary_md
+
+
+def test_extract_features_fills_structure(wide_repo: Path) -> None:
+    features = extract_features(wide_repo)
+
+    assert len(features.structure.masses) == 8
+    assert all(h.mass is not None for h in features.history.hotspots)
+
+
+def test_extract_features_v2_determinism(wide_repo: Path) -> None:
+    first = extract_features(wide_repo)
+    second = extract_features(wide_repo)
+
+    assert first.model_copy(update={"extracted_at": second.extracted_at}) == second

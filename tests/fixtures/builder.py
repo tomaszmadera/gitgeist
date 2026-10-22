@@ -171,3 +171,53 @@ def create_legacy_chaotic_repo(target_dir: Path) -> Path:
         )
 
     return target_dir
+
+
+def _commit_at(target_dir: Path, message: str, date: str, author: str | None = None) -> None:
+    env = {"GIT_AUTHOR_DATE": f"{date}T10:00:00Z", "GIT_COMMITTER_DATE": f"{date}T10:00:00Z"}
+    if author:
+        env["GIT_AUTHOR_NAME"] = author
+    _run_git(target_dir, ["add", "-A"])
+    _run_git(target_dir, ["commit", "-m", message], env=env)
+
+
+def create_timeline_repo(target_dir: Path) -> Path:
+    """Create a repository with 5 commits by 4 authors spread over 5 calendar months."""
+    target_dir.mkdir(parents=True, exist_ok=True)
+    _run_git(target_dir, ["init", "-b", "main"])
+    commits = [
+        ("2025-11-15", "Ada"),
+        ("2025-11-20", "Ada"),
+        ("2026-01-10", "Bob"),
+        ("2026-03-05", "Cy"),
+        ("2026-03-06", "Dee"),
+    ]
+    for i, (date, author) in enumerate(commits):
+        (target_dir / f"f{i}.py").write_text(f"x = {i}\n", encoding="utf-8")
+        _commit_at(target_dir, f"add f{i}", date, author)
+    return target_dir
+
+
+def create_wide_repo(target_dir: Path) -> Path:
+    """Create a repository with 10 top-level directories, a deleted directory and one hotspot."""
+    target_dir.mkdir(parents=True, exist_ok=True)
+    _run_git(target_dir, ["init", "-b", "main"])
+    (target_dir / "README.md").write_text("# wide\n", encoding="utf-8")
+    for k, name in enumerate("abcdefghij"):
+        directory = target_dir / name
+        directory.mkdir()
+        for i in range(10 - k):
+            (directory / f"m{i}.py").write_text(f"v = {i}\n", encoding="utf-8")
+    (target_dir / "old").mkdir()
+    (target_dir / "old" / "x.py").write_text("v = 0\n", encoding="utf-8")
+    _commit_at(target_dir, "initial wide commit", "2026-04-01")
+
+    hotspot = target_dir / "a" / "m0.py"
+    (target_dir / "old" / "x.py").unlink()
+    (target_dir / "old").rmdir()
+    hotspot.write_text("v = 100\n", encoding="utf-8")
+    _commit_at(target_dir, "remove old, change a/m0.py", "2026-04-02")
+    for day in range(3, 7):
+        hotspot.write_text(f"v = {100 + day}\n", encoding="utf-8")
+        _commit_at(target_dir, f"change a/m0.py ({day})", f"2026-04-0{day}")
+    return target_dir

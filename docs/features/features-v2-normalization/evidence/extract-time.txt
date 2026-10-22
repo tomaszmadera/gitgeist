@@ -1,0 +1,69 @@
+# Stage 2 acceptance criterion 2: extract_features time on lua, main vs branch
+# date: 2026-10-22T14:33:38Z
+# machine: Linux 6.12.94+ x86_64, 8 CPUs, Intel(R) Xeon(R) Processor
+# python: Python 3.13.5, pydantic 2.14.1
+# lua: /workspace/research/gitgeist-diversity/repos/lua @ 8cb93bad
+# main: /tmp/gg-main @ a5330c9 (src identical to 08a96c5)
+# branch: /workspace/stage2/finish/gg @ 65a2d07 (feat/stage-2-features-v2)
+# script: tools/measure_extract_time.py from the branch, run for both sides; PYTHONPATH selects the code under test
+# order: main, branch, main, branch, main, branch (3 rounds, same session)
+
+## round 1, main
+$ PYTHONPATH=/tmp/gg-main/src python tools/measure_extract_time.py /workspace/research/gitgeist-diversity/repos/lua --runs 5
+gitgeist: /tmp/gg-main/src/gitgeist/__init__.py version 0.6.0
+run 1: 2.2233 s
+run 2: 2.1089 s
+run 3: 2.0509 s
+run 4: 2.2947 s
+run 5: 2.1024 s
+median: 2.1089 s
+
+## round 1, branch
+$ PYTHONPATH=/workspace/stage2/finish/gg/src python tools/measure_extract_time.py /workspace/research/gitgeist-diversity/repos/lua --runs 5
+gitgeist: /workspace/stage2/finish/gg/src/gitgeist/__init__.py version 0.7.0
+run 1: 1.9585 s
+run 2: 2.1518 s
+run 3: 1.9454 s
+run 4: 1.8523 s
+run 5: 1.9025 s
+median: 1.9454 s
+
+## round 2, main
+$ PYTHONPATH=/tmp/gg-main/src python tools/measure_extract_time.py /workspace/research/gitgeist-diversity/repos/lua --runs 5
+gitgeist: /tmp/gg-main/src/gitgeist/__init__.py version 0.6.0
+run 1: 1.9103 s
+run 2: 1.8562 s
+run 3: 1.9029 s
+run 4: 1.8716 s
+run 5: 1.8398 s
+median: 1.8716 s
+
+## round 2, branch
+$ PYTHONPATH=/workspace/stage2/finish/gg/src python tools/measure_extract_time.py /workspace/research/gitgeist-diversity/repos/lua --runs 5
+gitgeist: /workspace/stage2/finish/gg/src/gitgeist/__init__.py version 0.7.0
+run 1: 1.9396 s
+run 2: 1.8613 s
+run 3: 1.9580 s
+run 4: 1.9780 s
+run 5: 1.7921 s
+median: 1.9396 s
+
+## round 3, main
+$ PYTHONPATH=/tmp/gg-main/src python tools/measure_extract_time.py /workspace/research/gitgeist-diversity/repos/lua --runs 5
+gitgeist: /tmp/gg-main/src/gitgeist/__init__.py version 0.6.0
+run 1: 1.8257 s
+run 2: 1.8355 s
+run 3: 1.7745 s
+run 4: 2.0205 s
+run 5: 1.8548 s
+median: 1.8355 s
+
+## round 3, branch
+$ PYTHONPATH=/workspace/stage2/finish/gg/src python tools/measure_extract_time.py /workspace/research/gitgeist-diversity/repos/lua --runs 5
+gitgeist: /workspace/stage2/finish/gg/src/gitgeist/__init__.py version 0.7.0
+run 1: 1.8010 s
+run 2: 1.8735 s
+run 3: 2.0020 s
+run 4: 1.8292 s
+run 5: 1.8374 s
+median: 1.8374 s

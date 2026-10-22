@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 This file starts at 0.6.0. Earlier versions (tags `0.0.1` to `0.5.1`) have no changelog entries.
 
+## [0.7.0] - Unreleased
+
+### Changed
+
+- `profile.json`: the `repository` block has new fields (additive, with defaults, so an older `profile.json` still validates): `static` gains `code_bytes`, `code_file_count`, `test_file_count`, `test_ratio`, `doc_ratio`, `todo_density`, `top_level_directory_count` and `language_shares`; `history` gains `timeline_start`, `timeline`, `active_months_ratio`, `top_author_share` and `top3_author_share`; every hotspot gains `change_share` and `mass`; the new `structure` block has the directory `masses` and `hotspot_concentration`. Existing fields keep their values, and the emotional state, the visual profile, `summary.md`, the live artifacts and the prompts do not change.
+
+### Added
+
+- Features v2 (`docs/features/features-v2-normalization/spec.md`): `LanguageShare`, `Mass` and `StructureFeatures` schemas, `gitgeist.features.structure` (at most 8 directory masses with file, churn and test-file shares and the dominant language, size-adjusted hotspot concentration), `days_since_last_commit()` in `gitgeist.features.history`, and `CODE_LANGUAGES`, `DOC_LANGUAGES`, `is_test_path()` and `ScannedFile` in `gitgeist.ingest.repository`. Extraction makes no new `git` calls.
+- `gitgeist.normalization`: `normalize_features()` scales 13 inputs to [0, 1] in the `absolute` mode (log anchors and `smoothstep`) or the `corpus` mode (percentile against a quantile table), with `NormalizedInputs`, `QuantileTable` and `load_quantile_table()`. The package ships `gitgeist/normalization/data/quantiles-v1.json` as package data.
+- `tools/build_quantile_table.py` and `tools/quantile-corpus.toml`: a development tool that builds the quantile table offline from local clones pinned to commits.
+- `tools/diversity_report.py`: a `normalized` layer with both scale modes, a "Normalized inputs" section in `report.md`, `--reference-time`, and the `extract-time` command.
+
 ## [0.6.0] - Unreleased
 
 ### Changed
@@ -32,4 +45,5 @@ This file starts at 0.6.0. Earlier versions (tags `0.0.1` to `0.5.1`) have no ch
 - The default `gitgeist-output` directory is skipped when scanning, so a rerun inside the repository does not analyse its own artifacts.
 - Empty values in a local `.env` no longer shadow the user-level `~/.config/gitgeist/.env`.
 
-[0.6.0]: https://github.com/tomaszmadera/gitgeist/compare/0.5.1...HEAD
+[0.7.0]: https://github.com/tomaszmadera/gitgeist/compare/0.6.0...HEAD
+[0.6.0]: https://github.com/tomaszmadera/gitgeist/compare/0.5.1...0.6.0

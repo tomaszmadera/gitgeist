@@ -1,9 +1,10 @@
 import subprocess
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import pytest
-from gitgeist.features.history import compute_history_features
-from gitgeist.ingest.git_history import extract_git_history
+from gitgeist.features.history import compute_history_features, days_since_last_commit
+from gitgeist.ingest.git_history import RawGitHistory, extract_git_history
+from gitgeist.schemas.features import GitHistoryFeatures
 
 
 def test_git_history_clean_modular(clean_modular_repo: Path) -> None:
@@ -204,3 +205,89 @@ def _hash_commit_object(repo_dir: Path, content: str) -> str:
         capture_output=True,
         text=True,
     ).stdout.strip()
+
+
+def test_history_v2_timeline_repo(timeline_repo: Path) -> None:
+    raw_history = extract_git_history(timeline_repo)
+    features = compute_history_features(raw_history)
+
+    assert len(raw_history.commit_dates) == 5
+    assert all(d.tzinfo is not None and d.utcoffset() == timedelta(0) for d in raw_history.commit_dates)
+    assert features.timeline_start == "2025-11"
+    assert features.timeline == [2, 0, 1, 0, 2]
+    assert features.active_months_ratio == 0.6
+    assert features.top_author_share == 0.4
+    assert features.top3_author_share == 0.8
+
+
+def test_history_v2_clean_modular(clean_modular_repo: Path) -> None:
+    features = compute_history_features(extract_git_history(clean_modular_repo))
+
+    assert features.top_author_share == 0.6667
+    assert features.top3_author_share == 1.0
+    assert features.timeline == [3]
+    assert features.active_months_ratio == 1.0
+
+
+def test_history_v2_legacy_hotspot_change_share(legacy_chaotic_repo: Path) -> None:
+    features = compute_history_features(extract_git_history(legacy_chaotic_repo))
+
+    assert features.hotspots[0].path == "hotspot.py"
+    assert features.hotspots[0].change_share == 0.5556
+
+
+def test_timeline_spans_year_end_and_ignores_log_order() -> None:
+    dates = [
+        datetime(2026, 1, 3, tzinfo=timezone.utc),
+        datetime(2025, 12, 30, tzinfo=timezone.utc),
+        datetime(2026, 1, 1, tzinfo=timezone.utc),
+    ]
+    raw = RawGitHistory(
+        is_git_repo=True,
+        commit_count=3,
+        authors=["Solo", "Solo", "Solo"],
+        first_commit_date=min(dates),
+        last_commit_date=max(dates),
+        commit_dates=dates,
+    )
+
+    features = compute_history_features(raw)
+
+    assert features.timeline_start == "2025-12"
+    assert features.timeline == [1, 2]
+    assert features.top_author_share == 1.0
+    assert features.top3_author_share == 1.0
+
+
+def test_days_since_last_commit() -> None:
+    history = GitHistoryFeatures(
+        is_git_repo=True,
+        commit_count=1,
+        last_commit_date=datetime(2026, 3, 6, 10, 0, 0, tzinfo=timezone.utc),
+    )
+
+    assert days_since_last_commit(history, datetime(2026, 3, 16, 10, 0, 0, tzinfo=timezone.utc)) == 10.0
+    assert days_since_last_commit(history, datetime(2026, 3, 1, 10, 0, 0, tzinfo=timezone.utc)) == 0.0
+    assert days_since_last_commit(GitHistoryFeatures(), datetime(2026, 3, 16, tzinfo=timezone.utc)) is None
+    with pytest.raises(ValueError):
+        days_since_last_commit(history, datetime(2026, 3, 16, 10, 0, 0))
+
+
+def _assert_v2_history_defaults(features: GitHistoryFeatures) -> None:
+    assert features.timeline_start is None
+    assert features.timeline == []
+    assert features.active_months_ratio == 0.0
+    assert features.top_author_share == 0.0
+    assert features.top3_author_share == 0.0
+
+
+def test_history_v2_defaults_without_git(non_git_dir: Path) -> None:
+    _assert_v2_history_defaults(compute_history_features(extract_git_history(non_git_dir)))
+
+
+def test_history_v2_defaults_for_empty_repo(tmp_path: Path) -> None:
+    empty_dir = tmp_path / "empty-repo"
+    empty_dir.mkdir()
+    _git(empty_dir, "init", "-b", "main")
+
+    _assert_v2_history_defaults(compute_history_features(extract_git_history(empty_dir)))

@@ -24,6 +24,7 @@ class RawGitHistory:
     total_added: int = 0
     total_deleted: int = 0
     file_changes: dict[str, int] = field(default_factory=dict)
+    commit_dates: list[datetime] = field(default_factory=list)  # aware UTC, git log order
 
 
 def _parse_unix_date(timestamp: str) -> datetime:
@@ -156,4 +157,5 @@ def extract_git_history(repo_path: Path) -> RawGitHistory:
         total_added=total_added,
         total_deleted=total_deleted,
         file_changes=file_changes,
+        commit_dates=dates,
     )
