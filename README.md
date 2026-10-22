@@ -4,7 +4,7 @@ A system that presents a Git repository as an emotional visual portrait.
 
 ## Status
 
-Prototype, version 0.5.1. The `gitgeist` command line tool (`analyze`, `render`) runs the whole pipeline: rule-based sensors, an emotional model, a visual profile, explanations, and `live` / `prompt-to-image` rendering.
+Prototype, version 0.6.0. The `gitgeist` command line tool (`analyze`, `render`) runs the whole pipeline: rule-based sensors, an emotional model, a visual profile, explanations, and `live` / `prompt-to-image` rendering.
 
 Known gap: the emotional interpretation uses fixed deterministic rules. The semantic interpretation layer that the product document requires (JEV, optionally with a stronger LLM) is not implemented yet. See `docs/product/invariants.md` (entry `jev-real-integration`, status `unmet`).
 
@@ -39,7 +39,7 @@ Writes `profile.json` and `summary.md` to `./gitgeist-output/<repo-name>`, relat
 .venv/bin/gitgeist render /path/to/repo --representation abstract --mode live
 ```
 
-Adds `live-preview.html` and `live-state.json` next to `profile.json` and `summary.md`.
+Adds `live-preview.html`, `live-state.json` and `identity-seed.json` next to `profile.json` and `summary.md`. The identity seed comes from the repository's root commits, so new commits do not reshuffle the picture.
 
 ### Portrait from an image generator
 
@@ -95,6 +95,14 @@ The same repository state gives a byte-identical `summary.md`. `profile.json` di
 
 ```bash
 .venv/bin/pytest tests
+```
+
+## Measuring visual diversity
+
+`tools/diversity_report.py` is a development tool, not part of the package. It runs the pipeline on several repositories (read-only, offline) and writes per-layer JSON, saturation counts, participation ratios, prompt overlap, live screenshots, contact sheets and the image distance `D` (definition in the script). Screenshots need Pillow (`dev` extra) and Chrome or Chromium.
+
+```bash
+.venv/bin/python tools/diversity_report.py run --out tmp/diversity /path/to/repo-a /path/to/repo-b /path/to/repo-c
 ```
 
 ## Documentation

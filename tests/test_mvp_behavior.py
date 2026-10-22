@@ -18,6 +18,7 @@ from gitgeist import (
     render_live,
     render_prompt,
 )
+from gitgeist.ingest.identity import compute_identity_seed
 from gitgeist.schemas.emotional import EmotionalState
 from gitgeist.schemas.visual_latent import VisualLatentProfile
 
@@ -126,8 +127,13 @@ def test_test2_same_snapshot_produces_stable_profile(clean_modular_repo: Path) -
     stable_b = _strip_volatile(json.loads(artifacts_b.profile_json))
     assert stable_a == stable_b
 
-    live_a = render_live(profile_a, mode="character", repository_name="same-repo")
-    live_b = render_live(profile_b, mode="character", repository_name="same-repo")
+    identity = compute_identity_seed(clean_modular_repo)
+    live_a = render_live(
+        profile_a, mode="character", repository_name="same-repo", identity=identity
+    )
+    live_b = render_live(
+        profile_b, mode="character", repository_name="same-repo", identity=identity
+    )
     assert live_a.state_json == live_b.state_json
 
     prompt_a = render_prompt(state_a, profile_a, mode="character").prompt_text
@@ -140,8 +146,13 @@ def test_test5_representation_modes_share_semantic_identity(
 ) -> None:
     _, state, profile = _run_pipeline(clean_modular_repo)
 
-    live_character = render_live(profile, mode="character", repository_name="identity-repo")
-    live_abstract = render_live(profile, mode="abstract", repository_name="identity-repo")
+    identity = compute_identity_seed(clean_modular_repo)
+    live_character = render_live(
+        profile, mode="character", repository_name="identity-repo", identity=identity
+    )
+    live_abstract = render_live(
+        profile, mode="abstract", repository_name="identity-repo", identity=identity
+    )
     assert isinstance(live_character.state, type(live_abstract.state))
     assert live_character.state.dominant_material == live_abstract.state.dominant_material
     assert live_character.state_json != live_abstract.state_json
@@ -155,7 +166,10 @@ def test_test5_representation_modes_share_semantic_identity(
 def test_test6_live_and_prompt_share_core(clean_modular_repo: Path) -> None:
     _, state, profile = _run_pipeline(clean_modular_repo)
     prompt = compose_prompt(state, profile, mode="character", repository_name="core-repo")
-    live = render_live(profile, mode="character", repository_name="core-repo")
+    identity = compute_identity_seed(clean_modular_repo)
+    live = render_live(
+        profile, mode="character", repository_name="core-repo", identity=identity
+    )
 
     prompt_scores, prompt_axes, prompt_material = _parse_prompt_core(prompt)
 

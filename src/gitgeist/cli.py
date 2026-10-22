@@ -17,6 +17,7 @@ from gitgeist import __version__
 from gitgeist.env import load_dotenv
 from gitgeist.explain import explain
 from gitgeist.features.extractor import extract_features
+from gitgeist.ingest.identity import compute_identity_seed
 from gitgeist.interpretation.emotional_model import evaluate_emotional_state
 from gitgeist.mapping.latent_mapper import map_emotional_to_latent
 from gitgeist.render.facade import render_live, render_prompt
@@ -147,9 +148,12 @@ def command_render(args: argparse.Namespace) -> int:
             mode=args.representation,
             repository_name=repository_name,
             output_dir=output_dir,
+            identity=compute_identity_seed(repo_path),
         )
         written.extend(
-            path for path in (artifacts.json_path, artifacts.html_path) if path is not None
+            path
+            for path in (artifacts.json_path, artifacts.html_path, artifacts.identity_seed_path)
+            if path is not None
         )
     else:
         if backend is None:
@@ -237,7 +241,7 @@ def main(argv: list[str] | None = None, load_env: bool = True) -> int:
     args = parser.parse_args(argv)
     try:
         return args.func(args)
-    except (OSError, ValueError) as exc:
+    except (OSError, ValueError, RuntimeError) as exc:
         return _error(str(exc))
 
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import subprocess
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 GIT_TIMEOUT_SECONDS = 30
@@ -26,12 +26,13 @@ class RawGitHistory:
     file_changes: dict[str, int] = field(default_factory=dict)
 
 
-def _parse_iso_date(date_str: str) -> datetime | None:
-    """Parse ISO 8601 date string returned by git log."""
-    try:
-        return datetime.fromisoformat(date_str.strip())
-    except (ValueError, TypeError):
-        return None
+def _parse_unix_date(timestamp: str) -> datetime:
+    """Parse a git log %at value (Unix seconds) into an aware UTC datetime.
+
+    %at avoids the ISO form (%aI), whose zone git prints as stored in the
+    commit; malformed zones such as "+518:00" are not valid ISO 8601.
+    """
+    return datetime.fromtimestamp(int(timestamp.strip()), timezone.utc)
 
 
 def extract_git_history(repo_path: Path) -> RawGitHistory:
@@ -79,7 +80,7 @@ def extract_git_history(repo_path: Path) -> RawGitHistory:
     # Extract commits and authors
     try:
         log_res = subprocess.run(
-            ["git", "log", "--format=%H%x1f%an%x1f%aI"],
+            ["git", "log", "--format=%H%x1f%an%x1f%at"],
             cwd=repo_path,
             capture_output=True,
             text=True,
@@ -106,9 +107,7 @@ def extract_git_history(repo_path: Path) -> RawGitHistory:
         parts = line.split(FIELD_SEPARATOR, 2)
         if len(parts) >= 3:
             authors.append(parts[1].strip())
-            dt = _parse_iso_date(parts[2])
-            if dt:
-                dates.append(dt)
+            dates.append(_parse_unix_date(parts[2]))
 
     first_commit_date = min(dates) if dates else None
     last_commit_date = max(dates) if dates else None
