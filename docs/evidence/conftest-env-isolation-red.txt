@@ -1,0 +1,69 @@
+# New environment-isolation tests at the commit before the fix (24b36a1, fix/windows-tests)
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_environ_isolation.py
+#            (python = C:\Users\tomek\.agent-tmp\gg-venv\Scripts\python.exe)
+# Directory: C:\Users\tomek\.agent-tmp\gg-red3 (git worktree at the commit below, with
+#            tests/test_environ_isolation.py copied in from the fix commit e9a3b46;
+#            tests/conftest.py is the old one, without isolated_environ)
+# Commit:    24b36a106bb58f91cc59f051dc694322ee50b840
+# Date:      2026-10-22T20:15:53+02:00 (Europe/Warsaw)
+# Wrapper:   C:\Users\tomek\.agent-tmp\gg-venv\Scripts\python.exe C:\Users\tomek\.agent-tmp\run_min_env.py
+#            C:\Users\tomek\.agent-tmp\gg-red3 C:\Users\tomek\.agent-tmp\minenv\out\conftest-env-isolation-red.txt
+#            "New environment-isolation tests at the commit before the fix (24b36a1, fix/windows-tests)"
+#            -- -m pytest -q -p no:cacheprovider tests/test_environ_isolation.py
+# Exit code: 1
+# gitgeist imported from: C:\Users\tomek\.agent-tmp\gg-red3\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the child
+# process got only SystemRoot, PATH, TEMP, TMP, HOME, USERPROFILE, PYTHONPATH. HOME and USERPROFILE point to an empty temp
+# directory. The output below is the unedited stdout+stderr of the command
+# (line endings normalized to LF).
+#
+FFF                                                                      [100%]
+================================== FAILURES ===================================
+_________________ test_tests_do_not_see_the_real_environment __________________
+
+real_environ_sentinel = None
+
+    def test_tests_do_not_see_the_real_environment(real_environ_sentinel: None) -> None:
+        sentinel_visible = SENTINEL_NAME in os.environ
+>       assert not sentinel_visible, "a test sees the real process environment"
+E       AssertionError: a test sees the real process environment
+E       assert not True
+
+tests\test_environ_isolation.py:32: AssertionError
+____________ test_child_processes_do_not_see_the_real_environment _____________
+
+real_environ_sentinel = None
+
+    def test_child_processes_do_not_see_the_real_environment(real_environ_sentinel: None) -> None:
+        child = subprocess.run(
+            [sys.executable, "-c", f"import os; print({SENTINEL_NAME!r} in os.environ)"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        sentinel_visible_in_child = child.stdout.strip() == "True"
+>       assert not sentinel_visible_in_child, "a child process sees the real process environment"
+E       AssertionError: a child process sees the real process environment
+E       assert not True
+
+tests\test_environ_isolation.py:43: AssertionError
+________ test_home_is_an_empty_temp_dir_and_no_env_file_is_configured _________
+
+    def test_home_is_an_empty_temp_dir_and_no_env_file_is_configured() -> None:
+        # os.environ.get, not os.environ[...]: a KeyError traceback would show the
+        # whole mapping as a local of the os module frame.
+        home_value = os.environ.get("HOME")
+        env_file_value = os.environ.get("GITGEIST_ENV_FILE")
+        assert home_value is not None, "HOME is not set by the isolation fixture"
+>       assert env_file_value is not None, "GITGEIST_ENV_FILE is not set by the isolation fixture"
+E       AssertionError: GITGEIST_ENV_FILE is not set by the isolation fixture
+E       assert None is not None
+
+tests\test_environ_isolation.py:52: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_environ_isolation.py::test_tests_do_not_see_the_real_environment
+FAILED tests/test_environ_isolation.py::test_child_processes_do_not_see_the_real_environment
+FAILED tests/test_environ_isolation.py::test_home_is_an_empty_temp_dir_and_no_env_file_is_configured
+3 failed in 0.11s
