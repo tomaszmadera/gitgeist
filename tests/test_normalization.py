@@ -106,6 +106,11 @@ def test_smoothstep_values_and_clamping() -> None:
         ("code_size", 1_000_000, 0.647950),
         ("top_level_dirs", 10, 0.402557),
         ("depth", 5, 0.542436),
+        ("top_author_share", 0.62, 0.62),
+        ("active_months", 0.375, 0.375),
+        ("focus", 0.41, 0.41),
+        ("test_ratio", 0.25, 0.25),
+        ("doc_ratio", 0.083333, 0.083333),
     ],
 )
 def test_absolute_exact_values(name: str, raw: float, expected: float) -> None:
@@ -114,6 +119,17 @@ def test_absolute_exact_values(name: str, raw: float, expected: float) -> None:
     assert round(result.inputs[name].value, 6) == expected
     assert result.inputs[name].raw == raw
     assert result.inputs[name].clipped is False
+
+
+@pytest.mark.parametrize("name", ["top_author_share", "active_months", "focus", "test_ratio", "doc_ratio"])
+@pytest.mark.parametrize(
+    ("raw", "expected", "clipped"),
+    [(0.0, 0.0, False), (1.0, 1.0, False), (-0.1, 0.0, True), (1.25, 1.0, True)],
+)
+def test_absolute_linear_bounds(name: str, raw: float, expected: float, clipped: bool) -> None:
+    result = normalize_features(_features(**{name: raw}), "absolute", reference_time=REF).inputs[name]
+
+    assert (result.value, result.raw, result.clipped) == (expected, raw, clipped)
 
 
 def test_absolute_bounds_and_flag() -> None:
