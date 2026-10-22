@@ -301,8 +301,7 @@ Pliki zapisywane:
 ## Edge cases
 
 - Katalog bez Git oraz repozytorium bez commitów: pola historii v2 mają wartości domyślne (`timeline = []`, `timeline_start = None`, udziały `0.0`); masy powstają z drzewa z `churn_share = 0.0`; `hotspot_concentration = 0.0`; `Hotspot` lista pusta; `recency` ma `raw = None`.
-- Pusty katalog (0 plików): `masses = []`, `language_shares = []`, wszystkie proporcje `0.0`, `todo_density = 0.0`, nawet gdy historia ma zmiany usuniętych plików.
-- Repozytorium z historią, ale bez skanowanych plików (wszystkie usunięte lub ignorowane): `masses = []`, a hotspoty z historii zostają i każdy ma `mass = "other"`, choć na liście mas nie ma masy `other`. To zamierzone (decyzja Q1 z przeglądu PR #6): `other` oznacza ścieżkę spoza nazwanych mas, więc konsumenci nie mogą zakładać, że `Hotspot.mass` zawsze wskazuje element `masses`.
+- Brak skanowanych plików (pusty katalog albo repozytorium, w którym wszystkie pliki z historii są usunięte lub ignorowane): `masses = []`, `language_shares = []`, wszystkie proporcje `0.0`, `todo_density = 0.0`. Jeśli historia ma zmiany, hotspoty z niej zostają i każdy ma `mass = "other"`, choć na liście mas nie ma masy `other`. To zamierzone (decyzja Q1 z przeglądu PR #6): `other` oznacza ścieżkę spoza nazwanych mas, więc konsumenci nie mogą zakładać, że `Hotspot.mass` zawsze wskazuje element `masses`.
 - Tylko pliki w korzeniu: jedna masa `.` z `file_share = 1.0`.
 - Katalog najwyższego poziomu bez plików (lub tylko z ignorowanymi): liczony w `top_level_directory_count`, nie jest masą.
 - Prawdziwy katalog o nazwie `other`: pozostaje zwykłą masą (`is_merged = False`); scalona masa ma `is_merged = True`, więc nazwa może się powtórzyć, a konsumenci rozróżniają je po `is_merged`.
