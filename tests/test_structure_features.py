@@ -11,7 +11,7 @@ from gitgeist.features.structure import compute_structure_features
 from gitgeist.ingest.git_history import RawGitHistory, extract_git_history
 from gitgeist.ingest.repository import scan_repository_tree
 from gitgeist.schemas.features import StructureFeatures
-from tests.fixtures.builder import _run_git, create_minimal_repo
+from tests.fixtures.builder import create_emptied_repo
 
 
 def _structure(repo: Path) -> StructureFeatures:
@@ -136,9 +136,7 @@ def test_empty_directory_has_no_masses_even_with_deleted_history(tmp_path: Path)
 def test_hotspots_keep_mass_other_when_no_file_is_scanned(tmp_path: Path) -> None:
     # Q1 from the PR #6 review, decided by Tomasz: with history but 0 scanned
     # files there are no masses, and every hotspot still gets mass "other".
-    repo = create_minimal_repo(tmp_path / "emptied-repo")
-    _run_git(repo, ["rm", "-q", "main.py", "helper.py"])
-    _run_git(repo, ["commit", "-m", "remove every file"])
+    repo = create_emptied_repo(tmp_path / "emptied-repo")
 
     features = extract_features(repo)
 
