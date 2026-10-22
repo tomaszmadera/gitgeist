@@ -1,0 +1,36 @@
+# test_env regression test with the isolated_environ fixture disabled (autouse=True removed)
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_env.py -k isolated_environ_hides_the_real_environment
+#            (python = C:\Users\tomek\.agent-tmp\gg-venv\Scripts\python.exe)
+# Directory: F:\projects\gitgeist (main checkout on fix/windows-tests; tests/test_env.py was
+#            temporarily edited from @pytest.fixture(autouse=True) to @pytest.fixture on
+#            isolated_environ, then restored with git checkout)
+# Commit:    699ac1f3f1f09a1a75618c59166bd380f555fa72
+# Date:      2026-10-22T19:32:44+02:00 (Europe/Warsaw)
+# Exit code: 1
+# gitgeist imported from: F:\projects\gitgeist\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the child
+# process got only SystemRoot, PATH, TEMP, TMP, HOME, USERPROFILE, PYTHONPATH. HOME and USERPROFILE point to an empty temp
+# directory. The output below is the unedited stdout+stderr of the command
+# (line endings normalized to LF).
+#
+F                                                                        [100%]
+================================== FAILURES ===================================
+______________ test_isolated_environ_hides_the_real_environment _______________
+
+real_environ_sentinel = None
+
+    def test_isolated_environ_hides_the_real_environment(real_environ_sentinel: None) -> None:
+        # Regression test for the os.environ dump with secrets in a failing test_env
+        # assertion. Never put os.environ itself in an assert: on failure pytest
+        # would print its full contents.
+        sentinel_visible = SENTINEL_NAME in os.environ
+>       assert not sentinel_visible, "test_env sees the real process environment"
+E       AssertionError: test_env sees the real process environment
+E       assert not True
+
+tests\test_env.py:49: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_env.py::test_isolated_environ_hides_the_real_environment - ...
+1 failed, 19 deselected in 0.24s
