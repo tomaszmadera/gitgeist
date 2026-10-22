@@ -46,9 +46,9 @@ Zbudować silnik renderowania wizualnego w czasie rzeczywistym dla Warstwy 4 (Li
 
 ## Behaviour
 
-- Funkcja `render_live` przyjmuje obiekt `VisualLatentProfile` i opcjonalny tryb (`abstract` lub `character`, domyślnie `abstract`).
+- Funkcja `render_live` przyjmuje obiekt `VisualLatentProfile`, opcjonalny tryb (`abstract` lub `character`, domyślnie `abstract`) oraz wymagany argument nazwany `identity` (`IdentitySeed`).
 - Zwraca obiekt `LiveRenderArtifacts` zawierający wyrenderowany dokument HTML (`live-preview.html`) oraz zwalidowany stan symulacji (`live-state.json`).
-- Jeśli podano `output_dir`, funkcja deterministycznie zapisuje oba pliki do wskazanego katalogu.
+- Jeśli podano `output_dir`, funkcja deterministycznie zapisuje do wskazanego katalogu `live-preview.html`, `live-state.json` i `identity-seed.json`.
 - Identical `VisualLatentProfile`, mode and identity seed give an identical `LiveSimulationState` and HTML document. The generator `seed` comes only from the identity seed and the mode, never from profile values or HEAD: the identity seed is the SHA-256 of the sorted root commit hashes (the directory name without Git), and `render_live` writes it to `identity-seed.json` when `output_dir` is set (amended 2026-10-22, visual-diversity plan stage 1).
 - Dokument HTML osadza w sobie stan JSON oraz kod silnika Canvas, umożliwiając natychmiastowe uruchomienie bez połączenia internetowego i bez błędu CORS.
 
@@ -82,6 +82,8 @@ none
   - `mode`: `Literal["abstract", "character"] = "abstract"`
   - `repository_name`: `str | None = None`
   - `output_dir`: `Path | str | None = None`
+  - `identity`: `IdentitySeed` (wymagane, tylko jako argument nazwany; `gitgeist.compute_identity_seed(repo_path)`)
+- Generatory trybów: `generate_abstract_simulation(profile, repository_name=None, *, identity_seed: str)` i `generate_character_simulation(profile, repository_name=None, *, identity_seed: str)`, gdzie `identity_seed` to `IdentitySeed.identity_seed`.
 - Wyjście:
   - `LiveRenderArtifacts`:
     - `state`: `LiveSimulationState`
@@ -89,11 +91,13 @@ none
     - `state_json`: `str`
     - `html_path`: `Path | None` (jeśli zapisano do pliku)
     - `json_path`: `Path | None` (jeśli zapisano do pliku)
+    - `identity_seed_path`: `Path | None` (jeśli zapisano do pliku)
 - Publiczne modele:
   - `gitgeist.schemas.live_state.ColorPalette`
   - `gitgeist.schemas.live_state.MotionDynamics`
   - `gitgeist.schemas.live_state.GeometryParameters`
   - `gitgeist.schemas.live_state.LiveSimulationState`
+  - `gitgeist.schemas.identity.IdentitySeed`
   - `gitgeist.render.LiveRenderArtifacts`
   - `gitgeist.render_live`
 
@@ -105,7 +109,7 @@ none
 
 ## Errors
 
-- Przekazanie obiektu innego niż `VisualLatentProfile` rzuca `TypeError`.
+- Przekazanie obiektu innego niż `VisualLatentProfile` albo `identity` innego typu niż `IdentitySeed` rzuca `TypeError`.
 - Przekazanie nieznanego trybu reprezentacji (np. `"surreal"`) rzuca `ValueError`.
 - Błąd zapisu do pliku rzuca standardowy wyjątek `OSError`.
 - Brak cichych fallbacków ukrywających niepoprawne dane.
