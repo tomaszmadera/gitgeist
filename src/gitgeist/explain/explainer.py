@@ -208,7 +208,7 @@ def _overview_lines(features: RepositoryFeatures) -> list[str]:
         lines.append(
             f"- git: {history.commit_count} commits by {history.unique_authors_count} authors, "
             f"age {history.repository_age_days} days, "
-            f"velocity {history.velocity:.2f} commits/day"
+            f"velocity {history.velocity:.2f} commits/week"
         )
         lines.append(f"- churn: +{history.total_lines_added} -{history.total_lines_deleted} lines")
     else:
@@ -273,7 +273,7 @@ def _signals_for_score(score_name: str, features: RepositoryFeatures) -> list[st
             signals.append("no git history baseline")
         else:
             if history.velocity >= 2.0:
-                signals.append(f"high commit velocity ({history.velocity:.2f} commits/day)")
+                signals.append(f"high commit velocity ({history.velocity:.2f} commits/week)")
             if history.total_lines_added + history.total_lines_deleted > 0:
                 signals.append(
                     f"large code churn (+{history.total_lines_added} "
@@ -321,7 +321,7 @@ def _signals_for_score(score_name: str, features: RepositoryFeatures) -> list[st
         ):
             signals.append(f"repeated changes in {history.hotspots[0].path}")
         if history.is_git_repo and history.velocity >= 1.0:
-            signals.append(f"active pace ({history.velocity:.2f} commits/day)")
+            signals.append(f"active pace ({history.velocity:.2f} commits/week)")
         if history.unique_authors_count > 1:
             signals.append(f"{history.unique_authors_count} contributors")
     elif score_name == "chaos":

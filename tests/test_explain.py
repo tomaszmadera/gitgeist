@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from gitgeist import evaluate_emotional_state, explain, extract_features, map_emotional_to_latent
-from gitgeist.explain.explainer import ExplanationArtifacts
+from gitgeist.explain.explainer import ExplanationArtifacts, _signals_for_score
 from gitgeist.schemas.emotional import (
     ChoiceDistribution,
     EmotionalChoices,
@@ -380,10 +380,23 @@ def test_repository_overview_facts():
     assert "- files: 24 in 4 directories (max depth 3)" in overview
     assert "- languages: Python (18), Markdown (4)" in overview
     assert "- size: 48000 bytes (average 2000.0 bytes per file)" in overview
-    assert "- git: 42 commits by 3 authors, age 485 days, velocity 1.40 commits/day" in overview
+    assert "- git: 42 commits by 3 authors, age 485 days, velocity 1.40 commits/week" in overview
     assert "- churn: +5200 -1100 lines" in overview
     assert "- hygiene: tests, CI, README, documentation, license: MIT" in overview
     assert "- TODO/FIXME markers: 2" in overview
+
+
+def test_velocity_is_labelled_per_week():
+    # features/history.py computes velocity as commits per week.
+    features = make_features()
+    features = features.model_copy(
+        update={"history": features.history.model_copy(update={"velocity": 2.5})}
+    )
+    summary = explain(features, make_emotional_state(), make_profile()).summary_md
+    assert "velocity 2.50 commits/week" in summary
+    assert "high commit velocity (2.50 commits/week)" in summary
+    assert "commits/day" not in summary
+    assert "active pace (2.50 commits/week)" in _signals_for_score("tension", features)
 
 
 def test_repository_overview_without_git_history(non_git_dir: Path):
