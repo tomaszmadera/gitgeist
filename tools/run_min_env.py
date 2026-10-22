@@ -6,12 +6,15 @@ variables, so no real secret is in the process at all:
 
     SystemRoot (Windows only), PATH (this Python's directory, git's directory
     and the system binary directory), TEMP, TMP, TMPDIR, HOME and USERPROFILE
-    (an empty temp directory) and PYTHONPATH (<cwd>/src).
+    (an empty temp directory), PYTHONPATH (<cwd>/src) and GITGEIST_ENV_FILE
+    (a missing file in that temp directory, so gitgeist does not search for a
+    .env file upward from <cwd>).
 
-The log file gets a header with the command, the wrapper invocation, the
-directory, the commit, the date and the exit code, followed by the unedited
-stdout+stderr of the command (line endings normalized to LF). No environment
-value other than the paths above is written.
+The log file gets a header with the command, the wrapper invocation exactly as
+this process received it (sys.argv), the directory, the commit, the date and
+the exit code, followed by the unedited stdout+stderr of the command (line
+endings normalized to LF). No environment value other than the paths above is
+written.
 
 Example (red run of a test file in a worktree at the commit before a fix):
 
@@ -53,6 +56,10 @@ def minimal_env(cwd: Path, home: Path, tmp: Path) -> dict[str, str]:
     env["TEMP"] = env["TMP"] = env["TMPDIR"] = str(tmp)
     env["HOME"] = env["USERPROFILE"] = str(home)
     env["PYTHONPATH"] = str(cwd / "src")
+    # gitgeist.env.load_dotenv() reads GITGEIST_ENV_FILE when it is set and
+    # only otherwise calls find_dotenv(), which searches upward from the working
+    # directory. A missing file here means no project or parent .env is loaded.
+    env["GITGEIST_ENV_FILE"] = str(home / "no-such-file.env")
     return env
 
 
@@ -82,10 +89,17 @@ def main(argv: list[str] | None = None) -> int:
         home, tmp = base / "home", base / "tmp"
         home.mkdir()
         tmp.mkdir()
-        return _run(args, child_args, argv, cwd, minimal_env(cwd, home, tmp))
+        invocation = [sys.argv[0], *argv]
+        return _run(args, child_args, invocation, cwd, minimal_env(cwd, home, tmp))
 
 
-def _run(args: argparse.Namespace, child_args: list[str], argv: list[str], cwd: Path, env: dict[str, str]) -> int:
+def _quote(words: list[str]) -> str:
+    return subprocess.list2cmdline(words) if os.name == "nt" else shlex.join(words)
+
+
+def _run(
+    args: argparse.Namespace, child_args: list[str], invocation: list[str], cwd: Path, env: dict[str, str]
+) -> int:
 
     module = subprocess.run(
         [sys.executable, "-c", "import gitgeist; print(gitgeist.__file__)"],
@@ -98,15 +112,13 @@ def _run(args: argparse.Namespace, child_args: list[str], argv: list[str], cwd: 
     proc = subprocess.run([sys.executable, *child_args], cwd=cwd, env=env, capture_output=True)
     output = (proc.stdout + proc.stderr).decode("utf-8", errors="replace").replace("\r\n", "\n")
 
-    words = ["python", "tools/run_min_env.py", *argv]
-    wrapper = subprocess.list2cmdline(words) if os.name == "nt" else shlex.join(words)
     header = "\n".join(
         [
             f"# {args.title}",
             "#",
-            f"# Command:   python {' '.join(child_args)}",
+            f"# Command:   {_quote(['python', *child_args])}",
+            f"# Wrapper:   {_quote(['python', *invocation])}",
             f"#            (python = {sys.executable})",
-            f"# Wrapper:   {wrapper}",
             f"# Directory: {cwd}",
             f"# Commit:    {git_head(cwd)}",
             f"# Date:      {started.isoformat(timespec='seconds')}",
