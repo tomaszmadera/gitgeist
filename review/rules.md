@@ -21,7 +21,7 @@ R2 | Every bug fix adds a test that fails without the fix, including fixes that 
 R3 | The PR references its Plane work item (GITGEIST-<n>) and describes the change | check: PR description
 R4 | No changes outside the scope of the work item | check: list of changed files
 R5 | Tests stay offline: no test calls OpenRouter, an LLM or image CLI, or the network; backends are faked or stubbed | check: green CI run (no secrets configured) + diff of tests/
-R6 | Every red-test log for the PR comes with the literal command that produced it | check: raw log and command in the PR description, a PR comment, or a file under docs/evidence/ linked from the PR body
+R6 | Every red-test log for the PR comes with the literal command that produced it, and any wrapper that sets up the environment for the run is committed under tools/ | check: raw log and command in the PR description, a PR comment, or a file under docs/evidence/ linked from the PR body + the wrapper exists under tools/ on main or in the PR diff
 R7 | A red run that fails only because a module is missing does not count as a red run | check: raw red log fails on an assertion or the expected error, not on ModuleNotFoundError or ImportError
 R8 | A breaking API change adds a CHANGELOG entry and updates every spec that contains the affected signature | check: diff of CHANGELOG.md + search of docs/ for the old signature
 R9 | The PR does not reference documents that exist only on an unmerged branch | check: every linked repository path exists on main or in the PR diff
@@ -52,6 +52,10 @@ Notes on evidence:
   Secret values are left out of the command. A log without its command does
   not count as evidence. The log may be in the PR description, in a PR
   comment, or in a file under `docs/evidence/` that the PR body links to.
+  A wrapper that sets up the environment for a red run (for example
+  `tools/run_min_env.py`, which starts the command in a minimal environment)
+  is committed under `tools/`, so anyone can rerun the command. A wrapper
+  that exists only on someone's machine does not count.
 - R7: an import error shows only that the code under test does not exist yet.
   A red run for R2 must reach the test and fail on the behavior it checks.
 - R8: "every spec" includes specs in `docs/features/` and `docs/product/` that
