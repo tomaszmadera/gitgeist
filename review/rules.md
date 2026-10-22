@@ -17,11 +17,11 @@ decide it.
 
 ```text
 R1 | Every "verify" check (GitHub Actions, ubuntu-latest, one per supported Python version) is green on the latest PR commit | check: PR Checks tab
-R2 | Every bug fix adds a test that fails without the fix | check: PR diff + raw test log with a red run before the fix
+R2 | Every bug fix adds a test that fails without the fix, including fixes that touch only tests or fixtures | check: PR diff + raw test log with a red run before the fix
 R3 | The PR references its Plane work item (GITGEIST-<n>) and describes the change | check: PR description
 R4 | No changes outside the scope of the work item | check: list of changed files
 R5 | Tests stay offline: no test calls OpenRouter, an LLM or image CLI, or the network; backends are faked or stubbed | check: green CI run (no secrets configured) + diff of tests/
-R6 | Every red-test log attached to the PR comes with the literal command that produced it | check: PR description or PR comment with the raw log and the command
+R6 | Every red-test log for the PR comes with the literal command that produced it | check: raw log and command in the PR description, a PR comment, or a file under docs/evidence/ linked from the PR body
 R7 | A red run that fails only because a module is missing does not count as a red run | check: raw red log fails on an assertion or the expected error, not on ModuleNotFoundError or ImportError
 R8 | A breaking API change adds a CHANGELOG entry and updates every spec that contains the affected signature | check: diff of CHANGELOG.md + search of docs/ for the old signature
 R9 | The PR does not reference documents that exist only on an unmerged branch | check: every linked repository path exists on main or in the PR diff
@@ -39,12 +39,19 @@ Notes on evidence:
 - R2: keep the raw red run: the unedited pytest output of the new test against
   the code without the fix, with the command, commit, and exit code. Keep the
   red run, or revert and restore the fix before the final check. A summary of
-  the failure is not evidence.
+  the failure is not evidence. A fix that changes only tests or fixtures is
+  still a bug fix. For a defect that shows only on one platform, the red run
+  is either a red run of that platform's CI job or a raw log from that
+  platform at the commit before the fix.
 - R5: CI has no API keys, so a test that needs a real backend fails there. A
   test that skips itself when a key is missing does not meet R5 either; it
   must use the `fake` backend or a stub.
 - R6: the command is the exact one that was run, copied as typed, not a
-  description of it. A log without its command does not count as evidence.
+  description of it, including any environment setup or wrapper that ran it
+  (for example a script that starts the tests in a minimal environment).
+  Secret values are left out of the command. A log without its command does
+  not count as evidence. The log may be in the PR description, in a PR
+  comment, or in a file under `docs/evidence/` that the PR body links to.
 - R7: an import error shows only that the code under test does not exist yet.
   A red run for R2 must reach the test and fail on the behavior it checks.
 - R8: "every spec" includes specs in `docs/features/` and `docs/product/` that
