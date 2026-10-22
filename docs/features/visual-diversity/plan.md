@@ -2,7 +2,7 @@
 
 Path: `docs/features/visual-diversity/plan.md`
 
-Status: stage 0 decided on 2026-10-22; stages 1 to 13 are not started. Evidence: `analysis.md`. Target design: `design.md`. Stages 0 to 8 build the counter strategy and the shared portrait format; stages 9 to 13 add the evaluation strategy.
+Status: stage 0 decided on 2026-10-22; stage 1 done (merged in PR #3 on 2026-10-22, version 0.6.0); stages 2 to 13 are not started. `D` means D v1 as defined in `tools/diversity_report.py`; baselines are in `analysis.md`. Evidence: `analysis.md`. Target design: `design.md`. Stages 0 to 8 build the counter strategy and the shared portrait format; stages 9 to 13 add the evaluation strategy.
 
 ## Classification
 
@@ -28,7 +28,9 @@ Acceptance: decision records exist; `design.md` is updated to match. Met on 2026
 
 Size: small, four independent changes, each with a test that fails before the fix.
 
-1. Dev script that reproduces `analysis.md`: runs the pipeline on a list of repository paths, writes per-layer JSON, saturation counts, participation ratios and a headless Chrome contact sheet with distance `D`. Lives outside the package (for example `tools/diversity_report.py`). Acceptance: on the same 12 repositories at `03741e1` it reproduces the analysis tables.
+Status: done. Merged in PR #3 on 2026-10-22, version 0.6.0. Line references in this stage point to `03741e1`, before the change.
+
+1. Dev script that reproduces `analysis.md`: runs the pipeline on a list of repository paths, writes per-layer JSON, saturation counts, participation ratios and a headless Chrome contact sheet with distance `D`. Lives outside the package (for example `tools/diversity_report.py`). Acceptance: on the same 12 repositories at `03741e1` it reproduces the analysis tables. Result for `D`: met under D v1. The pre-v1 `D` numbers in `analysis.md` cannot be reproduced, because their measurement parameters were not recorded; the script defines D v1 with fixed parameters and a frozen 1.5 s animation clock, and repeated runs give identical values. The D v1 baseline at `03741e1` is 0.192 (abstract) and 0.083 (character).
 2. `summary.md` labels velocity as commits/week (`explain/explainer.py:211`, `276`, `324`). Acceptance: test asserts the unit string.
 3. Git dates from `--format=%H|%an|%at` (Unix time) instead of `%aI` (`ingest/git_history.py:80`). Acceptance: a fixture commit with a malformed zone (`+518:00`, as in `requests`) keeps its date.
 4. Identity seed from the root commit, replacing the profile-plus-HEAD seed (`render/abstract_renderer.py:11-21`, `render/character_renderer.py:11-21`), and `identity-seed.json` written. Needs a one-line amendment to `docs/features/live-renderers/spec.md`. Acceptance: two fixture commits that change one file give the same seed; two fixture repositories with different roots give different seeds.
@@ -75,7 +77,7 @@ Size: standard. Needs a spec (replaces the abstract business rules in `docs/feat
 Acceptance:
 
 1. HTML stays self-contained and works from `file:///`.
-2. Contact sheet on the 12-repository corpus: nearest-neighbour median `D` at least 0.40 (baseline 0.255).
+2. Contact sheet on the 12-repository corpus: nearest-neighbour median `D` v1 at least 0.40. Proposal, awaiting your decision: about 2x the D v1 baseline 0.192 at `03741e1` and about half of the v2 mockup (0.743). The previous target, 0.40 against the pre-v1 baseline 0.255, is not comparable with D v1. The baseline is remeasured on the same corpus right before the stage.
 3. Your visual review of the contact sheet and two live pages.
 
 ### Stage 5: live renderer v2, character
@@ -85,7 +87,7 @@ Size: standard. Same spec family as stage 4.
 - `creature` style: body plan from masses (largest mass as torso, others as limbs, depth as segments), rings on the torso, knot on the hotspot limb, posture and speed by `alive`.
 - The fixed spine template (`html_template.py:217-295`) is removed.
 
-Acceptance: as stage 4, with baseline 0.164; in addition, `gitgeist` and `NeKode` are no longer the closest pair.
+Acceptance: as stage 4, with nearest-neighbour median `D` v1 at least 0.25 for character. Proposal, awaiting your decision: about 3x the D v1 baseline 0.083 at `03741e1`, keeping the larger relative step for character that the pre-v1 targets had (0.164 to 0.40). In addition, `gitgeist` and `NeKode` are no longer the closest pair.
 
 ### Stage 6: prompt composer v2
 
@@ -191,4 +193,3 @@ Stages 4 and 6 can run in parallel after stage 3. Stages 9 to 11 can run in para
 
 - JEV integration (`docs/product/invariants.md`); the evaluation strategy does not change that invariant.
 - Multi-commit timelines and comparison views (product section 16).
-- Changes to the open PR #1 branch `docs/readme-en-and-review-fixes`.

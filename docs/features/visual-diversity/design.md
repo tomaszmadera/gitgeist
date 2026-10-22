@@ -171,7 +171,7 @@ Styles change how channels are drawn, never which trait drives which channel. `-
 
 - Identity seed: SHA-256 of the root commit hash (all roots, sorted). Without Git: the directory name. Stable across commits, branches and clones. Written to `identity-seed.json`, which the product already lists as an optional artifact (`:1166-1170`).
 - User seed: `--seed <int>` or `--seed random`. `random` prints the chosen value and records it, so any picture can be reproduced.
-- Effective seed: hash of identity seed, user seed and style. The current seed (hash of the profile and HEAD, `abstract_renderer.py:11-21`) is removed, so commits no longer reshuffle the picture.
+- Effective seed: hash of identity seed, user seed and style. Stage 1 (0.6.0) already replaced the old seed (hash of the profile and HEAD) with one derived from the identity seed and the mode (`render/abstract_renderer.py:10-17`, `render/character_renderer.py`), so commits no longer reshuffle the picture; the user seed and style are added later.
 
 ## Reading at a glance
 
@@ -377,7 +377,7 @@ Run both strategies on the 12-repository corpus from `analysis.md`, same styles 
 
 Acceptance:
 
-1. The evaluation strategy alone meets the diversity targets of the counter strategy (nearest-neighbour median `D` at least 0.40) and the flat-score targets above.
+1. The evaluation strategy alone meets the diversity targets of the counter strategy (nearest-neighbour median `D` v1 at or above the stage 4 and 5 targets in `plan.md`) and the flat-score targets above.
 2. For at least 8 of 12 repositories, the cross-strategy distance is at least the median nearest-neighbour distance inside the counter strategy: the two portraits of one repository differ as much as two different repositories do.
 3. Mean absolute Spearman correlation across channels is at most 0.8; if every channel is above 0.9, the evaluation adds nothing and the strategy is reconsidered.
 4. Your review of the side-by-side sheet.
@@ -423,7 +423,7 @@ Metrics live on `VisualSpec`, not on pixels, so tests are fast and deterministic
 - Determinism and seeds: same repository and seed give identical spec and HTML; another user seed keeps traits and structure identical and changes free fields; a fixture commit that touches one file keeps the identity seed and moves no mass by more than a small threshold.
 - Reference corpus check (offline dev script, not CI): trait participation ratio and maximum |r|, reported with each engine version. Target: no trait pair above |r| 0.8.
 - Evaluation strategy: contract tests with the `fake` evaluator (schema validation, every invalid case, the single re-ask, cache key and hit, timeout and missing-binary errors, no fallback); bundle builder tests (budget limits, excluded files, determinism); mapping tests (criteria to traits, `null` handling, forced-choice adjustment). No test calls a real backend.
-- Image check (dev script): headless Chrome contact sheet and distance `D` from `analysis.md`. Baseline nearest-neighbour median: 0.255 (abstract), 0.164 (character). Mockup: 0.462. Target for stage 4 and 5: at least 0.40 on the 12-repository corpus.
+- Image check (dev script `tools/diversity_report.py`): headless Chrome contact sheet with a frozen 1.5 s animation clock and distance `D` v1. Baseline nearest-neighbour median at `03741e1`: 0.192 (abstract), 0.083 (character). Mockup: 0.743. Proposed targets, awaiting your decision: at least 0.40 (abstract, stage 4) and 0.25 (character, stage 5) on the 12-repository corpus. The pre-v1 numbers in `analysis.md` (0.255, 0.164, mockup 0.462, target 0.40) are not comparable.
 
 ## Mockup
 
@@ -431,7 +431,7 @@ A static Pillow sketch of the abstract `orbits` style using the prototype traits
 
 ![Mockup of the proposed grammar, 12 repositories](assets/mockup-v2-abstract.jpg)
 
-What it shows: `is-odd` and `z` are pale and faded (dormant for years), `lua` has two large masses with many rings and one strand (old, one author), `NeKode` and `gitgeist` are vivid with few rings (young, active), `awesome` is light with frayed edges (text-heavy, no tests), `zlib` and `requests` are many ringed masses (old, broad). On the image distance `D`, the nearest-neighbour median goes from 0.255 (abstract) and 0.164 (character) to 0.462, and the closest pair from 0.103 and 0.043 to 0.300.
+What it shows: `is-odd` and `z` are pale and faded (dormant for years), `lua` has two large masses with many rings and one strand (old, one author), `NeKode` and `gitgeist` are vivid with few rings (young, active), `awesome` is light with frayed edges (text-heavy, no tests), `zlib` and `requests` are many ringed masses (old, broad). On the image distance `D` v1, the nearest-neighbour median goes from 0.192 (abstract) and 0.083 (character) at `03741e1` to 0.743, and the closest pair from 0.123 and 0.055 to 0.460. The pre-v1 numbers were 0.255 and 0.164 to 0.462, and 0.103 and 0.043 to 0.300.
 
 ## Risks
 

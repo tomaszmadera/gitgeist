@@ -2,7 +2,7 @@
 
 Path: `docs/features/visual-diversity/analysis.md`
 
-Status: analysis, no product change. Measured on `main` at `03741e1` (gitgeist 0.5.1) on 2026-10-21. Design: `design.md`. Plan: `plan.md`.
+Status: analysis, no product change. Measured on `main` at `03741e1` (gitgeist 0.5.1) on 2026-10-21. Code references (`file:line`) point to `03741e1`; stage 1 (PR #3, gitgeist 0.6.0) has since changed some of them. Design: `design.md`. Plan: `plan.md`.
 
 ## Answer
 
@@ -39,11 +39,12 @@ The "animation mode" is `--mode live`: the HTML page animates the canvas with `r
 
 - Corpus: 12 repositories chosen to differ as much as possible: `is-odd` (tiny npm package, dormant 8 years), `click`, `flask`, `requests` (large mature Python), `gitgeist` (this repo, `main`), `z` (single shell script), `lua` (C, 33 years of history, one main author, flat layout), `awesome` (Markdown list, 681 authors), `alpine` (JavaScript frontend monorepo), `zlib` (old C library), `NeKode` (TypeScript Electron app, one author, 4 months old), `fresh` (synthetic: 3 files, 1 commit).
 - Run: the pipeline functions from `main` called directly (`extract_features`, `evaluate_emotional_state`, `map_emotional_to_latent`, both live generators, `compose_prompt` for both representations), with a fixed `source_commit` so the seed does not depend on HEAD. No paid image API was called.
-- Live screenshots: headless Chrome, 520x520, after 1.5 s of virtual time.
-- Image distance: each screenshot is blurred (Gaussian, radius 12 at 256 px) and reduced to 8x8 for layout, plus a 12-bin hue histogram of saturated pixels. `D = 0.5 * layout_L1 / 0.25 + 0.5 * hue_histogram_distance`. Raw pixel distance was rejected as a metric because random particle noise scores as "different" while the portraits look the same.
+- Live screenshots: headless Chrome, 520x520, after 1.5 s of virtual time. Under D v1, `tools/diversity_report.py` freezes the animation clock at 1.5 s, so a rerun gives the same screenshot.
+- Image distance: each screenshot is blurred (Gaussian, radius 12 at 256 px) and reduced to 8x8 for layout, plus a 12-bin hue histogram of saturated pixels. `D = 0.5 * layout_L1 / 0.25 + 0.5 * hue_histogram_distance`. Raw pixel distance was rejected as a metric because random particle noise scores as "different" while the portraits look the same. This is the pre-v1 definition; its exact parameters were not recorded.
+- D v1 (`tools/diversity_report.py:28-35`): the same recipe with fixed parameters: each image resized to 256x256 and blurred (Gaussian, radius 12), layout as the mean absolute difference of the 8x8 RGB values, hue histogram of the unblurred pixels with HSV saturation > 0.25 and value > 0.15. `D = 0.5 * mean(|layout_a - layout_b|) / 0.25 + 0.5 * sum(|hue_a - hue_b|)`.
 - Spread: participation ratio of the correlation-matrix eigenvalues (`1 / sum(p_i^2)`), the effective number of independent dimensions.
 
-The scripts and full outputs are not in the repository; the measurement can be rerun with the steps above. Plan stage 1 adds a repeatable harness.
+The original scripts and outputs were not kept, so the pre-v1 `D` numbers below cannot be reproduced. Stage 1 added the repeatable harness `tools/diversity_report.py`, which defines D v1; the D v1 baselines are listed after the pre-v1 table.
 
 ## Measurements
 
@@ -126,7 +127,7 @@ What the canvas draws for every repository:
 
 ![Current live character, 12 repositories](assets/current-live-character.jpg)
 
-Image distance `D` (higher is more different):
+Image distance `D`, pre-v1 (higher is more different). These are the original numbers; they are not reproducible, because the measurement parameters were not recorded:
 
 | Render | Nearest-neighbour median | Closest pair |
 |---|---|---|
@@ -135,13 +136,25 @@ Image distance `D` (higher is more different):
 
 Your two repositories (`gitgeist`, `NeKode`) are the closest pair in character mode.
 
+Image distance `D` v1 (`tools/diversity_report.py`), nearest-neighbour median:
+
+| Run | Abstract | Character | Closest pair (abstract; character) |
+|---|---|---|---|
+| `03741e1`, 12-repository analysis corpus | 0.192 | 0.083 | 0.123 (`gitgeist`, `NeKode`); 0.055 (`gitgeist`, `NeKode`) |
+| v2 mockup (`design.md` "Mockup", abstract only) | 0.743 | - | 0.460 (`click`, `flask`); - |
+| `main` before stage 1, box corpus | 0.228 | 0.083 | 0.108 (`flask`, `alpine`); 0.055 (`gitgeist`, `NeKode`) |
+| `main` after stage 1 (0.6.0), box corpus | 0.186 | 0.091 | 0.082 (`flask`, `alpine`); 0.042 (`gitgeist`, `NeKode`) |
+| `main` after stage 1 (0.6.0), 12 repositories under `F:\projects` | 0.234 | 0.242 | not recorded |
+
+The box corpus is the same 12 repositories as checked out on the stage 1 build machine; `F:\projects` is a different set of repositories. Compare values only within one corpus. Stage 1 changes the seed and no visual mapping, so it moves `D` only a little; two runs on the same corpus gave identical values.
+
 ### Prompt-to-image mode
 
 - 48 lines per prompt; 20 are identical for all 12 repositories (instructions, mode text, constraints, and the `luminosity: medium` line).
 - `click` and `alpine` produce identical prompts (0 differing lines without the name line); `click`/`flask` and `flask`/`alpine` differ in 2 lines. On average two repositories differ in 14.6 of 48 lines.
 - Values are cut into three bins at 0.33 and 0.66 (`render/prompt_composer.py:56-61`), so most differences inside a bin disappear, and the many saturated values all print as "high".
 - No concrete fact reaches the model: no language, size, age, layout, hotspot or activity pattern. The only repository-specific word is the name (`prompt_composer.py:108-109`), which invites literal puns ("flask", "requests") rather than a portrait of the code.
-- The prompt lists 24 abstract qualifiers with equal weight. Image models cannot honor 24 competing adjectives, so they keep a few and default to their house style. Your 13 model runs for `gitgeist` in `gitgeist-output/gitgeist/` (2026-09-19) all used one prompt, so they show model variety, not repository variety.
+- The prompt lists 24 abstract qualifiers with equal weight. Image models cannot honor 24 competing adjectives, so they keep a few and default to their house style. Your 13 model runs for `gitgeist` in the local, git-ignored `gitgeist-output/gitgeist/` directory (2026-09-19, not in the repository) all used one prompt, so they show model variety, not repository variety.
 - The OpenRouter request sends no seed (`render/image_backend.py:125-126`), and the fake backend returns 16x16 hash noise (`image_backend.py:182-200`), which cannot show diversity offline.
 
 ## Other defects found
