@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -79,6 +81,17 @@ def test_analyze_rerun_overwrites_with_stable_summary(
     assert (out_dir / "summary.md").read_text(encoding="utf-8") == summary_first
 
 
+def test_analyze_rerun_from_inside_repo_keeps_stable_summary(
+    clean_modular_repo: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(clean_modular_repo)
+    out_dir = clean_modular_repo / "gitgeist-output" / clean_modular_repo.name
+    assert main(["analyze", "."]) == 0
+    summary_first = (out_dir / "summary.md").read_text(encoding="utf-8")
+    assert main(["analyze", "."]) == 0
+    assert (out_dir / "summary.md").read_text(encoding="utf-8") == summary_first
+
+
 @pytest.mark.parametrize("representation", ["character", "abstract"])
 def test_render_live_writes_mode_and_required_artifacts(
     clean_modular_repo: Path, representation: str, tmp_path: Path
@@ -102,6 +115,66 @@ def test_render_live_writes_mode_and_required_artifacts(
         assert (out_dir / name).is_file(), f"missing artifact: {name}"
     state = json.loads((out_dir / "live-state.json").read_text(encoding="utf-8"))
     assert state["representation_mode"] == representation
+
+
+def _render_live_seed(repo: Path, out_dir: Path, representation: str = "abstract") -> int:
+    code = main(
+        ["render", str(repo), "--representation", representation, "--mode", "live", "-o", str(out_dir)]
+    )
+    assert code == 0
+    return json.loads((out_dir / "live-state.json").read_text(encoding="utf-8"))["seed"]
+
+
+def _git_output(repo: Path, *args: str) -> str:
+    env = {
+        **os.environ,
+        "GIT_AUTHOR_NAME": "Seed Author",
+        "GIT_AUTHOR_EMAIL": "seed@test.local",
+        "GIT_COMMITTER_NAME": "Seed Author",
+        "GIT_COMMITTER_EMAIL": "seed@test.local",
+        "GIT_AUTHOR_DATE": "2026-03-01T10:00:00Z",
+        "GIT_COMMITTER_DATE": "2026-03-01T10:00:00Z",
+    }
+    return subprocess.run(
+        ["git", *args], cwd=repo, env=env, check=True, capture_output=True, text=True
+    ).stdout.strip()
+
+
+@pytest.mark.parametrize("representation", ["character", "abstract"])
+def test_render_live_seed_survives_a_commit_that_changes_one_file(
+    clean_modular_repo: Path, representation: str, tmp_path: Path
+) -> None:
+    before = _render_live_seed(clean_modular_repo, tmp_path / "before", representation)
+    core = clean_modular_repo / "src" / "modular" / "core.py"
+    core.write_text(core.read_text(encoding="utf-8") + "# tuned\n", encoding="utf-8")
+    _git_output(clean_modular_repo, "commit", "-am", "tune core engine")
+
+    after = _render_live_seed(clean_modular_repo, tmp_path / "after", representation)
+
+    assert after == before
+
+
+def test_render_live_seed_differs_for_repositories_with_different_roots(
+    minimal_repo: Path, clean_modular_repo: Path, tmp_path: Path
+) -> None:
+    seed_minimal = _render_live_seed(minimal_repo, tmp_path / "minimal")
+    seed_clean = _render_live_seed(clean_modular_repo, tmp_path / "clean")
+
+    assert seed_minimal != seed_clean
+
+
+def test_render_live_writes_identity_seed_json(clean_modular_repo: Path, tmp_path: Path) -> None:
+    out_dir = tmp_path / "live"
+    _render_live_seed(clean_modular_repo, out_dir)
+    root = _git_output(clean_modular_repo, "rev-list", "--max-parents=0", "HEAD")
+
+    data = json.loads((out_dir / "identity-seed.json").read_text(encoding="utf-8"))
+
+    assert data == {
+        "identity_seed": hashlib.sha256(root.encode("utf-8")).hexdigest(),
+        "source": "root-commits",
+        "root_commits": [root],
+    }
 
 
 @pytest.mark.parametrize("representation", ["character", "abstract"])

@@ -19,7 +19,7 @@ Domknąć lukę MVP Definition of Done (sekcja 25 dokumentu produktowego): dać 
 1. Moduł `src/gitgeist/cli.py` (argparse, bez nowych zależności) i konsolowy punkt wejścia `gitgeist` zarejestrowany w `pyproject.toml` (`[project.scripts]`).
 2. Polecenie `gitgeist analyze <repo_path> [-o DIR]`: pełny pipeline `extract_features` -> `evaluate_emotional_state` -> `map_emotional_to_latent` -> `explain`; zapis wymaganej pary artefaktów `profile.json` i `summary.md` do `DIR`; domyślnie `DIR = ./gitgeist-output/<repository_name>` względem katalogu roboczego procesu; `source_commit` ustawiane na HEAD repo (gdy repo jest repozytorium git).
 3. Polecenie `gitgeist render <repo_path> --representation {character,abstract} --mode {live,prompt-to-image} [-o DIR] [--backend {fake,openrouter}]`: pipeline jak w `analyze` plus artefakty trybu generacji:
-   - `live`: `live-preview.html`, `live-state.json` (przez `render_live`);
+   - `live`: `live-preview.html`, `live-state.json`, `identity-seed.json` (przez `render_live`);
    - `prompt-to-image`: `prompt.txt`, `portrait.png` (przez `render_prompt`);
    - oba tryby zapisują także wymaganą parę `profile.json` i `summary.md`.
 4. Backend obrazu: `fake` (domyślny, deterministyczny `FakeImageBackend`) oraz `openrouter` (`OpenRouterImageBackend`, klucz z `OPENROUTER_IMAGE_API_KEY`).
@@ -47,7 +47,7 @@ Domknąć lukę MVP Definition of Done (sekcja 25 dokumentu produktowego): dać 
 ## Business rules
 
 - Nazwa konsolowa to `gitgeist`; odstępstwo od przykładu `repo-portrait` w sekcji 22 wynika z nazwy pakietu (`pyproject.toml` `name = "gitgeist"`, README); przykład produktowy jest wcześniejszy względem zmiany nazwy.
-- Nazwy i zestaw plików artefaktów są zgodne z sekcją 23; CLI nie tworzy artefaktów opcjonalnych (`timeline.json`, `comparison.json`, `identity-seed.json`, `critique.json`).
+- Nazwy i zestaw plików artefaktów są zgodne z sekcją 23; CLI nie tworzy artefaktów opcjonalnych (`timeline.json`, `comparison.json`, `critique.json`). Wyjątek: `render --mode live` zapisuje `identity-seed.json` (poprawka z 2026-10-22, etap 1 planu visual-diversity, zob. `docs/features/live-renderers/spec.md`).
 - Różnicowanie (DoD 7, Test 1 z sekcji 29) jest mierzalne: dla par różnych repozytoriów testowych profil ma co najmniej 3 osie różniące się o `>= 0.1`, co najmniej 3 scores różniące się o `>= 0.1` oraz inną dominującą materiałowość. Dowód z fiksür `clean_modular_repo` i `legacy_chaotic_repo`: 13 z 14 osi i 9 z 10 scores różni się o `>= 0.1`, materiałowość `crystalline` vs `organic`.
 - Wspólny rdzeń trybów (Testy 5 i 6): wartości osi, kwalifikatory i dominanta materiałowości w `prompt.txt` są równe wartościom w `live-state.json` wygenerowanym z tego samego snapshotu.
 - Brak repozytorium git nie jest błędem: `source_commit` pozostaje `None`, pipeline używa domyślnych wartości non-git (jak w istniejących testach `non_git_dir`).
@@ -68,8 +68,8 @@ Brak. Funkcja działa lokalnie na ścieżce podanej przez użytkownika; jedyne w
   - `--mode` (wymagany): `live` albo `prompt-to-image`;
   - `-o/--output DIR`: domyślnie `./gitgeist-output/<repository_name>` względem katalogu roboczego procesu;
   - `--backend`: domyślnie `fake`; `openrouter` używa `OPENROUTER_IMAGE_API_KEY`, domyślnego `api_url` i pierwszego modelu z `OPENROUTER_IMAGE_MODELS` (reszta domyśłów w `image_backend.py`);
-  - wyjście: `profile.json`, `summary.md` plus `live-preview.html` i `live-state.json` (tryb `live`) albo `prompt.txt` i `portrait.png` (tryb `prompt-to-image`).
-- Wejście pipeline (bez zmian): `extract_features(Path)`, `evaluate_emotional_state(features, source_commit=...)`, `map_emotional_to_latent(state)`, `explain(features, state, profile, repository_name=<nazwa repo>, output_dir=DIR)`, `render_live(profile, mode=..., repository_name=..., output_dir=DIR)`, `render_prompt(state, profile, mode=..., backend=..., output_dir=DIR)`.
+  - wyjście: `profile.json`, `summary.md` plus `live-preview.html`, `live-state.json` i `identity-seed.json` (tryb `live`) albo `prompt.txt` i `portrait.png` (tryb `prompt-to-image`).
+- Wejście pipeline (bez zmian poza wymaganym argumentem nazwanym `identity` funkcji `render_live`, dodanym w etapie 1 planu visual-diversity): `extract_features(Path)`, `compute_identity_seed(Path)`, `evaluate_emotional_state(features, source_commit=...)`, `map_emotional_to_latent(state)`, `explain(features, state, profile, repository_name=<nazwa repo>, output_dir=DIR)`, `render_live(profile, mode=..., repository_name=..., output_dir=DIR, identity=compute_identity_seed(repo_path))`, `render_prompt(state, profile, mode=..., backend=..., output_dir=DIR)`.
 - Kody wyjścia: `0` sukces; `1` błąd użycia lub wykonania (ścieżka, backend, zapis); `2` błąd argparse (domyślny).
 
 ## Edge cases
