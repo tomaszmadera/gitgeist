@@ -100,7 +100,7 @@ Dodać do Warstwy 1 (ekstrakcja cech) strukturalne cechy repozytorium z sekcji "
 - Ścieżka z historii należy do kandydata według pierwszego segmentu ścieżki (`.` dla ścieżek bez `/`). Ścieżki, których segment nie jest kandydatem (katalog usunięty, katalog ignorowany, np. zacommitowany `dist/`), trafiają do masy `other`.
 - Limit: co najwyżej 8 mas łącznie, z `other` włącznie (O6). Jeśli kandydatów jest więcej niż 8 albo historia ma zmiany poza kandydatami, zostaje 7 pierwszych kandydatów, a reszta oraz zmiany spoza kandydatów tworzą masę `other` z `is_merged = True`. W przeciwnym razie wszyscy kandydaci są masami i `other` nie powstaje.
 - Pola masy: `file_count`; `file_share = file_count / StaticFeatures.file_count`; `churn_share` = zmiany plików masy (liczba wpisów `file_changes`, czyli dotknięć pliku przez commit, nie linii; O8) / wszystkie zmiany, `0.0` bez historii; `dominant_language` = język z największą liczbą plików masy (remis: nazwa rosnąco), `None` bez plików ze znanym językiem; `test_file_share` = pliki testowe / pliki kodu masy, `0.0` bez plików kodu.
-- `Hotspot.mass` = nazwa masy, do której należy ścieżka (`other` dla scalonych i spoza kandydatów); `None` tylko bez historii.
+- `Hotspot.mass` = nazwa masy, do której należy ścieżka (`other` dla scalonych i spoza kandydatów, także gdy `masses` jest puste); `None` tylko bez historii.
 - `hotspot_concentration = top10_share - min(1, 10 / file_count)`, gdzie `top10_share` = suma `change_count` 10 pierwszych hotspotów / wszystkie zmiany. Wartość surowa jest w [-1, 1] i nie jest przycinana w cechach; `0.0`, gdy `file_count == 0` lub brak zmian. Przycięcie do [0, 1] należy do normalizacji.
 
 ### Normalizacja
@@ -302,6 +302,7 @@ Pliki zapisywane:
 
 - Katalog bez Git oraz repozytorium bez commitów: pola historii v2 mają wartości domyślne (`timeline = []`, `timeline_start = None`, udziały `0.0`); masy powstają z drzewa z `churn_share = 0.0`; `hotspot_concentration = 0.0`; `Hotspot` lista pusta; `recency` ma `raw = None`.
 - Pusty katalog (0 plików): `masses = []`, `language_shares = []`, wszystkie proporcje `0.0`, `todo_density = 0.0`, nawet gdy historia ma zmiany usuniętych plików.
+- Repozytorium z historią, ale bez skanowanych plików (wszystkie usunięte lub ignorowane): `masses = []`, a hotspoty z historii zostają i każdy ma `mass = "other"`, choć na liście mas nie ma masy `other`. To zamierzone (decyzja Q1 z przeglądu PR #6): `other` oznacza ścieżkę spoza nazwanych mas, więc konsumenci nie mogą zakładać, że `Hotspot.mass` zawsze wskazuje element `masses`.
 - Tylko pliki w korzeniu: jedna masa `.` z `file_share = 1.0`.
 - Katalog najwyższego poziomu bez plików (lub tylko z ignorowanymi): liczony w `top_level_directory_count`, nie jest masą.
 - Prawdziwy katalog o nazwie `other`: pozostaje zwykłą masą (`is_merged = False`); scalona masa ma `is_merged = True`, więc nazwa może się powtórzyć, a konsumenci rozróżniają je po `is_merged`.
