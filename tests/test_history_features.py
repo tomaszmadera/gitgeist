@@ -197,14 +197,18 @@ def test_git_history_keeps_date_of_commit_with_malformed_zone(tmp_path: Path) ->
 
 def _hash_commit_object(repo_dir: Path, content: str) -> str:
     # --literally: git refuses to write a commit with a malformed zone otherwise.
-    return subprocess.run(
-        ["git", "hash-object", "-t", "commit", "-w", "--literally", "--stdin"],
-        cwd=repo_dir,
-        input=content,
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.strip()
+    # Bytes, not text=True: text mode would turn "\n" into "\r\n" on Windows.
+    return (
+        subprocess.run(
+            ["git", "hash-object", "-t", "commit", "-w", "--literally", "--stdin"],
+            cwd=repo_dir,
+            input=content.encode("utf-8"),
+            check=True,
+            capture_output=True,
+        )
+        .stdout.decode("ascii")
+        .strip()
+    )
 
 
 def test_history_v2_timeline_repo(timeline_repo: Path) -> None:

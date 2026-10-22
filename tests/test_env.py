@@ -3,11 +3,56 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
 
 from gitgeist.env import find_dotenv, load_dotenv, parse_dotenv, user_env_file
+
+
+@pytest.fixture(autouse=True)
+def isolated_environ(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Run each test against a private environment, never the real one.
+
+    load_dotenv() writes into os.environ, and a failed assertion on os.environ
+    prints it in full, so the real process environment (which can hold API keys)
+    is replaced by a small dict for the test. The working directory and home
+    point into tmp_path, so no real .env file can be loaded either.
+    """
+    home = tmp_path / "_home"
+    home.mkdir()
+    monkeypatch.setattr(os, "environ", {"HOME": str(home), "USERPROFILE": str(home)})
+    sandbox = tmp_path / "_cwd"
+    (sandbox / ".git").mkdir(parents=True)
+    monkeypatch.chdir(sandbox)
+
+
+SENTINEL_NAME = "GITGEIST_TEST_SENTINEL_SECRET"
+SENTINEL_VALUE = "fake-sentinel-value-not-a-real-secret"
+
+
+@pytest.fixture(scope="module")
+def real_environ_sentinel() -> Iterator[None]:
+    # Module scope runs before the function-scoped isolated_environ fixture,
+    # so this sets the sentinel in the real process environment.
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setenv(SENTINEL_NAME, SENTINEL_VALUE)
+        yield
+
+
+def test_isolated_environ_hides_the_real_environment(real_environ_sentinel: None) -> None:
+    # Regression test for the os.environ dump with secrets in a failing test_env
+    # assertion. Never put os.environ itself in an assert: on failure pytest
+    # would print its full contents.
+    sentinel_visible = SENTINEL_NAME in os.environ
+    assert not sentinel_visible, "test_env sees the real process environment"
+
+
+def _set_home(monkeypatch: pytest.MonkeyPatch, home: Path) -> None:
+    # Path.home() reads HOME on POSIX and USERPROFILE on Windows.
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
 
 
 def test_parse_dotenv_simple_pairs() -> None:
@@ -156,7 +201,7 @@ def test_load_dotenv_falls_back_to_user_env_file(
 ) -> None:
     monkeypatch.delenv("USER_VAR", raising=False)
     monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
-    monkeypatch.setenv("HOME", str(tmp_path))
+    _set_home(monkeypatch, tmp_path)
     user_file = tmp_path / ".config" / "gitgeist" / ".env"
     user_file.parent.mkdir(parents=True)
     user_file.write_text("USER_VAR=from-user-file\n", encoding="utf-8")
@@ -170,7 +215,7 @@ def test_load_dotenv_local_env_takes_precedence_over_user_file(
 ) -> None:
     monkeypatch.delenv("SHARED_VAR", raising=False)
     monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
-    monkeypatch.setenv("HOME", str(tmp_path))
+    _set_home(monkeypatch, tmp_path)
     user_file = tmp_path / ".config" / "gitgeist" / ".env"
     user_file.parent.mkdir(parents=True)
     user_file.write_text("SHARED_VAR=from-user-file\n", encoding="utf-8")
