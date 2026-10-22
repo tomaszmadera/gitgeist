@@ -10,6 +10,29 @@ import pytest
 from gitgeist.env import find_dotenv, load_dotenv, parse_dotenv, user_env_file
 
 
+@pytest.fixture(autouse=True)
+def isolated_environ(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Run each test against a private environment, never the real one.
+
+    load_dotenv() writes into os.environ, and a failed assertion on os.environ
+    prints it in full, so the real process environment (which can hold API keys)
+    is replaced by a small dict for the test. The working directory and home
+    point into tmp_path, so no real .env file can be loaded either.
+    """
+    home = tmp_path / "_home"
+    home.mkdir()
+    monkeypatch.setattr(os, "environ", {"HOME": str(home), "USERPROFILE": str(home)})
+    sandbox = tmp_path / "_cwd"
+    (sandbox / ".git").mkdir(parents=True)
+    monkeypatch.chdir(sandbox)
+
+
+def _set_home(monkeypatch: pytest.MonkeyPatch, home: Path) -> None:
+    # Path.home() reads HOME on POSIX and USERPROFILE on Windows.
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
+
+
 def test_parse_dotenv_simple_pairs() -> None:
     content = "KEY1=value1\nKEY2=value2"
     result = parse_dotenv(content)
@@ -156,7 +179,7 @@ def test_load_dotenv_falls_back_to_user_env_file(
 ) -> None:
     monkeypatch.delenv("USER_VAR", raising=False)
     monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
-    monkeypatch.setenv("HOME", str(tmp_path))
+    _set_home(monkeypatch, tmp_path)
     user_file = tmp_path / ".config" / "gitgeist" / ".env"
     user_file.parent.mkdir(parents=True)
     user_file.write_text("USER_VAR=from-user-file\n", encoding="utf-8")
@@ -170,7 +193,7 @@ def test_load_dotenv_local_env_takes_precedence_over_user_file(
 ) -> None:
     monkeypatch.delenv("SHARED_VAR", raising=False)
     monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
-    monkeypatch.setenv("HOME", str(tmp_path))
+    _set_home(monkeypatch, tmp_path)
     user_file = tmp_path / ".config" / "gitgeist" / ".env"
     user_file.parent.mkdir(parents=True)
     user_file.write_text("SHARED_VAR=from-user-file\n", encoding="utf-8")
