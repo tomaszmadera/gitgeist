@@ -1,0 +1,58 @@
+# Corpus of the quantile table v1 (docs/features/features-v2-normalization/spec.md, O4).
+# Each repository is pinned to a full commit SHA. tools/build_quantile_table.py
+# reads local clones checked out at these commits; it never clones or fetches.
+
+[[repository]]
+name = "is-odd"
+url = "https://github.com/jonschlinkert/is-odd"
+commit = "a80ee0d831a8ee69f1fad5b4673491847975eb26"
+
+[[repository]]
+name = "click"
+url = "https://github.com/pallets/click"
+commit = "2247b35ea1c47c727d7a06e51fa280e12a863ff6"
+
+[[repository]]
+name = "flask"
+url = "https://github.com/pallets/flask"
+commit = "d086db856be187255b8ec61ef409357393020f32"
+
+[[repository]]
+name = "requests"
+url = "https://github.com/psf/requests"
+commit = "611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60"
+
+[[repository]]
+name = "gitgeist"
+url = "https://github.com/tomaszmadera/gitgeist"
+commit = "3d3a7fedc56f0af30fe758d66d47636b8ce7c16e"
+
+[[repository]]
+name = "z"
+url = "https://github.com/rupa/z"
+commit = "d37a763a6a30e1b32766fecc3b8ffd6127f8a0fd"
+
+[[repository]]
+name = "lua"
+url = "https://github.com/lua/lua"
+commit = "8cb93bada561977eb370819e39d7d644e5fd0a3f"
+
+[[repository]]
+name = "awesome"
+url = "https://github.com/sindresorhus/awesome"
+commit = "bc98e517ddca672f55f9857d714fc3ea3c3540b2"
+
+[[repository]]
+name = "alpine"
+url = "https://github.com/alpinejs/alpine"
+commit = "8d3d9a2f98385d4c879f4b5be080a0221279ed4d"
+
+[[repository]]
+name = "zlib"
+url = "https://github.com/madler/zlib"
+commit = "767c4c947852e143f582c85f14cf573411df1b35"
+
+[[repository]]
+name = "NeKode"
+url = "https://github.com/tomaszmadera/NeKode"
+commit = "997f752224363a20d7242c4f0d1cbff742ac50f8"
