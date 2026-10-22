@@ -1,0 +1,216 @@
+# Windows test suite without the fix (main 7c96fc7)
+#
+# Command:   python -m pytest -q -p no:cacheprovider -rf
+#            (python = C:\Users\tomek\.agent-tmp\gg-venv\Scripts\python.exe)
+# Directory: C:\Users\tomek\.agent-tmp\gg-red (git worktree)
+# Commit:    7c96fc78dc6df566eaaa6f2b30b4752f8d50c3b6
+# Date:      2026-10-22T19:31:17+02:00 (Europe/Warsaw)
+# Exit code: 1
+# gitgeist imported from: C:\Users\tomek\.agent-tmp\gg-red\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the child
+# process got only SystemRoot, PATH, TEMP, TMP, HOME, USERPROFILE, PYTHONPATH. HOME and USERPROFILE point to an empty temp
+# directory. The output below is the unedited stdout+stderr of the command
+# (line endings normalized to LF).
+#
+......................................................................F. [ 18%]
+.................................................F...................... [ 37%]
+........................................................................ [ 55%]
+................................FF...................................... [ 74%]
+............................................................F........... [ 93%]
+..........................                                               [100%]
+================================== FAILURES ===================================
+________________ test_load_dotenv_falls_back_to_user_env_file _________________
+
+tmp_path = WindowsPath('C:/Users/tomek/.agent-tmp/minenv/tmp/pytest-of-unknown/pytest-0/test_load_dotenv_falls_back_to0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002258728A570>
+
+    def test_load_dotenv_falls_back_to_user_env_file(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.delenv("USER_VAR", raising=False)
+        monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
+        monkeypatch.setenv("HOME", str(tmp_path))
+        user_file = tmp_path / ".config" / "gitgeist" / ".env"
+        user_file.parent.mkdir(parents=True)
+        user_file.write_text("USER_VAR=from-user-file\n", encoding="utf-8")
+    
+>       assert load_dotenv() is True
+E       assert False is True
+E        +  where False = load_dotenv()
+
+tests\test_env.py:164: AssertionError
+__________ test_git_history_keeps_date_of_commit_with_malformed_zone __________
+
+tmp_path = WindowsPath('C:/Users/tomek/.agent-tmp/minenv/tmp/pytest-of-unknown/pytest-0/test_git_history_keeps_date_of0')
+
+    def test_git_history_keeps_date_of_commit_with_malformed_zone(tmp_path: Path) -> None:
+        # Real case from the requests repository: commit 5e6ecdad stores the zone
+        # "+051800", which git prints as "+518:00" in %aI and Python cannot parse.
+        repo_dir = tmp_path / "malformed-zone-repo"
+        repo_dir.mkdir()
+        _git(repo_dir, "init", "-b", "main")
+        (repo_dir / "f1.txt").write_text("1")
+        _git(repo_dir, "add", ".")
+        tree = subprocess.run(
+            ["git", "write-tree"], cwd=repo_dir, check=True, capture_output=True, text=True
+        ).stdout.strip()
+        root_object = (
+            f"tree {tree}\n"
+            "author Zone Author <zone@test.local> 1293876000 +0000\n"
+            "committer Zone Author <zone@test.local> 1293876000 +0000\n"
+            "\nroot commit\n"
+        )
+        root = _hash_commit_object(repo_dir, root_object)
+        malformed_object = (
+            f"tree {tree}\nparent {root}\n"
+            "author Zone Author <zone@test.local> 1313584730 +051800\n"
+            "committer Zone Author <zone@test.local> 1313584730 +051800\n"
+            "\ncommit with a malformed zone\n"
+        )
+        head = _hash_commit_object(repo_dir, malformed_object)
+>       _git(repo_dir, "update-ref", "refs/heads/main", head)
+
+tests\test_history_features.py:188: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_history_features.py:122: in _git
+    subprocess.run(["git", *args], cwd=repo_dir, check=True, capture_output=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+input = None, capture_output = True, timeout = None, check = True
+popenargs = (['git', 'update-ref', 'refs/heads/main', '4562a1155d0c95ddd8bec7d0b4c006d1bcf6e5ff'],)
+kwargs = {'cwd': WindowsPath('C:/Users/tomek/.agent-tmp/minenv/tmp/pytest-of-unknown/pytest-0/test_git_history_keeps_date_of0/malformed-zone-repo'), 'stdout': -1, 'stderr': -1}
+
+    def run(*popenargs,
+            input=None, capture_output=False, timeout=None, check=False, **kwargs):
+        """Run command with arguments and return a CompletedProcess instance.
+    
+        The returned instance will have attributes args, returncode, stdout and
+        stderr. By default, stdout and stderr are not captured, and those attributes
+        will be None. Pass stdout=PIPE and/or stderr=PIPE in order to capture them,
+        or pass capture_output=True to capture both.
+    
+        If check is True and the exit code was non-zero, it raises a
+        CalledProcessError. The CalledProcessError object will have the return code
+        in the returncode attribute, and output & stderr attributes if those streams
+        were captured.
+    
+        If timeout (seconds) is given and the process takes too long,
+         a TimeoutExpired exception will be raised.
+    
+        There is an optional argument "input", allowing you to
+        pass bytes or a string to the subprocess's stdin.  If you use this argument
+        you may not also use the Popen constructor's "stdin" argument, as
+        it will be used internally.
+    
+        By default, all communication is in bytes, and therefore any "input" should
+        be bytes, and the stdout and stderr will be bytes. If in text mode, any
+        "input" should be a string, and stdout and stderr will be strings decoded
+        according to locale encoding, or by "encoding" if set. Text mode is
+        triggered by setting any of text, encoding, errors or universal_newlines.
+    
+        The other arguments are the same as for the Popen constructor.
+        """
+        if input is not None:
+            if kwargs.get('stdin') is not None:
+                raise ValueError('stdin and input arguments may not both be used.')
+            kwargs['stdin'] = PIPE
+    
+        if capture_output:
+            if kwargs.get('stdout') is not None or kwargs.get('stderr') is not None:
+                raise ValueError('stdout and stderr arguments may not be used '
+                                 'with capture_output.')
+            kwargs['stdout'] = PIPE
+            kwargs['stderr'] = PIPE
+    
+        with Popen(*popenargs, **kwargs) as process:
+            try:
+                stdout, stderr = process.communicate(input, timeout=timeout)
+            except TimeoutExpired as exc:
+                process.kill()
+                if _mswindows:
+                    # Windows accumulates the output in a single blocking
+                    # read() call run on child threads, with the timeout
+                    # being done in a join() on those threads.  communicate()
+                    # _after_ kill() is required to collect that and add it
+                    # to the exception.
+                    exc.stdout, exc.stderr = process.communicate()
+                else:
+                    # POSIX _communicate already populated the output so
+                    # far into the TimeoutExpired exception.
+                    process.wait()
+                raise
+            except:  # Including KeyboardInterrupt, communicate handled that.
+                process.kill()
+                # We don't call process.wait() as .__exit__ does that for us.
+                raise
+            retcode = process.poll()
+            if check and retcode:
+>               raise CalledProcessError(retcode, process.args,
+                                         output=stdout, stderr=stderr)
+E               subprocess.CalledProcessError: Command '['git', 'update-ref', 'refs/heads/main', '4562a1155d0c95ddd8bec7d0b4c006d1bcf6e5ff']' returned non-zero exit status 128.
+
+..\..\AppData\Local\Programs\Python\Python313\Lib\subprocess.py:577: CalledProcessError
+_____________ test_corpus_values_on_fixtures[legacy_chaotic_repo] _____________
+
+fixture = 'legacy_chaotic_repo'
+request = <FixtureRequest for <Function test_corpus_values_on_fixtures[legacy_chaotic_repo]>>
+
+    @pytest.mark.parametrize("fixture", sorted(CORPUS_EXPECTED))
+    def test_corpus_values_on_fixtures(fixture: str, request: pytest.FixtureRequest) -> None:
+        features = extract_features(request.getfixturevalue(fixture))
+    
+        result = normalize_features(features, "corpus", reference_time=REF, table=_test_table())
+    
+        assert result.scale == "corpus"
+        assert result.table_version == "test"
+>       assert {name: round(v.value, 6) for name, v in result.inputs.items()} == CORPUS_EXPECTED[fixture]
+E       AssertionError: assert {'code_size':...0.075257, ...} == {'code_size':...0.075257, ...}
+E         
+E         Omitting 12 identical items, use -vv to show
+E         Differing items:
+E         {'code_size': 0.610227} != {'code_size': 0.604989}
+E         Use -v to get more diff
+
+tests\test_normalization.py:237: AssertionError
+________________ test_corpus_values_on_fixtures[minimal_repo] _________________
+
+fixture = 'minimal_repo'
+request = <FixtureRequest for <Function test_corpus_values_on_fixtures[minimal_repo]>>
+
+    @pytest.mark.parametrize("fixture", sorted(CORPUS_EXPECTED))
+    def test_corpus_values_on_fixtures(fixture: str, request: pytest.FixtureRequest) -> None:
+        features = extract_features(request.getfixturevalue(fixture))
+    
+        result = normalize_features(features, "corpus", reference_time=REF, table=_test_table())
+    
+        assert result.scale == "corpus"
+        assert result.table_version == "test"
+>       assert {name: round(v.value, 6) for name, v in result.inputs.items()} == CORPUS_EXPECTED[fixture]
+E       AssertionError: assert {'code_size':...0.075257, ...} == {'code_size':...0.075257, ...}
+E         
+E         Omitting 12 identical items, use -vv to show
+E         Differing items:
+E         {'code_size': 0.461275} != {'code_size': 0.454886}
+E         Use -v to get more diff
+
+tests\test_normalization.py:237: AssertionError
+___________________________ test_static_v2_minimal ____________________________
+
+minimal_repo = WindowsPath('C:/Users/tomek/.agent-tmp/minenv/tmp/pytest-of-unknown/pytest-0/test_static_v2_minimal0/minimal-repo')
+
+    def test_static_v2_minimal(minimal_repo: Path) -> None:
+        features = compute_static_features(scan_repository_tree(minimal_repo))
+    
+>       assert features.code_bytes == 65
+E       AssertionError: assert 69 == 65
+E        +  where 69 = StaticFeatures(file_count=2, directory_count=0, max_directory_depth=0, languages={'Python': 2}, total_size_bytes=69, a...todo_density=0.0, top_level_directory_count=0, language_shares=[LanguageShare(name='Python', file_count=2, share=1.0)]).code_bytes
+
+tests\test_static_features.py:112: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_env.py::test_load_dotenv_falls_back_to_user_env_file - asse...
+FAILED tests/test_history_features.py::test_git_history_keeps_date_of_commit_with_malformed_zone
+FAILED tests/test_normalization.py::test_corpus_values_on_fixtures[legacy_chaotic_repo]
+FAILED tests/test_normalization.py::test_corpus_values_on_fixtures[minimal_repo]
+FAILED tests/test_static_features.py::test_static_v2_minimal - AssertionError...
+5 failed, 381 passed in 86.41s (0:01:26)
