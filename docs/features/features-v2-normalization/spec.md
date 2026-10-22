@@ -2,7 +2,7 @@
 
 Path: `docs/features/features-v2-normalization/spec.md`
 
-Status: projekt do akceptacji (etap 2 planu `docs/features/visual-diversity/plan.md`). Otwarte decyzje są w sekcji "Open questions"; tam, gdzie spec zakłada wariant rekomendowany, oznacza to identyfikatorem pytania (np. O2).
+Status: zaakceptowany 2026-10-22 (etap 2 planu `docs/features/visual-diversity/plan.md`). Tomasz przyjął wszystkie rekomendowane warianty O1-O11 z sekcji "Decisions"; spec opisuje te warianty.
 
 ## Goal
 
@@ -398,7 +398,9 @@ Regresja i kontrakty:
 
 Żaden test nie używa sieci, LLM ani korpusu z zewnętrznymi repozytoriami; kryteria 2, 3 i 4 sprawdzają skrypty deweloperskie z logiem w PR.
 
-## Open questions
+## Decisions
+
+Wszystkie pytania rozstrzygnięte 2026-10-22: przyjęty wariant (a) w O1-O11. Opcje zostają poniżej jako zapis uzasadnienia.
 
 O1. Forma specu. (a) Nowy spec `docs/features/features-v2-normalization/spec.md`, a `feature-extraction/spec.md` dostaje krótkie poprawki z odnośnikiem w PR implementacji. (b) Wszystko wpisane bezpośrednio do `feature-extraction/spec.md`. Rekomendacja: (a), bo normalizacja jest nowym modułem poza ekstrakcją, a plan dla etapu 9 też tworzy nowy spec.
 
