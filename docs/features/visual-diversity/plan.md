@@ -77,7 +77,7 @@ Size: standard. Needs a spec (replaces the abstract business rules in `docs/feat
 Acceptance:
 
 1. HTML stays self-contained and works from `file:///`.
-2. Contact sheet on the 12-repository corpus: nearest-neighbour median `D` v1 at least 0.40. Proposal, awaiting your decision: about 2x the D v1 baseline 0.192 at `03741e1` and about half of the v2 mockup (0.743). The previous target, 0.40 against the pre-v1 baseline 0.255, is not comparable with D v1. The baseline is remeasured on the same corpus right before the stage.
+2. Contact sheet on the 12-repository corpus: nearest-neighbour median `D` v1 at least 0.40. Decided 2026-10-22: about 2x the D v1 baseline 0.192 at `03741e1` and about half of the v2 mockup (0.743). The previous target, 0.40 against the pre-v1 baseline 0.255, is not comparable with D v1. The baseline is remeasured on the same corpus right before the stage.
 3. Your visual review of the contact sheet and two live pages.
 
 ### Stage 5: live renderer v2, character
@@ -87,7 +87,7 @@ Size: standard. Same spec family as stage 4.
 - `creature` style: body plan from masses (largest mass as torso, others as limbs, depth as segments), rings on the torso, knot on the hotspot limb, posture and speed by `alive`.
 - The fixed spine template (`html_template.py:217-295`) is removed.
 
-Acceptance: as stage 4, with nearest-neighbour median `D` v1 at least 0.25 for character. Proposal, awaiting your decision: about 3x the D v1 baseline 0.083 at `03741e1`, keeping the larger relative step for character that the pre-v1 targets had (0.164 to 0.40). In addition, `gitgeist` and `NeKode` are no longer the closest pair.
+Acceptance: as stage 4, with nearest-neighbour median `D` v1 at least 0.25 for character. Decided 2026-10-22: about 3x the D v1 baseline 0.083 at `03741e1`, keeping the larger relative step for character that the pre-v1 targets had (0.164 to 0.40). In addition, `gitgeist` and `NeKode` are no longer the closest pair.
 
 ### Stage 6: prompt composer v2
 
