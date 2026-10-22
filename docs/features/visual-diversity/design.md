@@ -2,7 +2,7 @@
 
 Path: `docs/features/visual-diversity/design.md`
 
-Status: proposal for review. It changes product contracts, so it needs your decision (see "Decision needed") before any spec is written. It has two interchangeable strategies: counters (measured features) and evaluation (an LLM scores a rubric); both produce the same `VisualSpec`. Evidence: `analysis.md`. Steps: `plan.md`.
+Status: design direction accepted; stage 0 decisions recorded on 2026-10-22 (see "Decisions"). Each stage still needs its spec before code. It has two interchangeable strategies: counters (measured features) and evaluation (an LLM scores a rubric); both produce the same `VisualSpec`. Evidence: `analysis.md`. Steps: `plan.md`.
 
 ## Goals
 
@@ -18,17 +18,17 @@ Status: proposal for review. It changes product contracts, so it needs your deci
 - Literal programmer symbols or mascots. The prompt negative constraints stay.
 - Multi-commit timelines and comparison views (product section 16). The identity seed makes them possible later.
 
-## Decision needed
+## Decisions
 
-The product document says visuals must not come from "arbitrary assignment of one trait to one prop" (`docs/product/emotional-repository-portrait-system.md:418-421`) and gives "many tests -> glasses" as the anti-example (`:84-92`). Your request, conclusions visible at a glance, needs a stable mapping a viewer can learn. This design resolves the conflict with one rule:
+Stage 0 decisions, made by you on 2026-10-22:
 
-- Each trait owns one perceptual channel (footprint, rings, saturation, strands, focal knot, edge quality, topology, texture, cracks). Channels are abstract visual properties, never objects or symbols. Styles decide what the channels are drawn as, so the form still varies.
+1. Channel rule accepted: one trait per abstract visual channel, including cracks for TODO and debt density. Recorded in [ADR 0001](../../decisions/0001-trait-per-abstract-channel.md). The product document's ban on "arbitrary assignment of one trait to one prop" (`docs/product/emotional-repository-portrait-system.md:418-421`) and its anti-examples (`:84-92`) still apply to props, symbols and character items.
+2. First styles: `orbits` (abstract) and `creature` (character).
+3. Default `--scale`: `absolute`.
+4. Evaluation strategy enabled as an opt-in (`--strategy evaluation`); `counters` stays the default. Recorded in [ADR 0002](../../decisions/0002-optional-llm-evaluation-strategy.md).
+5. First evaluator backend: the Antigravity CLI `agy` (Google Gemini models), adapter id `agy`. You call this path "gemini-cli"; the `gemini` binary is not used.
 
-This is close to the document's own anti-example: `debt` drawn as cracks is near "many TODO -> scars". The difference is that cracks are a mark density every style draws its own way, not a fixed prop; whether that difference is enough is your call.
-
-Because the product document outranks a design document, this needs an explicit product decision (ADR) amending sections 3 and 10. Recommended: accept the channel rule; keep the ban on props and symbols. If you reject it, goals 1 and 3 still apply, but goal 2 drops to "explained in `summary.md`" and the caption becomes the only at-a-glance reading.
-
-A second decision enables the evaluation strategy: an optional LLM interpretation path, while `docs/product/invariants.md` keeps JEV integration `unmet` and the current specs are deterministic-only. Details in "Relation to the product contracts".
+The channel rule in short: each trait owns one perceptual channel (footprint, rings, saturation, strands, focal knot, edge quality, topology, texture, cracks). Channels are abstract visual properties, never objects or symbols. Styles decide what the channels are drawn as, so the form still varies. `debt` drawn as cracks is close to the anti-example "many TODO -> scars"; it is allowed because cracks are a mark density every style draws its own way, not a fixed prop.
 
 ## Architecture
 
@@ -117,7 +117,7 @@ The emotional scores, nouls and choices stay for `summary.md` and the explain la
 
 ## Visual grammar
 
-One trait, one primary channel. Every style must draw every channel, so a reading learned in one style transfers to the others.
+One trait, one primary channel ([ADR 0001](../../decisions/0001-trait-per-abstract-channel.md)). Every style must draw every channel, so a reading learned in one style transfers to the others.
 
 | Trait | Channel | Range | Reading |
 |---|---|---|---|
@@ -152,7 +152,7 @@ The animation shows history instead of a generic pulse.
 
 ### Styles
 
-Styles change how channels are drawn, never which trait drives which channel. `--style auto` lets the seed pick from the styles that fit the data; `--style <name>` fixes one.
+Styles change how channels are drawn, never which trait drives which channel. `--style auto` lets the seed pick from the styles that fit the data; `--style <name>` fixes one. The first styles to build are `orbits` and `creature` (stage 0 decision); the others follow in plan stage 8.
 
 | Representation | Style | Draws masses as | Fit hint for `auto` |
 |---|---|---|---|
@@ -169,7 +169,7 @@ Styles change how channels are drawn, never which trait drives which channel. `-
 
 ## Seeds
 
-- Identity seed: SHA-256 of the root commit hash (all roots, sorted). Without Git: the directory name. Stable across commits, branches and clones. Written to `identity-seed.json`, which the product already lists as an optional artifact (`:1164-1168`).
+- Identity seed: SHA-256 of the root commit hash (all roots, sorted). Without Git: the directory name. Stable across commits, branches and clones. Written to `identity-seed.json`, which the product already lists as an optional artifact (`:1166-1170`).
 - User seed: `--seed <int>` or `--seed random`. `random` prints the chosen value and records it, so any picture can be reproduced.
 - Effective seed: hash of identity seed, user seed and style. The current seed (hash of the profile and HEAD, `abstract_renderer.py:11-21`) is removed, so commits no longer reshuffle the picture.
 
@@ -305,7 +305,7 @@ Failure behavior, per `AGENTS.md` (no silent fallback): a missing CLI binary, fa
 |---|---|---|
 | `command` | any CLI that reads the prompt on stdin and prints JSON; command line from config | depends on the tool |
 | `grok-cli` | `grok -p` (non-interactive) | your subscription |
-| `gemini-cli` | `gemini -p` with a model flag (Gemini Pro on your plan); `agy` through `command` if it has a non-interactive mode (to verify) | your subscription |
+| `agy` | Antigravity CLI (Google Gemini models; the path you call "gemini-cli"): `agy -p --print-timeout <seconds>`, with `--model`, `--output-format json` and `--json-schema` available per `agy --help` (checked 2026-10-22); first backend | your subscription |
 | `openrouter` | chat completions with a JSON schema response format; model from config (current DeepSeek or a Flash model); key in `OPENROUTER_EVAL_API_KEY` | paid per token |
 | `fake` | returns a fixed or seeded `RubricResult`; tests only | none |
 
@@ -386,7 +386,7 @@ The comparison run calls an LLM backend and needs your yes.
 
 ### Relation to the product contracts
 
-`docs/product/invariants.md:7-16` records the JEV integration as `unmet`, and the current specs (`docs/features/feature-extraction/spec.md`, `docs/features/emotional-state-model/spec.md`) describe a deterministic-only interpretation. The product document does foresee a stronger LLM summarizing the repository and choosing important traits (`docs/product/emotional-repository-portrait-system.md:360-366`). The evaluation strategy is an optional LLM interpretation path; it is not JEV, and its existence must not be reported as meeting the `jev-real-integration` invariant (its `blocking_scope` forbids that). Stage 0 records a product decision that enables this path, keeps the counter strategy as the default, and keeps the invariant `unmet`.
+`docs/product/invariants.md:7-16` records the JEV integration as `unmet`, and the current specs (`docs/features/feature-extraction/spec.md`, `docs/features/emotional-state-model/spec.md`) describe a deterministic-only interpretation. The product document does foresee a stronger LLM summarizing the repository and choosing important traits (`docs/product/emotional-repository-portrait-system.md:360-366`). The evaluation strategy is an optional LLM interpretation path; it is not JEV, and its existence must not be reported as meeting the `jev-real-integration` invariant (its `blocking_scope` forbids that). Stage 0 recorded this as [ADR 0002](../../decisions/0002-optional-llm-evaluation-strategy.md): the path is enabled as an opt-in, the counter strategy stays the default, and the invariant stays `unmet`.
 
 ## Configuration and CLI
 
@@ -397,12 +397,12 @@ New flags on `gitgeist render` (and on `analyze` where they affect `profile.json
 | `--style` | `auto` or a style name for the representation | `auto` |
 | `--seed` | integer or `random` | none (identity seed only) |
 | `--variety` | `low`, `medium`, `high` | `medium` |
-| `--scale` | `corpus`, `portfolio`, `absolute` | `absolute` until the corpus table exists |
+| `--scale` | `corpus`, `portfolio`, `absolute` | `absolute` (stage 0 decision) |
 | `--palette` | `language`, `seeded` | `language` |
 | `--caption` | `on`, `off` | `on` |
 | `--prompt-name` | flag | off |
 | `--strategy` | `counters`, `evaluation` | `counters` |
-| `--evaluator` | `command`, `grok-cli`, `gemini-cli`, `openrouter`, `fake` | none; required with `--strategy evaluation` |
+| `--evaluator` | `command`, `agy`, `grok-cli`, `openrouter`, `fake` | none; required with `--strategy evaluation` |
 | `--lens` | `default`, `newcomer`, `maintainer`, `craftsperson`, `archaeologist`, `critic` | `default` |
 | `--eval-budget` | characters | 90000 |
 | `--eval-refresh` | flag | off |

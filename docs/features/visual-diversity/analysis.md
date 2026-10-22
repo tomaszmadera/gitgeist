@@ -120,7 +120,7 @@ What the canvas draws for every repository:
 - Abstract: particles at uniform random positions in a 600 px square (`html_template.py:151-161`), a radial aura at the center (`html_template.py:174-182`), the particle set copied around the center `symmetry_order` times. With order 8 the result is a kaleidoscope. This is the "too symmetric" effect, and it is strongest for mature repositories because order grows with discipline and coherence (`abstract_renderer.py:35-44`).
 - Character: a vertical spine of `layer_count + 3` ribs with a fixed diamond width profile `(1 - |y| * 1.4) * 160` (`html_template.py:241-248`), a center aura and an orbit of particles. The silhouette is the same for every repository; only the rib count, colors and line style change.
 - The HUD shows material, seed and engine version (`html_template.py:97-103`), none of which tells the viewer anything about the repository.
-- The seed hashes the profile and `source_commit` (`abstract_renderer.py:11-21`, `character_renderer.py:11-21`), so every new commit reshuffles the particles. The product asks the opposite: stable identity across snapshots (`docs/product/emotional-repository-portrait-system.md:839-855`).
+- The seed hashes the profile and `source_commit` (`abstract_renderer.py:11-21`, `character_renderer.py:11-21`), so every new commit reshuffles the particles. The product asks the opposite: stable identity across snapshots (`docs/product/emotional-repository-portrait-system.md:841-857`).
 
 ![Current live abstract, 12 repositories](assets/current-live-abstract.jpg)
 
