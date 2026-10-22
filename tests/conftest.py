@@ -7,6 +7,8 @@ from tests.fixtures.builder import (
     create_clean_modular_repo,
     create_legacy_chaotic_repo,
     create_minimal_repo,
+    create_timeline_repo,
+    create_wide_repo,
 )
 
 
@@ -26,6 +28,18 @@ def clean_modular_repo(tmp_path: Path) -> Path:
 def legacy_chaotic_repo(tmp_path: Path) -> Path:
     repo_path = tmp_path / "legacy-chaotic-repo"
     return create_legacy_chaotic_repo(repo_path)
+
+
+@pytest.fixture
+def timeline_repo(tmp_path: Path) -> Path:
+    repo_path = tmp_path / "timeline-repo"
+    return create_timeline_repo(repo_path)
+
+
+@pytest.fixture
+def wide_repo(tmp_path: Path) -> Path:
+    repo_path = tmp_path / "wide-repo"
+    return create_wide_repo(repo_path)
 
 
 @pytest.fixture
