@@ -420,6 +420,8 @@ Nie chcemy:
 - twardych ifów z symbolicznymi maskami,
 - arbitralnego przypisania jednej cechy do jednego rekwizytu.
 
+> Amended for abstract visual channels by `docs/decisions/0001-trait-per-abstract-channel.md` (2026-10-22): one trait may own one abstract channel, including cracks; this ban and the anti-examples in section 3 still apply to props and character items.
+
 Chcemy coś bliższego:
 
 ```text
