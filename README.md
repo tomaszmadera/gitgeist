@@ -4,7 +4,7 @@ A system that presents a Git repository as an emotional visual portrait.
 
 ## Status
 
-Prototype, version 0.5.1. The `gitgeist` command line tool (`analyze`, `render`) runs the whole pipeline: rule-based sensors, an emotional model, a visual profile, explanations, and `live` / `prompt-to-image` rendering.
+Prototype, version 0.6.0. The `gitgeist` command line tool (`analyze`, `render`) runs the whole pipeline: rule-based sensors, an emotional model, a visual profile, explanations, and `live` / `prompt-to-image` rendering.
 
 Known gap: the emotional interpretation uses fixed deterministic rules. The semantic interpretation layer that the product document requires (JEV, optionally with a stronger LLM) is not implemented yet. See `docs/product/invariants.md` (entry `jev-real-integration`, status `unmet`).
 
