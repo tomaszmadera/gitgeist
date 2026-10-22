@@ -49,7 +49,7 @@ Zbudować silnik renderowania wizualnego w czasie rzeczywistym dla Warstwy 4 (Li
 - Funkcja `render_live` przyjmuje obiekt `VisualLatentProfile`, opcjonalny tryb (`abstract` lub `character`, domyślnie `abstract`) oraz wymagany argument nazwany `identity` (`IdentitySeed`).
 - Zwraca obiekt `LiveRenderArtifacts` zawierający wyrenderowany dokument HTML (`live-preview.html`) oraz zwalidowany stan symulacji (`live-state.json`).
 - Jeśli podano `output_dir`, funkcja deterministycznie zapisuje do wskazanego katalogu `live-preview.html`, `live-state.json` i `identity-seed.json`.
-- Identical `VisualLatentProfile`, mode and identity seed give an identical `LiveSimulationState` and HTML document. The generator `seed` comes only from the identity seed and the mode, never from profile values or HEAD: the identity seed is the SHA-256 of the sorted root commit hashes (the directory name without Git), and `render_live` writes it to `identity-seed.json` when `output_dir` is set (amended 2026-10-22, visual-diversity plan stage 1).
+- Identyczny `VisualLatentProfile`, tryb i ziarno tożsamości dają identyczny stan symulacji `LiveSimulationState` oraz identyczny dokument HTML. Ziarno generatora (`seed`) zależy wyłącznie od ziarna tożsamości i trybu, nigdy od wartości profilu ani od HEAD. Ziarno tożsamości to SHA-256 posortowanych hashy commitów korzeniowych (gdy ścieżka nie jest korzeniem repozytorium Git z commitami: SHA-256 nazwy katalogu); `render_live` zapisuje je do `identity-seed.json`, gdy podano `output_dir` (poprawka z 2026-10-22, etap 1 planu visual-diversity).
 - Dokument HTML osadza w sobie stan JSON oraz kod silnika Canvas, umożliwiając natychmiastowe uruchomienie bez połączenia internetowego i bez błędu CORS.
 
 ## Business rules
