@@ -101,8 +101,19 @@ The same repository state gives a byte-identical `summary.md`. `profile.json` di
 
 `tools/diversity_report.py` is a development tool, not part of the package. It runs the pipeline on several repositories (read-only, offline) and writes per-layer JSON, saturation counts, participation ratios, prompt overlap, live screenshots, contact sheets and the image distance `D` (definition in the script). Screenshots need Pillow (`dev` extra) and Chrome or Chromium.
 
+The `normalized` layer holds every normalized input in the `absolute` and `corpus` scale modes (corpus with the quantile table shipped in the package), and `report.md` has a "Normalized inputs" section with the number of repositories at exactly 0 or 1 and with a clipped value per input. `--reference-time` (ISO 8601 with a zone, default: now) is the time recency is measured against; it is stored in `report.json`. `extract-time` prints the median time of `extract_features` over `--runs` runs (default 5) after one warm-up run.
+
 ```bash
 .venv/bin/python tools/diversity_report.py run --out tmp/diversity /path/to/repo-a /path/to/repo-b /path/to/repo-c
+.venv/bin/python tools/diversity_report.py extract-time --runs 5 /path/to/repo
+```
+
+`tools/build_quantile_table.py` builds the quantile table of the `corpus` mode from local clones of the repositories in `tools/quantile-corpus.toml`, each checked out at its pinned commit with a clean working tree. It never clones or fetches, and the same corpus and reference time give a byte-identical file.
+
+```bash
+.venv/bin/python tools/build_quantile_table.py build --corpus tools/quantile-corpus.toml \
+    --reference-time 2026-10-22T00:00:00Z --out src/gitgeist/normalization/data/quantiles-v1.json \
+    is-odd=/path/to/is-odd click=/path/to/click ...
 ```
 
 ## Documentation
