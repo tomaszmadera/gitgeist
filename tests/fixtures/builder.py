@@ -47,6 +47,25 @@ def create_minimal_repo(target_dir: Path) -> Path:
     return target_dir
 
 
+def create_emptied_repo(target_dir: Path) -> Path:
+    """Create the minimal repository, then delete both files in a second commit.
+
+    The history has changes for main.py and helper.py, but the working tree has
+    no file left to scan.
+    """
+    create_minimal_repo(target_dir)
+    _run_git(target_dir, ["rm", "-q", "main.py", "helper.py"])
+    _run_git(
+        target_dir,
+        ["commit", "-m", "remove every file"],
+        env={
+            "GIT_AUTHOR_DATE": "2026-01-02T10:00:00Z",
+            "GIT_COMMITTER_DATE": "2026-01-02T10:00:00Z",
+        },
+    )
+    return target_dir
+
+
 def create_clean_modular_repo(target_dir: Path) -> Path:
     """Create a well-structured modular repository with tests, docs, CI, license, and multiple commits."""
     target_dir.mkdir(parents=True, exist_ok=True)
