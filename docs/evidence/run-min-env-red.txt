@@ -1,0 +1,66 @@
+# R2 red run (GITGEIST-7): tests/test_run_min_env.py from chore/review-followups-11-12 copied into a worktree at main 8dfb0f9, before the fix of tools/run_min_env.py
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_run_min_env.py
+#            (python = /workspace/gg-fu-venv/bin/python)
+# Wrapper:   python tools/run_min_env.py --cwd . --out red.txt --title 'R2 red run (GITGEIST-7): tests/test_run_min_env.py from chore/review-followups-11-12 copied into a worktree at main 8dfb0f9, before the fix of tools/run_min_env.py' -- -m pytest -q -p no:cacheprovider tests/test_run_min_env.py
+# Directory: /workspace/gg-fu-red
+# Commit:    8dfb0f93af7e7760b2f8ca320267b0a6880f9d8b
+# Date:      2026-10-22T21:51:20+02:00
+# Exit code: 1
+# gitgeist imported from: /workspace/gg-fu-red/src/gitgeist/__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+..FFF.                                                                   [100%]
+=================================== FAILURES ===================================
+_______________ test_gitgeist_env_file_points_at_a_missing_file ________________
+
+tmp_path = PosixPath('/tmp/gitgeist-min-env-i_z_zkf5/tmp/pytest-of-box/pytest-0/test_gitgeist_env_file_points_0')
+
+    def test_gitgeist_env_file_points_at_a_missing_file(tmp_path: Path) -> None:
+        data, _ = _probe(tmp_path)
+    
+>       assert data["env_file"] is not None
+E       assert None is not None
+
+tests/test_run_min_env.py:102: AssertionError
+_______________________ test_dotenv_in_cwd_is_not_loaded _______________________
+
+tmp_path = PosixPath('/tmp/gitgeist-min-env-i_z_zkf5/tmp/pytest-of-box/pytest-0/test_dotenv_in_cwd_is_not_load0')
+
+    def test_dotenv_in_cwd_is_not_loaded(tmp_path: Path) -> None:
+        # gitgeist searches for .env upward from the working directory unless
+        # GITGEIST_ENV_FILE is set (src/gitgeist/env.py, load_dotenv). The wrapper
+        # must block that search, or a real .env next to --cwd reaches the child.
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / ".env").write_text(f"{DOTENV_SENTINEL}=from-a-dotenv-file\n", encoding="utf-8")
+    
+        data, _ = _probe(tmp_path, cwd=project)
+    
+>       assert data["dotenv_loaded"] is False
+E       assert True is False
+
+tests/test_run_min_env.py:116: AssertionError
+___________________ test_header_records_the_real_invocation ____________________
+
+tmp_path = PosixPath('/tmp/gitgeist-min-env-i_z_zkf5/tmp/pytest-of-box/pytest-0/test_header_records_the_real_i0')
+
+    def test_header_records_the_real_invocation(tmp_path: Path) -> None:
+        child_args = ["-c", "print('hello from the child')"]
+    
+        _, log, argv = _run_wrapper(tmp_path, child_args)
+    
+        header = log.splitlines()
+>       assert f"# Wrapper:   {_quote(['python', *argv])}" in header
+E       assert '# Wrapper:   python /workspace/gg-fu-red/tools/run_min_env.py --cwd /workspace/gg-fu-red --out /tmp/gitgeist-min-env-...test_header_records_the_real_i0/log.txt --title \'wrapper test\' -- -c \'print(\'"\'"\'hello from the child\'"\'"\')\'' in ['# wrapper test', '#', "# Command:   python -c print('hello from the child')", '#            (python = /workspace/gg-...itle \'wrapper test\' -- -c \'print(\'"\'"\'hello from the child\'"\'"\')\'', '# Directory: /workspace/gg-fu-red', ...]
+
+tests/test_run_min_env.py:126: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_run_min_env.py::test_gitgeist_env_file_points_at_a_missing_file
+FAILED tests/test_run_min_env.py::test_dotenv_in_cwd_is_not_loaded - assert T...
+FAILED tests/test_run_min_env.py::test_header_records_the_real_invocation - a...
+3 failed, 3 passed in 1.99s
