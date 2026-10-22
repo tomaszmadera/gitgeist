@@ -89,8 +89,66 @@ EXTENSION_LANGUAGE_MAP: dict[str, str] = {
     ".sql": "SQL",
 }
 
+CODE_LANGUAGES: frozenset[str] = frozenset(
+    {
+        "Python",
+        "JavaScript",
+        "TypeScript",
+        "HTML",
+        "CSS",
+        "Shell",
+        "Go",
+        "Rust",
+        "C",
+        "C/C++ Header",
+        "C++",
+        "Java",
+        "Ruby",
+        "PHP",
+        "SQL",
+    }
+)
+
+DOC_LANGUAGES: frozenset[str] = frozenset({"Markdown", "reStructuredText", "Text"})
+
 TODO_REGEX = re.compile(r"\b(TODO|FIXME)\b")
 MAX_TEXT_SCAN_BYTES = 10 * 1024 * 1024  # 10 MB
+
+
+def _is_test_file_name(file_name: str) -> bool:
+    """Test file name rule (also used by has_tests)."""
+    file_lower = file_name.lower()
+    return (
+        file_lower.startswith("test_")
+        or file_lower.endswith("_test.py")
+        or file_lower.endswith(".test.js")
+        or file_lower.endswith(".test.ts")
+        or file_lower.endswith(".spec.js")
+        or file_lower.endswith(".spec.ts")
+    )
+
+
+def is_test_path(relative_path: str) -> bool:
+    """True when a directory of the "/"-separated path contains "test" or is "spec",
+    or when the file name matches the test file name rule.
+
+    The substring also matches "latest/"; that false positive is accepted.
+    """
+    *directories, file_name = relative_path.split("/")
+    for directory in directories:
+        lower = directory.lower()
+        if "test" in lower or lower == "spec":
+            return True
+    return _is_test_file_name(file_name)
+
+
+@dataclass(frozen=True)
+class ScannedFile:
+    """One scanned file: relative "/"-separated path, size and language."""
+
+    path: str
+    size_bytes: int
+    language: str | None
 
 
 @dataclass(frozen=True)
@@ -109,6 +167,8 @@ class FileScanResult:
     has_ci: bool
     todo_count: int
     relative_file_paths: list[Path] = field(default_factory=list)
+    files: list[ScannedFile] = field(default_factory=list)
+    top_level_directories: list[str] = field(default_factory=list)
 
 
 def is_binary_content(sample: bytes) -> bool:
@@ -124,6 +184,8 @@ def scan_repository_tree(root_path: Path) -> FileScanResult:
         raise NotADirectoryError(f"Path is not a directory: {root_path}")
 
     file_paths: list[Path] = []
+    scanned_files: list[ScannedFile] = []
+    top_level_directories: list[str] = []
     dir_paths: set[Path] = set()
     languages: dict[str, int] = {}
     total_size_bytes = 0
@@ -141,7 +203,9 @@ def scan_repository_tree(root_path: Path) -> FileScanResult:
         dirs[:] = sorted([d for d in dirs if d.lower() not in IGNORED_DIRS])
         files.sort()
 
-        if rel_dir != Path("."):
+        if rel_dir == Path("."):
+            top_level_directories = list(dirs)
+        else:
             dir_paths.add(rel_dir)
             depth = len(rel_dir.parts)
             if depth > max_depth:
@@ -180,17 +244,11 @@ def scan_repository_tree(root_path: Path) -> FileScanResult:
             lang = EXTENSION_LANGUAGE_MAP.get(ext)
             if lang:
                 languages[lang] = languages.get(lang, 0) + 1
+            scanned_files.append(ScannedFile(path=rel_file.as_posix(), size_bytes=file_size, language=lang))
 
             # Detect tests by filename
             file_lower = file_name.lower()
-            if (
-                file_lower.startswith("test_")
-                or file_lower.endswith("_test.py")
-                or file_lower.endswith(".test.js")
-                or file_lower.endswith(".test.ts")
-                or file_lower.endswith(".spec.js")
-                or file_lower.endswith(".spec.ts")
-            ):
+            if _is_test_file_name(file_name):
                 has_tests = True
 
             # Detect documentation by filename
@@ -230,4 +288,6 @@ def scan_repository_tree(root_path: Path) -> FileScanResult:
         has_ci=has_ci,
         todo_count=todo_count,
         relative_file_paths=file_paths,
+        files=scanned_files,
+        top_level_directories=top_level_directories,
     )

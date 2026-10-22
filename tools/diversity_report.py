@@ -11,7 +11,10 @@ the results are, as in docs/features/visual-diversity/analysis.md:
 - prompt line overlap,
 - live screenshots taken with headless Chrome at a frozen animation time of
   1.5 s (repeatable), a contact sheet per representation, and the image
-  distance D between every pair.
+  distance D between every pair,
+- the normalized inputs in the absolute and corpus scale modes (corpus with
+  the package quantile table) with the number of values at exactly 0 or 1
+  and of clipped values per input.
 
 The repositories are only read. No network, image backend or LLM is called.
 
@@ -20,10 +23,16 @@ Usage (from the repository root, with the package importable):
     python tools/diversity_report.py run --out tmp/diversity NAME=PATH [NAME=PATH ...]
     python tools/diversity_report.py run --out tmp/diversity --no-images PATH [PATH ...]
     python tools/diversity_report.py distance --out tmp/mockup NAME=IMAGE [NAME=IMAGE ...]
+    python tools/diversity_report.py extract-time --runs 5 PATH
 
 `run` needs Pillow (the `dev` or `image` extra) and Chrome or Chromium for the
-images; pass --chrome when it is not on PATH. `distance` measures existing
-images, for example a mockup, with the same D.
+images; pass --chrome when it is not on PATH. --reference-time (ISO 8601 with a
+zone, default: now) is the time the normalized recency is measured against; it
+is stored in report.json. On a package without gitgeist.normalization (baseline
+runs before plan stage 2) the normalized layer is skipped and report.md says
+so. `distance` measures existing images, for example a mockup, with the same
+D. `extract-time` runs extract_features once to warm up, then --runs times
+(default 5), and prints the median time in seconds.
 
 Image distance D (version 1):
 
@@ -43,6 +52,7 @@ from __future__ import annotations
 
 import argparse
 import colorsys
+import importlib.util
 import inspect
 import itertools
 import json
@@ -52,6 +62,8 @@ import statistics
 import subprocess
 import sys
 import tempfile
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
@@ -252,7 +264,24 @@ def _render_live(profile: Any, mode: str, name: str, repo: Path, output_dir: Pat
     return render_live(profile, **kwargs)
 
 
-def analyse(name: str, repo: Path, live_dir: Path, source_commit: str) -> dict[str, Any]:
+SCALE_MODES = ("absolute", "corpus")
+
+
+def has_normalization() -> bool:
+    """True when the imported package has gitgeist.normalization (plan stage 2)."""
+    return importlib.util.find_spec("gitgeist.normalization") is not None
+
+
+def normalized_layer(features: Any, reference_time: datetime) -> dict[str, Any]:
+    from gitgeist.normalization import normalize_features
+
+    return {
+        scale: normalize_features(features, scale, reference_time=reference_time).model_dump(mode="json")
+        for scale in SCALE_MODES
+    }
+
+
+def analyse(name: str, repo: Path, live_dir: Path, source_commit: str, reference_time: datetime) -> dict[str, Any]:
     from gitgeist.features.extractor import extract_features
     from gitgeist.interpretation.emotional_model import evaluate_emotional_state
     from gitgeist.mapping.latent_mapper import map_emotional_to_latent
@@ -267,7 +296,7 @@ def analyse(name: str, repo: Path, live_dir: Path, source_commit: str) -> dict[s
         live[mode] = json.loads(
             artifacts.state.model_dump_json(exclude={"engine_version", "repository_name"})
         )
-    return {
+    layer: dict[str, Any] = {
         "path": str(repo),
         "features": json.loads(
             features.model_dump_json(exclude={"docs": {"readme_snippet"}, "extracted_at": True})
@@ -283,6 +312,9 @@ def analyse(name: str, repo: Path, live_dir: Path, source_commit: str) -> dict[s
         "prompt_abstract": compose_prompt(state, profile, mode="abstract"),
         "prompt_character": compose_prompt(state, profile, mode="character"),
     }
+    if has_normalization():
+        layer["normalized"] = normalized_layer(features, reference_time)
+    return layer
 
 
 def _qualifier(value: float) -> str:
@@ -321,6 +353,24 @@ def saturation(layers: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
         {"rule": label, "count": sum(1 for r in layers.values() if rule(r)), "of": len(layers)}
         for label, rule in SATURATION_RULES
     ]
+
+
+def normalized_counts(layers: dict[str, dict[str, Any]]) -> dict[str, dict[str, dict[str, int]]]:
+    """Per scale mode and input (except the ci flag): repositories at exactly 0 or 1 and clipped."""
+    first = next(iter(layers.values()))["normalized"]
+    counts: dict[str, dict[str, dict[str, int]]] = {}
+    for scale in SCALE_MODES:
+        counts[scale] = {}
+        for name in first[scale]["inputs"]:
+            if name == "ci":
+                continue
+            values = [r["normalized"][scale]["inputs"][name] for r in layers.values()]
+            counts[scale][name] = {
+                "zero_or_one": sum(1 for v in values if v["value"] in (0.0, 1.0)),
+                "clipped": sum(1 for v in values if v["clipped"]),
+                "of": len(values),
+            }
+    return counts
 
 
 def prompt_overlap(layers: dict[str, dict[str, Any]], mode: str) -> dict[str, Any]:
@@ -436,6 +486,17 @@ def write_report(out: Path, report: dict[str, Any], layers: dict[str, dict[str, 
     for mode, po in report["prompts"].items():
         lines.append(f"- {mode}: {po['lines_identical_for_all']} of {po['lines_per_prompt']} lines identical for all; "
                      f"mean differing lines {po['mean_differing_lines']}; closest {po['fewest_differing']}")
+    lines += ["", "## Normalized inputs", ""]
+    if report.get("normalized") is None:
+        lines.append("Skipped: the package has no gitgeist.normalization.")
+    else:
+        lines.append(f"Reference time {report['reference_time']}. Repositories with a value of exactly 0 or 1, "
+                     "and with a clipped raw value, per scale mode.")
+        lines.append("")
+        counts = report["normalized"]
+        rows = [[name, *(f"{counts[s][name][k]}/{counts[s][name]['of']}" for s in SCALE_MODES for k in ("zero_or_one", "clipped"))]
+                for name in counts["absolute"]]
+        lines += _table(["input", "absolute 0 or 1", "absolute clipped", "corpus 0 or 1", "corpus clipped"], rows)
     if report.get("distance"):
         lines += ["", "## Image distance D", ""]
         rows = [[mode, d["nearest_neighbour_median"], f"{d['closest_pair'][2]} ({d['closest_pair'][0]}, {d['closest_pair'][1]})", d["pair_mean"]]
@@ -445,17 +506,32 @@ def write_report(out: Path, report: dict[str, Any], layers: dict[str, dict[str, 
     (out / "report.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
 
 
+def _parse_reference_time(text: str | None) -> datetime:
+    if text is None:
+        return datetime.now(timezone.utc)
+    try:
+        moment = datetime.fromisoformat(text)
+    except ValueError:
+        raise SystemExit(f"error: --reference-time {text!r} is not ISO 8601")
+    if moment.utcoffset() is None:
+        raise SystemExit(f"error: --reference-time {text!r} has no time zone")
+    return moment
+
+
 def command_run(args: argparse.Namespace) -> int:
     targets = _parse_targets(args.repos)
+    reference_time = _parse_reference_time(args.reference_time)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     live_dir = out / "live"
     layers = {}
     for name, repo in targets.items():
         print(f"analysing {name} ({repo})", file=sys.stderr)
-        layers[name] = analyse(name, repo, live_dir, args.source_commit)
+        layers[name] = analyse(name, repo, live_dir, args.source_commit, reference_time)
     (out / "layers.json").write_text(json.dumps(layers, indent=1, default=str), encoding="utf-8")
     report: dict[str, Any] = {
+        "reference_time": reference_time.isoformat(),
+        "normalized": normalized_counts(layers) if has_normalization() else None,
         "saturation": saturation(layers),
         "spread": {
             "scores": spread({n: r["scores"] for n, r in layers.items()}),
@@ -494,6 +570,24 @@ def command_distance(args: argparse.Namespace) -> int:
     return 0
 
 
+def command_extract_time(args: argparse.Namespace) -> int:
+    from gitgeist.features.extractor import extract_features
+
+    if args.runs < 1:
+        raise SystemExit("error: --runs must be at least 1")
+    repo = Path(args.path)
+    if not repo.is_dir():
+        raise SystemExit(f"error: not a directory: {repo}")
+    extract_features(repo)  # warm-up run, not timed
+    durations = []
+    for _ in range(args.runs):
+        start = time.perf_counter()
+        extract_features(repo)
+        durations.append(time.perf_counter() - start)
+    print(f"{statistics.median(durations):.6f}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="command", required=True)
@@ -504,13 +598,19 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--no-images", action="store_true", help="skip screenshots and D")
     run.add_argument("--source-commit", default="fixed",
                      help="source_commit passed to the pipeline (default 'fixed', as in analysis.md)")
+    run.add_argument("--reference-time",
+                     help="ISO 8601 time with a zone for the normalized recency (default: now)")
     run.set_defaults(func=command_run)
     dist = sub.add_parser("distance", help="measure D on existing images")
     dist.add_argument("images", nargs="+", help="IMAGE or NAME=IMAGE, at least two")
     dist.add_argument("--out", required=True, help="output directory")
     dist.set_defaults(func=command_distance)
+    timing = sub.add_parser("extract-time", help="median time of extract_features on one repository")
+    timing.add_argument("path", help="repository path")
+    timing.add_argument("--runs", type=int, default=5, help="timed runs after one warm-up run (default 5)")
+    timing.set_defaults(func=command_extract_time)
     args = parser.parse_args(argv)
-    if len(getattr(args, "repos", getattr(args, "images", []))) < 2:
+    if args.command in ("run", "distance") and len(getattr(args, "repos", getattr(args, "images", []))) < 2:
         parser.error("at least two repositories or images are needed")
     return args.func(args)
 

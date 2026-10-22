@@ -13,6 +13,32 @@ class Hotspot(BaseModel):
 
     path: str
     change_count: int
+    change_share: float = 0.0
+    mass: str | None = None
+
+
+class LanguageShare(BaseModel):
+    """File count and share of one language among files with a known language."""
+
+    model_config = ConfigDict(frozen=True)
+
+    name: str
+    file_count: int
+    share: float
+
+
+class Mass(BaseModel):
+    """Top-level directory, root files ("."), or merged rest ("other") with its shares."""
+
+    model_config = ConfigDict(frozen=True)
+
+    name: str
+    is_merged: bool = False
+    file_count: int = 0
+    file_share: float = 0.0
+    churn_share: float = 0.0
+    dominant_language: str | None = None
+    test_file_share: float = 0.0
 
 
 class StaticFeatures(BaseModel):
@@ -30,6 +56,14 @@ class StaticFeatures(BaseModel):
     has_documentation: bool = False
     has_ci: bool = False
     todo_count: int = 0
+    code_bytes: int = 0
+    code_file_count: int = 0
+    test_file_count: int = 0
+    test_ratio: float = 0.0
+    doc_ratio: float = 0.0
+    todo_density: float = 0.0
+    top_level_directory_count: int = 0
+    language_shares: list[LanguageShare] = Field(default_factory=list)
 
 
 class GitHistoryFeatures(BaseModel):
@@ -47,6 +81,11 @@ class GitHistoryFeatures(BaseModel):
     total_lines_added: int = 0
     total_lines_deleted: int = 0
     hotspots: list[Hotspot] = Field(default_factory=list)
+    timeline_start: str | None = None  # "YYYY-MM"
+    timeline: list[int] = Field(default_factory=list)
+    active_months_ratio: float = 0.0
+    top_author_share: float = 0.0
+    top3_author_share: float = 0.0
 
 
 class DocsSummaryFeatures(BaseModel):
@@ -60,6 +99,15 @@ class DocsSummaryFeatures(BaseModel):
     license_type: str | None = None
 
 
+class StructureFeatures(BaseModel):
+    """Directory masses and size-adjusted change concentration."""
+
+    model_config = ConfigDict(frozen=True)
+
+    masses: list[Mass] = Field(default_factory=list)
+    hotspot_concentration: float = 0.0
+
+
 class RepositoryFeatures(BaseModel):
     """Aggregated repository feature profile (Layer 1 in Gitgeist architecture)."""
 
@@ -70,3 +118,4 @@ class RepositoryFeatures(BaseModel):
     static: StaticFeatures
     history: GitHistoryFeatures
     docs: DocsSummaryFeatures
+    structure: StructureFeatures = Field(default_factory=StructureFeatures)
