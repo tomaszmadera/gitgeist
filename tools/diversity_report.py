@@ -14,7 +14,10 @@ the results are, as in docs/features/visual-diversity/analysis.md:
   distance D between every pair,
 - the normalized inputs in the absolute and corpus scale modes (corpus with
   the package quantile table) with the number of values at exactly 0 or 1
-  and of clipped values per input.
+  and of clipped values per input,
+- traits in both scale modes, their correlation matrices, maximum |r| and
+  participation ratios, and absolute VisualSpec scenes and nearest-neighbour
+  spec distances for both representations.
 
 The repositories are only read. No network, image backend or LLM is called.
 
@@ -27,10 +30,11 @@ Usage (from the repository root, with the package importable):
 
 `run` needs Pillow (the `dev` or `image` extra) and Chrome or Chromium for the
 images; pass --chrome when it is not on PATH. --reference-time (ISO 8601 with a
-zone, default: now) is the time the normalized recency is measured against; it
+zone, default: now) is the time normalized recency and traits are measured against; it
 is stored in report.json. On a package without gitgeist.normalization (baseline
 runs before plan stage 2) the normalized layer is skipped and report.md says
-so. `distance` measures existing images, for example a mockup, with the same
+so. On a package before stage 3, the traits and VisualSpec layers are skipped
+with an explicit note. `distance` measures existing images, for example a mockup, with the same
 D. `extract-time` runs extract_features once to warm up, then --runs times
 (default 5), and prints the median time in seconds.
 
@@ -149,6 +153,8 @@ def spread(rows: dict[str, dict[str, float]]) -> dict[str, Any]:
     def ratio(m: list[list[float]]) -> tuple[float, float]:
         ev = [max(0.0, e) for e in symmetric_eigenvalues(m)]
         total = sum(ev)
+        if total == 0:
+            return 0.0, 0.0
         shares = [e / total for e in ev]
         return 1.0 / sum(s * s for s in shares), shares[0]
 
@@ -272,6 +278,63 @@ def has_normalization() -> bool:
     return importlib.util.find_spec("gitgeist.normalization") is not None
 
 
+def has_visual() -> bool:
+    """True when the imported package includes the stage 3 scene API."""
+    return importlib.util.find_spec("gitgeist.visual") is not None
+
+
+def trait_layers(features: Any, repo: Path, reference_time: datetime) -> dict[str, Any]:
+    from gitgeist.ingest.identity import compute_identity_seed
+    from gitgeist.visual import build_visual_spec, compute_traits
+
+    traits = {scale: compute_traits(features, scale, reference_time=reference_time) for scale in SCALE_MODES}
+    identity = compute_identity_seed(repo)
+    return {
+        "traits": {scale: value.model_dump(mode="json") for scale, value in traits.items()},
+        "visual_spec": {mode: build_visual_spec(features, traits["absolute"], identity, mode).model_dump(mode="json")
+                        for mode in REPRESENTATIONS},
+    }
+
+
+def trait_summary(layers: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """Report both scales; a constant column has undefined correlation (null)."""
+    from gitgeist.schemas.traits import TRAIT_NAMES
+
+    result = {}
+    for scale in SCALE_MODES:
+        rows = {name: {k: layer["traits"][scale][k] for k in TRAIT_NAMES} for name, layer in layers.items()}
+        summary = spread(rows)
+        columns = {k: [row[k] for row in rows.values()] for k in TRAIT_NAMES}
+        constant = summary["constant"]
+        matrix = {a: {b: None if a in constant or b in constant else
+                      (1.0 if a == b else pearson(columns[a], columns[b])) for b in TRAIT_NAMES} for a in TRAIT_NAMES}
+        summary["correlation_matrix"] = matrix
+        summary["max_abs_r"] = max((abs(matrix[a][b]) for a, b in itertools.combinations(TRAIT_NAMES, 2)
+                                     if matrix[a][b] is not None), default=0.0)
+        result[scale] = summary
+    return result
+
+
+def spec_distance_summary(layers: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """Nearest neighbours of the default absolute scene in each representation."""
+    from gitgeist.schemas.visual_spec import VisualSpec
+    from gitgeist.visual import spec_distance
+
+    result = {}
+    for mode in REPRESENTATIONS:
+        specs = {name: VisualSpec.model_validate(layer["visual_spec"][mode]) for name, layer in layers.items()}
+        pairs = {(a, b): spec_distance(specs[a], specs[b]) for a, b in itertools.combinations(specs, 2)}
+        nearest = {}
+        for name in specs:
+            other, distance = min(((b if a == name else a, d) for (a, b), d in pairs.items() if name in (a, b)),
+                                  key=lambda item: item[1])
+            nearest[name] = {"closest": other, "distance": distance}
+        distances = [entry["distance"] for entry in nearest.values()]
+        result[mode] = {"nearest": nearest, "minimum": min(distances),
+                        "nearest_neighbour_median": statistics.median(distances)}
+    return result
+
+
 def normalized_layer(features: Any, reference_time: datetime) -> dict[str, Any]:
     from gitgeist.normalization import normalize_features
 
@@ -314,6 +377,8 @@ def analyse(name: str, repo: Path, live_dir: Path, source_commit: str, reference
     }
     if has_normalization():
         layer["normalized"] = normalized_layer(features, reference_time)
+    if has_visual():
+        layer.update(trait_layers(features, repo, reference_time))
     return layer
 
 
@@ -502,6 +567,24 @@ def write_report(out: Path, report: dict[str, Any], layers: dict[str, dict[str, 
         rows = [[mode, d["nearest_neighbour_median"], f"{d['closest_pair'][2]} ({d['closest_pair'][0]}, {d['closest_pair'][1]})", d["pair_mean"]]
                 for mode, d in report["distance"].items()]
         lines += _table(["render", "nearest-neighbour median", "closest pair", "pair mean"], rows)
+    lines += ["", "## Traits", ""]
+    if report.get("traits") is None:
+        lines.append("Skipped: the package has no gitgeist.visual (before stage 3).")
+    else:
+        lines.append("Absolute is the default scale and the correlation gate; corpus is reported for comparison.")
+        lines += ["", *_table(["scale", "Maximum |r|", "participation ratio", "constant"], [
+            [scale, f"{data['max_abs_r']:.6f}", data["participation_ratio"], ", ".join(data["constant"]) or "-"]
+            for scale, data in report["traits"].items()])]
+        for scale, data in report["traits"].items():
+            matrix = data["correlation_matrix"]
+            keys = list(matrix)
+            lines += ["", f"### Correlation matrix ({scale})", ""]
+            lines += _table(["trait", *keys], [[a, *("-" if matrix[a][b] is None else f"{matrix[a][b]:.3f}"
+                                                   for b in keys)] for a in keys])
+        lines += ["", "### Nearest-neighbour spec distance", ""]
+        lines += _table(["representation", "minimum", "median"], [
+            [mode, f"{data['minimum']:.6f}", f"{data['nearest_neighbour_median']:.6f}"]
+            for mode, data in report["spec_distance"].items()])
     (out / "report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     (out / "report.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
 
@@ -538,6 +621,8 @@ def command_run(args: argparse.Namespace) -> int:
             "axes": spread({n: r["axes"] for n, r in layers.items()}),
         },
         "prompts": {mode: prompt_overlap(layers, mode) for mode in REPRESENTATIONS},
+        "traits": trait_summary(layers) if has_visual() else None,
+        "spec_distance": spec_distance_summary(layers) if has_visual() else None,
     }
     if not args.no_images:
         chrome = find_chrome(args.chrome)
