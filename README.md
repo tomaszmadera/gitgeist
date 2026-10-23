@@ -8,7 +8,7 @@ A system that presents a Git repository as an emotional visual portrait.
 
 Prototype. The `gitgeist` command line tool (`analyze`, `render`) runs the whole pipeline: rule-based sensors, an emotional model, a visual profile, explanations, and `live` / `prompt-to-image` rendering.
 
-Versions are published as [Git tags](https://github.com/tomaszmadera/gitgeist/tags). The version in `pyproject.toml` on `main` can be ahead of the latest tag. Changes per version are in [CHANGELOG.md](CHANGELOG.md).
+Versions are published as [Git tags](https://github.com/tomaszmadera/gitgeist/tags). Changes per version are in [CHANGELOG.md](CHANGELOG.md).
 
 Known gap: the emotional interpretation uses fixed deterministic rules. The semantic interpretation layer that the product document requires (JEV, optionally with a stronger LLM) is not implemented yet. See `docs/product/invariants.md` (entry `jev-real-integration`, status `unmet`).
 

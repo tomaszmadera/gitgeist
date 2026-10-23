@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 This file starts at 0.6.0. Earlier versions (tags `0.0.1` to `0.5.1`) have no changelog entries.
 
-## [0.7.0] - Unreleased
+## [0.7.0] - 2026-10-22
 
 ### Changed
 
@@ -19,7 +19,7 @@ This file starts at 0.6.0. Earlier versions (tags `0.0.1` to `0.5.1`) have no ch
 - `tools/build_quantile_table.py` and `tools/quantile-corpus.toml`: a development tool that builds the quantile table offline from local clones pinned to commits.
 - `tools/diversity_report.py`: a `normalized` layer with both scale modes, a "Normalized inputs" section in `report.md`, `--reference-time`, and the `extract-time` command.
 
-## [0.6.0] - Unreleased
+## [0.6.0] - 2026-10-22
 
 ### Changed
 
@@ -45,5 +45,5 @@ This file starts at 0.6.0. Earlier versions (tags `0.0.1` to `0.5.1`) have no ch
 - The default `gitgeist-output` directory is skipped when scanning, so a rerun inside the repository does not analyse its own artifacts.
 - Empty values in a local `.env` no longer shadow the user-level `~/.config/gitgeist/.env`.
 
-[0.7.0]: https://github.com/tomaszmadera/gitgeist/compare/0.6.0...HEAD
+[0.7.0]: https://github.com/tomaszmadera/gitgeist/compare/0.6.0...0.7.0
 [0.6.0]: https://github.com/tomaszmadera/gitgeist/compare/0.5.1...0.6.0
