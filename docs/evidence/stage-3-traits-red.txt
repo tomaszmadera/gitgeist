@@ -1,0 +1,1052 @@
+# Stage 3 red run (traits): exact values isolation and monotonicity
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_traits.py
+# Wrapper:   python tools/run_min_env.py --cwd . --out docs/evidence/stage-3-traits-red.txt --title "Stage 3 red run (traits): exact values isolation and monotonicity" -- -m pytest -q -p no:cacheprovider tests/test_traits.py
+#            (python = F:\projects\gitgeist-wt\stage-3-venv\Scripts\python.exe)
+# Directory: F:\projects\gitgeist-wt\stage-3
+# Commit:    92817bef6f4bb8fda720cedfecd866d7d9d00c3d
+# Date:      2026-10-23T12:40:15+02:00
+# Exit code: 1
+# gitgeist imported from: F:\projects\gitgeist-wt\stage-3\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only SystemRoot, PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF                                        [100%]
+================================== FAILURES ===================================
+_____________ test_exact_fixture_traits[timeline_repo-expected0] ______________
+
+fixture = 'timeline_repo'
+expected = {'size': 0.0, 'age': 0.333624, 'alive': 0.590964, 'crowd': 0.329394, ...}
+request = <FixtureRequest for <Function test_exact_fixture_traits[timeline_repo-expected0]>>
+
+    @pytest.mark.parametrize("fixture,expected", [
+        ("timeline_repo", dict(size=0.0, age=0.333624, alive=0.590964, crowd=0.329394,
+                               focus=0.0, care=0.0, sprawl=0.0, prose=0.0, debt=0.0)),
+        ("wide_repo", dict(alive=0.924992, crowd=0.0, focus=0.0754, sprawl=0.201278, prose=0.0179)),
+        ("clean_modular_repo", dict(age=0.023946, alive=0.750103, crowd=0.172755,
+                                    care=0.625, sprawl=0.118739, prose=0.2857)),
+    ])
+    def test_exact_fixture_traits(fixture: str, expected: dict, request: pytest.FixtureRequest) -> None:
+>       traits = compute_traits(extract_features(request.getfixturevalue(fixture)), reference_time=REF)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_traits.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-zjexgl95\\tmp\\pytest-of-...ount=5, file_share=1.0, churn_share=1.0, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0))
+scale = 'absolute'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = None
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+_______________ test_exact_fixture_traits[wide_repo-expected1] ________________
+
+fixture = 'wide_repo'
+expected = {'alive': 0.924992, 'crowd': 0.0, 'focus': 0.0754, 'sprawl': 0.201278, ...}
+request = <FixtureRequest for <Function test_exact_fixture_traits[wide_repo-expected1]>>
+
+    @pytest.mark.parametrize("fixture,expected", [
+        ("timeline_repo", dict(size=0.0, age=0.333624, alive=0.590964, crowd=0.329394,
+                               focus=0.0, care=0.0, sprawl=0.0, prose=0.0, debt=0.0)),
+        ("wide_repo", dict(alive=0.924992, crowd=0.0, focus=0.0754, sprawl=0.201278, prose=0.0179)),
+        ("clean_modular_repo", dict(age=0.023946, alive=0.750103, crowd=0.172755,
+                                    care=0.625, sprawl=0.118739, prose=0.2857)),
+    ])
+    def test_exact_fixture_traits(fixture: str, expected: dict, request: pytest.FixtureRequest) -> None:
+>       traits = compute_traits(extract_features(request.getfixturevalue(fixture)), reference_time=REF)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_traits.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-zjexgl95\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+scale = 'absolute'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = None
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+___________ test_exact_fixture_traits[clean_modular_repo-expected2] ___________
+
+fixture = 'clean_modular_repo'
+expected = {'age': 0.023946, 'alive': 0.750103, 'crowd': 0.172755, 'care': 0.625, ...}
+request = <FixtureRequest for <Function test_exact_fixture_traits[clean_modular_repo-expected2]>>
+
+    @pytest.mark.parametrize("fixture,expected", [
+        ("timeline_repo", dict(size=0.0, age=0.333624, alive=0.590964, crowd=0.329394,
+                               focus=0.0, care=0.0, sprawl=0.0, prose=0.0, debt=0.0)),
+        ("wide_repo", dict(alive=0.924992, crowd=0.0, focus=0.0754, sprawl=0.201278, prose=0.0179)),
+        ("clean_modular_repo", dict(age=0.023946, alive=0.750103, crowd=0.172755,
+                                    care=0.625, sprawl=0.118739, prose=0.2857)),
+    ])
+    def test_exact_fixture_traits(fixture: str, expected: dict, request: pytest.FixtureRequest) -> None:
+>       traits = compute_traits(extract_features(request.getfixturevalue(fixture)), reference_time=REF)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_traits.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-zjexgl95\\tmp\\pytest-of-..., file_share=0.125, churn_share=0.125, dominant_language='Markdown', test_file_share=0.0)], hotspot_concentration=0.0))
+scale = 'absolute'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = None
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+_____________________ test_default_reference_uses_utc_day _____________________
+
+    def test_default_reference_uses_utc_day() -> None:
+        features = _features().model_copy(update={"extracted_at": REF + timedelta(hours=19)})
+>       assert compute_traits(features).reference_time == REF
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_traits.py:30: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 4, 16, 19, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'absolute', reference_time = None, table = None
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+_______________________________ test_no_history _______________________________
+
+non_git_dir = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-zjexgl95/tmp/pytest-of-unknown/pytest-0/test_no_history0/plain-directory')
+
+    def test_no_history(non_git_dir: Path) -> None:
+>       traits = compute_traits(extract_features(non_git_dir), reference_time=REF)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_traits.py:35: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-zjexgl95\\tmp\\pytest-of-...nt=2, file_share=1.0, churn_share=0.0, dominant_language='Markdown', test_file_share=0.0)], hotspot_concentration=0.0))
+scale = 'absolute'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = None
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+_______________________ test_corpus_uses_supplied_table _______________________
+
+    def test_corpus_uses_supplied_table() -> None:
+>       traits = compute_traits(_features(code_size=10000), "corpus", reference_time=REF, table=_test_table())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_traits.py:40: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'corpus'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+_ test_input_isolation_and_monotonicity[absolute-code_size-size-100000000-False] _
+
+input_name = 'code_size', trait = 'size', maximum = 100000000, inverted = False
+scale = 'absolute'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'absolute'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+_____ test_input_isolation_and_monotonicity[absolute-age-age-7300-False] ______
+
+input_name = 'age', trait = 'age', maximum = 7300, inverted = False
+scale = 'absolute'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'absolute'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+___ test_input_isolation_and_monotonicity[absolute-recency-alive-1825-True] ___
+
+input_name = 'recency', trait = 'alive', maximum = 1825, inverted = True
+scale = 'absolute'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'absolute'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+_ test_input_isolation_and_monotonicity[absolute-active_months-alive-1-False] _
+
+input_name = 'active_months', trait = 'alive', maximum = 1, inverted = False
+scale = 'absolute'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'absolute'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+__ test_input_isolation_and_monotonicity[absolute-authors-crowd-1000-False] ___
+
+input_name = 'authors', trait = 'crowd', maximum = 1000, inverted = False
+scale = 'absolute'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'absolute'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+_ test_input_isolation_and_monotonicity[absolute-top_author_share-crowd-1-True] _
+
+input_name = 'top_author_share', trait = 'crowd', maximum = 1, inverted = True
+scale = 'absolute'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'absolute'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+_____ test_input_isolation_and_monotonicity[absolute-focus-focus-1-False] _____
+
+input_name = 'focus', trait = 'focus', maximum = 1, inverted = False
+scale = 'absolute'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'absolute'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+___ test_input_isolation_and_monotonicity[absolute-test_ratio-care-1-False] ___
+
+input_name = 'test_ratio', trait = 'care', maximum = 1, inverted = False
+scale = 'absolute'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'absolute'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+_______ test_input_isolation_and_monotonicity[absolute-ci-care-1-False] _______
+
+input_name = 'ci', trait = 'care', maximum = 1, inverted = False
+scale = 'absolute'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'absolute'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+_ test_input_isolation_and_monotonicity[absolute-top_level_dirs-sprawl-100-False] _
+
+input_name = 'top_level_dirs', trait = 'sprawl', maximum = 100, inverted = False
+scale = 'absolute'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'absolute'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+____ test_input_isolation_and_monotonicity[absolute-depth-sprawl-15-False] ____
+
+input_name = 'depth', trait = 'sprawl', maximum = 15, inverted = False
+scale = 'absolute'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'absolute'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+___ test_input_isolation_and_monotonicity[absolute-doc_ratio-prose-1-False] ___
+
+input_name = 'doc_ratio', trait = 'prose', maximum = 1, inverted = False
+scale = 'absolute'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'absolute'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+_____ test_input_isolation_and_monotonicity[absolute-debt-debt-200-False] _____
+
+input_name = 'debt', trait = 'debt', maximum = 200, inverted = False
+scale = 'absolute'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'absolute'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+_ test_input_isolation_and_monotonicity[corpus-code_size-size-100000000-False] _
+
+input_name = 'code_size', trait = 'size', maximum = 100000000, inverted = False
+scale = 'corpus'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'corpus'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+______ test_input_isolation_and_monotonicity[corpus-age-age-7300-False] _______
+
+input_name = 'age', trait = 'age', maximum = 7300, inverted = False
+scale = 'corpus'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'corpus'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+____ test_input_isolation_and_monotonicity[corpus-recency-alive-1825-True] ____
+
+input_name = 'recency', trait = 'alive', maximum = 1825, inverted = True
+scale = 'corpus'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'corpus'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+__ test_input_isolation_and_monotonicity[corpus-active_months-alive-1-False] __
+
+input_name = 'active_months', trait = 'alive', maximum = 1, inverted = False
+scale = 'corpus'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'corpus'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+___ test_input_isolation_and_monotonicity[corpus-authors-crowd-1000-False] ____
+
+input_name = 'authors', trait = 'crowd', maximum = 1000, inverted = False
+scale = 'corpus'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'corpus'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+_ test_input_isolation_and_monotonicity[corpus-top_author_share-crowd-1-True] _
+
+input_name = 'top_author_share', trait = 'crowd', maximum = 1, inverted = True
+scale = 'corpus'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'corpus'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+______ test_input_isolation_and_monotonicity[corpus-focus-focus-1-False] ______
+
+input_name = 'focus', trait = 'focus', maximum = 1, inverted = False
+scale = 'corpus'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'corpus'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+____ test_input_isolation_and_monotonicity[corpus-test_ratio-care-1-False] ____
+
+input_name = 'test_ratio', trait = 'care', maximum = 1, inverted = False
+scale = 'corpus'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'corpus'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+________ test_input_isolation_and_monotonicity[corpus-ci-care-1-False] ________
+
+input_name = 'ci', trait = 'care', maximum = 1, inverted = False
+scale = 'corpus'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'corpus'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+_ test_input_isolation_and_monotonicity[corpus-top_level_dirs-sprawl-100-False] _
+
+input_name = 'top_level_dirs', trait = 'sprawl', maximum = 100, inverted = False
+scale = 'corpus'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'corpus'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+_____ test_input_isolation_and_monotonicity[corpus-depth-sprawl-15-False] _____
+
+input_name = 'depth', trait = 'sprawl', maximum = 15, inverted = False
+scale = 'corpus'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'corpus'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+____ test_input_isolation_and_monotonicity[corpus-doc_ratio-prose-1-False] ____
+
+input_name = 'doc_ratio', trait = 'prose', maximum = 1, inverted = False
+scale = 'corpus'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'corpus'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+______ test_input_isolation_and_monotonicity[corpus-debt-debt-200-False] ______
+
+input_name = 'debt', trait = 'debt', maximum = 200, inverted = False
+scale = 'corpus'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, False),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+>       results = [compute_traits(_features(**{input_name: maximum * i / 19}), scale,
+                                  reference_time=REF, table=_test_table()) for i in range(20)]
+
+tests\test_traits.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'corpus'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]})
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+_________________________ test_trait_errors_propagate _________________________
+
+    def test_trait_errors_propagate() -> None:
+        with pytest.raises(ValueError, match="scale"):
+>           compute_traits(_features(), "portfolio", reference_time=REF)
+
+tests\test_traits.py:69: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+scale = 'portfolio'
+reference_time = datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc)
+table = None
+
+    def compute_traits(features, scale="absolute", *, reference_time=None, table=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\traits.py:5: NotImplementedError
+=========================== short test summary info ===========================
+FAILED tests/test_traits.py::test_exact_fixture_traits[timeline_repo-expected0]
+FAILED tests/test_traits.py::test_exact_fixture_traits[wide_repo-expected1]
+FAILED tests/test_traits.py::test_exact_fixture_traits[clean_modular_repo-expected2]
+FAILED tests/test_traits.py::test_default_reference_uses_utc_day - NotImpleme...
+FAILED tests/test_traits.py::test_no_history - NotImplementedError
+FAILED tests/test_traits.py::test_corpus_uses_supplied_table - NotImplemented...
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[absolute-code_size-size-100000000-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[absolute-age-age-7300-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[absolute-recency-alive-1825-True]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[absolute-active_months-alive-1-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[absolute-authors-crowd-1000-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[absolute-top_author_share-crowd-1-True]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[absolute-focus-focus-1-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[absolute-test_ratio-care-1-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[absolute-ci-care-1-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[absolute-top_level_dirs-sprawl-100-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[absolute-depth-sprawl-15-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[absolute-doc_ratio-prose-1-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[absolute-debt-debt-200-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[corpus-code_size-size-100000000-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[corpus-age-age-7300-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[corpus-recency-alive-1825-True]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[corpus-active_months-alive-1-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[corpus-authors-crowd-1000-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[corpus-top_author_share-crowd-1-True]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[corpus-focus-focus-1-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[corpus-test_ratio-care-1-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[corpus-ci-care-1-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[corpus-top_level_dirs-sprawl-100-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[corpus-depth-sprawl-15-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[corpus-doc_ratio-prose-1-False]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[corpus-debt-debt-200-False]
+FAILED tests/test_traits.py::test_trait_errors_propagate - NotImplementedError
+33 failed in 2.86s
