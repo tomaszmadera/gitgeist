@@ -19,6 +19,7 @@ from pydantic import BaseModel, ConfigDict
 
 from gitgeist.schemas.emotional import EmotionalNouls, EmotionalState
 from gitgeist.schemas.features import RepositoryFeatures
+from gitgeist.schemas.traits import Traits
 from gitgeist.schemas.visual_latent import VisualLatentProfile
 
 _SCORE_NAMES = (
@@ -435,12 +436,15 @@ def _serialize_profiles(
     features: RepositoryFeatures,
     state: EmotionalState,
     profile: VisualLatentProfile,
+    traits: Traits | None = None,
 ) -> str:
     payload = {
         "emotional_state": state.model_dump(mode="json"),
         "repository": features.model_dump(mode="json"),
         "visual_latent": profile.model_dump(mode="json"),
     }
+    if traits is not None:
+        payload["traits"] = traits.model_dump(mode="json")
     return json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
 
 
@@ -450,6 +454,8 @@ def explain(
     profile: VisualLatentProfile,
     repository_name: str | None = None,
     output_dir: Path | str | None = None,
+    *,
+    traits: Traits | None = None,
 ) -> ExplanationArtifacts:
     """Produce the deterministic summary and why-this-look explanation.
 
@@ -459,6 +465,7 @@ def explain(
         profile: VisualLatentProfile instance (Layer 3).
         repository_name: Optional repository display name.
         output_dir: Optional directory path to write 'summary.md' and 'profile.json'.
+        traits: Optional portrait traits recorded only in 'profile.json'.
 
     Returns:
         ExplanationArtifacts bundle with summary text, why-this-look lines,
@@ -469,10 +476,12 @@ def explain(
         OSError: If writing an artifact fails.
     """
     _validate_inputs(features, emotional_state, profile)
+    if traits is not None and not isinstance(traits, Traits):
+        raise TypeError("traits must be a Traits instance or None")
 
     why_lines = _why_this_look(emotional_state, profile)
     summary_md = _compose_summary_md(features, emotional_state, profile, repository_name, why_lines)
-    profile_json = _serialize_profiles(features, emotional_state, profile)
+    profile_json = _serialize_profiles(features, emotional_state, profile, traits)
 
     summary_path: Path | None = None
     profile_path: Path | None = None

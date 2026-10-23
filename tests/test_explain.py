@@ -28,6 +28,8 @@ from gitgeist.schemas.visual_latent import (
     VisualLatentAxes,
     VisualLatentProfile,
 )
+from gitgeist.schemas.traits import Traits
+from gitgeist.visual import compute_traits
 
 
 def make_features() -> RepositoryFeatures:
@@ -64,6 +66,23 @@ def make_features() -> RepositoryFeatures:
             license_type="MIT",
         ),
     )
+
+
+def test_traits_roundtrip_preserves_existing_artifacts() -> None:
+    features, state, profile = make_features(), make_emotional_state(), make_profile()
+    traits = compute_traits(features, reference_time=datetime(2026, 4, 16, tzinfo=timezone.utc))
+    before = explain(features, state, profile)
+    after = explain(features, state, profile, traits=traits)
+    payload = json.loads(after.profile_json)
+    assert Traits.model_validate(payload.pop("traits")) == traits
+    assert payload == json.loads(before.profile_json)
+    assert after.summary_md == before.summary_md
+    assert after.why_this_look == before.why_this_look
+
+
+def test_explain_rejects_invalid_traits() -> None:
+    with pytest.raises(TypeError, match="traits must be"):
+        explain(make_features(), make_emotional_state(), make_profile(), traits={})
 
 
 def make_emotional_state() -> EmotionalState:
