@@ -2,7 +2,7 @@
 
 Path: `docs/features/visual-diversity/plan.md`
 
-Status: stage 0 decided on 2026-10-22; stage 1 done (merged in PR #3 on 2026-10-22, version 0.6.0); stages 2 to 13 are not started. `D` means D v1 as defined in `tools/diversity_report.py`; baselines are in `analysis.md`. Evidence: `analysis.md`. Target design: `design.md`. Stages 0 to 8 build the counter strategy and the shared portrait format; stages 9 to 13 add the evaluation strategy.
+Status: stage 0 decided on 2026-10-22; stage 1 done (merged in PR #3 on 2026-10-22, version 0.6.0); stage 2 done (spec in PR #5, implementation merged in PR #6, version 0.7.0); stage 3 spec approved on 2026-10-23 (`docs/features/traits-visualspec-seeds/spec.md`), implementation not started; stages 4 to 13 are not started. `D` means D v1 as defined in `tools/diversity_report.py`; baselines are in `analysis.md`. Evidence: `analysis.md`. Target design: `design.md`. Stages 0 to 8 build the counter strategy and the shared portrait format; stages 9 to 13 add the evaluation strategy.
 
 ## Classification
 
@@ -41,6 +41,8 @@ These four survive the redesign, so none of them is throwaway work.
 
 Size: standard. Needs a spec (amends `docs/features/feature-extraction/spec.md`).
 
+Status: done. Spec `docs/features/features-v2-normalization/spec.md` (PR #5); implementation merged in PR #6, version 0.7.0.
+
 - New features from `design.md` "Features v2": recency, monthly timeline, active months, author concentration, masses, language shares by name, size-adjusted hotspot concentration, test ratio, doc ratio, TODO density, code bytes.
 - Normalization module with `absolute` mode (log anchors and smoothstep) and percentile lookup against a quantile table.
 - Dev script to build the quantile table from a fixed repository list; the table ships as package data with its own version.
@@ -54,6 +56,8 @@ Acceptance:
 ### Stage 3: traits, VisualSpec and seeds
 
 Size: standard. Needs a spec (amends `docs/features/visual-latent-mapper/spec.md`; new schema doc for `VisualSpec`).
+
+Status: spec approved on 2026-10-23 (`docs/features/traits-visualspec-seeds/spec.md`, decisions O1-O13); implementation not started.
 
 - 9 traits from `design.md` "Traits".
 - `VisualSpec` schema: masses with positions and sizes, rings, palette, marks (knot, strands, cracks, hatching), motion, style, seeds.

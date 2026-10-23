@@ -2,7 +2,7 @@
 
 Path: `docs/features/traits-visualspec-seeds/spec.md`
 
-Status: draft for review, stage 3 of `docs/features/visual-diversity/plan.md`. Not approved. The open decisions O1-O13 in "Decisions" need the owner's answer; the spec body describes the recommended option (a) of each.
+Status: approved 2026-10-23 (stage 3 of `docs/features/visual-diversity/plan.md`). Tomasz accepted the recommended option (a) of every decision O1-O13 in "Decisions"; the spec describes those options.
 
 ## Goal
 
@@ -298,7 +298,7 @@ Files written:
 - `docs/features/features-v2-normalization/spec.md`: unchanged; decision O11 there is resolved by O1 here.
 - `docs/features/live-renderers/spec.md`, `docs/features/prompt-to-image/spec.md`, `docs/features/emotional-state-model/spec.md`, `docs/features/feature-extraction/spec.md`: unchanged.
 - `README.md`: `traits` in the description of `profile.json` and of the run-specific fields; "Measuring visual diversity" gets the `traits` and `visual_spec` layers.
-- `docs/features/visual-diversity/plan.md`: stage 3 status updated only after the merge.
+- `docs/features/visual-diversity/plan.md`: stage 3 status set to "spec approved" in the spec PR; set to done only after the implementation merge.
 
 ## Edge cases
 
@@ -388,33 +388,33 @@ No test uses the network, an LLM or the external corpus; criteria 3 and 4 are ch
 
 ## Decisions
 
-Open. Each item lists the options; (a) is recommended and is what the spec body describes.
+All decided by Tomasz on 2026-10-23: option (a) in O1-O13. The options stay below as a record of the reasoning.
 
-O1. Order of normalization and trait formulas (open from stage 2, O11). (a) Compose traits from the per-input normalized values with the weights of `design.md:95-105`; works in both scale modes without new anchors or table rows. The `alive` term uses the stage 2 `recency` input (anchor 1825 days), not the `log(3650)` of `design.md:99`. (b) Compute each design formula on raw values and scale the result: needs new anchors and quantile rows for `alive`, `crowd`, `care`, `sprawl` (a new table version) and makes `design.md:99` and `:89` disagree on the recency horizon. Recommendation: (a).
+O1. Order of normalization and trait formulas (open from stage 2, O11). (a) Compose traits from the per-input normalized values with the weights of `design.md:95-105`; works in both scale modes without new anchors or table rows. The `alive` term uses the stage 2 `recency` input (anchor 1825 days), not the `log(3650)` of `design.md:99`. (b) Compute each design formula on raw values and scale the result: needs new anchors and quantile rows for `alive`, `crowd`, `care`, `sprawl` (a new table version) and makes `design.md:99` and `:89` disagree on the recency horizon. Recommendation: (a). Decided: (a).
 
-O2. `doc_ratio` feeds both `care` and `prose` in `design.md:102` and `:104`, which breaks channel isolation (`design.md:421`). (a) `care = 0.75 * test_ratio + 0.25 * ci` (the design's 3:1 weight of tests to CI); documentation shows only as hatching. (b) Keep the design formula and state in the isolation test that `doc_ratio` changes two traits. (c) Give `prose` another input: none exists in features v2, so it needs a new feature (outside the plan). Recommendation: (a).
+O2. `doc_ratio` feeds both `care` and `prose` in `design.md:102` and `:104`, which breaks channel isolation (`design.md:421`). (a) `care = 0.75 * test_ratio + 0.25 * ci` (the design's 3:1 weight of tests to CI); documentation shows only as hatching. (b) Keep the design formula and state in the isolation test that `doc_ratio` changes two traits. (c) Give `prose` another input: none exists in features v2, so it needs a new feature (outside the plan). Recommendation: (a). Decided: (a).
 
-O3. `sprawl` weights. `design.md:103` gives `log10(dirs + 1) + 0.1 * depth`, not in [0, 1]. (a) `0.5 * top_level_dirs + 0.5 * depth` on the normalized inputs. (b) `0.57 * top_level_dirs + 0.43 * depth`, the ratio of the two terms at the stage 2 upper anchors (2.0 and 1.5). Recommendation: (a), simpler and close to (b).
+O3. `sprawl` weights. `design.md:103` gives `log10(dirs + 1) + 0.1 * depth`, not in [0, 1]. (a) `0.5 * top_level_dirs + 0.5 * depth` on the normalized inputs. (b) `0.57 * top_level_dirs + 0.43 * depth`, the ratio of the two terms at the stage 2 upper anchors (2.0 and 1.5). Recommendation: (a), simpler and close to (b). Decided: (a).
 
-O4. What `age` drives. `design.md:125` draws rings "one per year, thickness by that year's commits", and the evaluation mapping keeps the ring count factual (`design.md:359`). (a) Ring count and thickness from the timeline (factual); the `age` trait is stored and is the input of the ring channel only through the history it is computed from; the isolation test for `age` changes the history span, which moves `age` and the rings together. (b) Ring count from the `age` trait (`lerp(1, 40, age)`), thickness resampled from the timeline: the trait drives the channel directly, but rings stop being one per year. Recommendation: (a), it follows the design text and stage 12.
+O4. What `age` drives. `design.md:125` draws rings "one per year, thickness by that year's commits", and the evaluation mapping keeps the ring count factual (`design.md:359`). (a) Ring count and thickness from the timeline (factual); the `age` trait is stored and is the input of the ring channel only through the history it is computed from; the isolation test for `age` changes the history span, which moves `age` and the rings together. (b) Ring count from the `age` trait (`lerp(1, 40, age)`), thickness resampled from the timeline: the trait drives the channel directly, but rings stop being one per year. Recommendation: (a), it follows the design text and stage 12. Decided: (a).
 
-O5. Reference time for `alive` in `profile.json`. (a) `extracted_at` truncated to the UTC day: same-day runs are identical; `mvp-completion/spec.md:41` is amended for runs on different days. (b) Exact `extracted_at`: `traits` becomes a run-specific field and two runs a second apart can differ. (c) Time of the last commit: stable, but recency is then always 0 and `alive` loses its meaning. Recommendation: (a).
+O5. Reference time for `alive` in `profile.json`. (a) `extracted_at` truncated to the UTC day: same-day runs are identical; `mvp-completion/spec.md:41` is amended for runs on different days. (b) Exact `extracted_at`: `traits` becomes a run-specific field and two runs a second apart can differ. (c) Time of the last commit: stable, but recency is then always 0 and `alive` loses its meaning. Recommendation: (a). Decided: (a).
 
-O6. The 14 axes (`plan.md:61`, `design.md:116`). (a) Keep axes, materiality and the mapper unchanged in stage 3, because the live renderers (stages 4, 5) and the prompt composer (stage 6) still read them; decide removal in the stage 6 spec, when the last reader moves to `VisualSpec`. (b) Remove them from `profile.json` now: breaks the current renderers and prompts. (c) Keep them and mark them deprecated in the CHANGELOG now. Recommendation: (a).
+O6. The 14 axes (`plan.md:61`, `design.md:116`). (a) Keep axes, materiality and the mapper unchanged in stage 3, because the live renderers (stages 4, 5) and the prompt composer (stage 6) still read them; decide removal in the stage 6 spec, when the last reader moves to `VisualSpec`. (b) Remove them from `profile.json` now: breaks the current renderers and prompts. (c) Keep them and mark them deprecated in the CHANGELOG now. Recommendation: (a). Decided: (a).
 
-O7. Where `VisualSpec` goes in stage 3. (a) Library, `tools/diversity_report.py` and golden snapshots only; stage 4 adds a `visual-spec.json` artifact next to the live files. (b) `render` writes `visual-spec.json` now: a new artifact nothing reads yet, and `analyze` has no representation to build it for. Recommendation: (a).
+O7. Where `VisualSpec` goes in stage 3. (a) Library, `tools/diversity_report.py` and golden snapshots only; stage 4 adds a `visual-spec.json` artifact next to the live files. (b) `render` writes `visual-spec.json` now: a new artifact nothing reads yet, and `analyze` has no representation to build it for. Recommendation: (a). Decided: (a).
 
-O8. Flags in stage 3. The plan lists "`auto` selection and `--variety`" for stage 3 (`plan.md:60`) and the flags `--style`, `--seed`, `--variety` for stage 7 (`plan.md:110`). (a) Stage 3 adds keyword arguments `style`, `user_seed`, `variety`; stage 7 adds the CLI flags and the config file. (b) Stage 3 adds `--style`, `--seed`, `--variety` to the CLI now: visible flags with no visible effect until stage 4. Recommendation: (a), as stage 2 did with `scale`.
+O8. Flags in stage 3. The plan lists "`auto` selection and `--variety`" for stage 3 (`plan.md:60`) and the flags `--style`, `--seed`, `--variety` for stage 7 (`plan.md:110`). (a) Stage 3 adds keyword arguments `style`, `user_seed`, `variety`; stage 7 adds the CLI flags and the config file. (b) Stage 3 adds `--style`, `--seed`, `--variety` to the CLI now: visible flags with no visible effect until stage 4. Recommendation: (a), as stage 2 did with `scale`. Decided: (a).
 
-O9. Scale mode for criterion 3 (|r| at most 0.8). (a) Gate on `absolute` (the default), report `corpus`. (b) Both modes must pass. (c) Only `corpus`: the v1 table is built from the same corpus, so the check is circular. Recommendation: (a).
+O9. Scale mode for criterion 3 (|r| at most 0.8). (a) Gate on `absolute` (the default), report `corpus`. (b) Both modes must pass. (c) Only `corpus`: the v1 table is built from the same corpus, so the check is circular. Recommendation: (a). Decided: (a).
 
-O10. Spec distance and golden threshold details (`design.md:418-419` gives the parts, not their scaling). (a) Traits: mean absolute difference over the 9 traits; masses: earth mover's distance between the mass file shares sorted descending and padded with zeros to 8, divided by 7 (the maximum for 8 slots); hue: 12-bin histogram of mass hues weighted by file share, half the L1 distance; style: 1 if different; the spec distance is the mean of the four parts. The golden threshold is the smallest nearest-neighbour distance of the first passing run, rounded down to 0.01, per representation, written in the test with the run log in the PR. (b) Leave the details to the implementation and record them in the PR. Recommendation: (a), so the threshold has a fixed meaning.
+O10. Spec distance and golden threshold details (`design.md:418-419` gives the parts, not their scaling). (a) Traits: mean absolute difference over the 9 traits; masses: earth mover's distance between the mass file shares sorted descending and padded with zeros to 8, divided by 7 (the maximum for 8 slots); hue: 12-bin histogram of mass hues weighted by file share, half the L1 distance; style: 1 if different; the spec distance is the mean of the four parts. The golden threshold is the smallest nearest-neighbour distance of the first passing run, rounded down to 0.01, per representation, written in the test with the run log in the PR. (b) Leave the details to the implementation and record them in the PR. Recommendation: (a), so the threshold has a fixed meaning. Decided: (a).
 
-O11. Values the design does not give. (a) Accept: `topology.nesting_levels` 0 to 3; layout jitter 0.02, 0.05 and 0.10 footprint units for `low`, `medium`, `high`; stability threshold 0.05 footprint units for a one-file commit; knot offset at half the mass radius; neutral colour for masses without a known language. (b) Other values named by you. Recommendation: (a); they can change in stage 4 by amending this spec.
+O11. Values the design does not give. (a) Accept: `topology.nesting_levels` 0 to 3; layout jitter 0.02, 0.05 and 0.10 footprint units for `low`, `medium`, `high`; stability threshold 0.05 footprint units for a one-file commit; knot offset at half the mass radius; neutral colour for masses without a known language. (b) Other values named by you. Recommendation: (a); they can change in stage 4 by amending this spec. Decided: (a).
 
-O12. `VisualSpec` schema document (plan: "new schema doc"). (a) `docs/features/traits-visualspec-seeds/visual-spec.md` in the implementation PR, with field ranges and one example from a golden snapshot. (b) In this spec PR, before the code exists. (c) No separate document; "Data / API" here is the schema doc. Recommendation: (a).
+O12. `VisualSpec` schema document (plan: "new schema doc"). (a) `docs/features/traits-visualspec-seeds/visual-spec.md` in the implementation PR, with field ranges and one example from a golden snapshot. (b) In this spec PR, before the code exists. (c) No separate document; "Data / API" here is the schema doc. Recommendation: (a). Decided: (a).
 
-O13. Version. (a) 0.8.0: new `profile.json` key and new public API. (b) 0.7.1: the change is additive and no picture changes. Recommendation: (a), the same reasoning as stage 2 (O9 there).
+O13. Version. (a) 0.8.0: new `profile.json` key and new public API. (b) 0.7.1: the change is additive and no picture changes. Recommendation: (a), the same reasoning as stage 2 (O9 there). Decided: (a).
 
 ## Relevant SDD / ADR
 
