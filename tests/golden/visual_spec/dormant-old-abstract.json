@@ -1,0 +1,151 @@
+{
+  "schema_version": "1",
+  "representation": "abstract",
+  "style": "orbits",
+  "style_requested": "auto",
+  "variety": "medium",
+  "seeds": {
+    "identity_seed": "2d06c207622b416c0b7a79bb548653e6f912607a58ce4ed3ffa16ad5853b3196",
+    "user_seed": null,
+    "style_seed": 16555022424750252984,
+    "effective_seed": 4371577806982483294
+  },
+  "traits": {
+    "scale": "absolute",
+    "table_version": null,
+    "reference_time": "2026-04-16T00:00:00Z",
+    "size": 0.025554,
+    "age": 0.877409,
+    "alive": 0.0909,
+    "crowd": 0.0,
+    "focus": 0.0,
+    "care": 0.0,
+    "sprawl": 0.0,
+    "prose": 0.0,
+    "debt": 0.0
+  },
+  "footprint": {
+    "coverage": 0.2653324,
+    "element_count": 54
+  },
+  "masses": [
+    {
+      "name": ".",
+      "is_merged": false,
+      "file_share": 1.0,
+      "churn_share": 1.0,
+      "language": "Python",
+      "hue": 233.13731349937106,
+      "x": 0.017748471980559233,
+      "y": 0.04341009227010069,
+      "radius": 0.9531017658270234
+    }
+  ],
+  "rings": {
+    "first_year": 2012,
+    "thickness": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "palette": {
+    "mode": "language",
+    "saturation": 0.16817500000000002,
+    "hue_offset": 23.137313499371068
+  },
+  "knot": {
+    "mass_index": 0,
+    "path": "old.py",
+    "offset_x": -0.01692440785025937,
+    "offset_y": -0.47625025818845035,
+    "radius": 0.15,
+    "flicker": 1.0
+  },
+  "strands": {
+    "count": 1,
+    "paths": [
+      {
+        "phase": 0.9331592310882979,
+        "curvature": -0.26958420697443786
+      }
+    ]
+  },
+  "cracks": {
+    "count": 0,
+    "marks": []
+  },
+  "hatching": {
+    "coverage": 0.0
+  },
+  "edge": {
+    "blur_px": 6.0,
+    "jitter": 0.25
+  },
+  "topology": {
+    "nesting_levels": 0
+  },
+  "motion": {
+    "speed_hz": 0.15453499999999998,
+    "loop_seconds": 12.0,
+    "pulse": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  }
+}

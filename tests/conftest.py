@@ -35,6 +35,19 @@ _KEPT_ENV_VARS = frozenset(
 )
 _KEPT_ENV_PREFIXES = ("PYTEST_",)
 
+# Capture only the explicit snapshot switch before per-test isolation removes
+# it. Do not preserve it in os.environ or expose other process variables.
+_UPDATE_GOLDEN = pytest.StashKey[bool]()
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    config.stash[_UPDATE_GOLDEN] = os.environ.get("GITGEIST_UPDATE_GOLDEN") == "1"
+
+
+@pytest.fixture
+def update_golden(pytestconfig: pytest.Config) -> bool:
+    return pytestconfig.stash[_UPDATE_GOLDEN]
+
 
 @pytest.fixture(autouse=True)
 def isolated_environ(monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory) -> None:

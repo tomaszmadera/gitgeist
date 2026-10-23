@@ -1,0 +1,149 @@
+{
+  "schema_version": "1",
+  "representation": "character",
+  "style": "creature",
+  "style_requested": "auto",
+  "variety": "medium",
+  "seeds": {
+    "identity_seed": "85a5fd6baae57989e28508c9b6e4983eec35afbde1b953647f5849762360a48f",
+    "user_seed": null,
+    "style_seed": 17639913154560898205,
+    "effective_seed": 9897962752659017414
+  },
+  "traits": {
+    "scale": "absolute",
+    "table_version": null,
+    "reference_time": "2026-04-16T00:00:00Z",
+    "size": 0.430317,
+    "age": 0.405582,
+    "alive": 0.790964,
+    "crowd": 0.680926,
+    "focus": 0.0709,
+    "care": 0.55,
+    "sprawl": 0.090949,
+    "prose": 0.0,
+    "debt": 0.0
+  },
+  "footprint": {
+    "coverage": 0.5081902,
+    "element_count": 281
+  },
+  "masses": [
+    {
+      "name": "src",
+      "is_merged": false,
+      "file_share": 0.5455,
+      "churn_share": 0.9,
+      "language": "Python",
+      "hue": 215.2949919274082,
+      "x": -0.025476325995840272,
+      "y": 0.017808276698194077,
+      "radius": 0.39401601567993383
+    },
+    {
+      "name": "tests",
+      "is_merged": false,
+      "file_share": 0.3636,
+      "churn_share": 0.08,
+      "language": "Python",
+      "hue": 215.2949919274082,
+      "x": 0.36450099532709734,
+      "y": -0.5720600062511916,
+      "radius": 0.32168324040566565
+    },
+    {
+      "name": ".github",
+      "is_merged": false,
+      "file_share": 0.0909,
+      "churn_share": 0.02,
+      "language": "YAML",
+      "hue": 70.2949919274082,
+      "x": 0.1182408569892664,
+      "y": 0.5311485205881089,
+      "radius": 0.16084162020283282
+    }
+  ],
+  "rings": {
+    "first_year": 2025,
+    "thickness": [
+      1.0,
+      0.7391304347826086
+    ]
+  },
+  "palette": {
+    "mode": "language",
+    "saturation": 0.693223,
+    "hue_offset": 5.294991927408212
+  },
+  "knot": {
+    "mass_index": 0,
+    "path": "src/m0.py",
+    "offset_x": -0.1879940043090175,
+    "offset_y": 0.05891018160669318,
+    "radius": 0.174815,
+    "flicker": 0.8
+  },
+  "strands": {
+    "count": 8,
+    "paths": [
+      {
+        "phase": 0.11819952953238322,
+        "curvature": 0.47855815497719667
+      },
+      {
+        "phase": 0.6777431276672944,
+        "curvature": -0.5886374767429656
+      },
+      {
+        "phase": 0.5553023240986437,
+        "curvature": 0.5454288145231909
+      },
+      {
+        "phase": 0.8902531032395505,
+        "curvature": -0.9472988694210878
+      },
+      {
+        "phase": 0.36813446942386985,
+        "curvature": 0.9997191543258845
+      },
+      {
+        "phase": 0.06576508789219271,
+        "curvature": 0.6939735075615048
+      },
+      {
+        "phase": 0.009182557162243699,
+        "curvature": 0.6850999508793842
+      },
+      {
+        "phase": 0.1278064162596807,
+        "curvature": -0.6343909411267368
+      }
+    ]
+  },
+  "cracks": {
+    "count": 0,
+    "marks": []
+  },
+  "hatching": {
+    "coverage": 0.0
+  },
+  "edge": {
+    "blur_px": 2.6999999999999997,
+    "jitter": 0.11249999999999999
+  },
+  "topology": {
+    "nesting_levels": 0
+  },
+  "motion": {
+    "speed_hz": 0.9596085999999999,
+    "loop_seconds": 12.0,
+    "pulse": [
+      1.0,
+      1.0,
+      0.875,
+      1.0,
+      0.875,
+      0.25
+    ]
+  }
+}

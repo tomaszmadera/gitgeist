@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+from datetime import date, timedelta
 from pathlib import Path
 
 
@@ -240,3 +241,87 @@ def create_wide_repo(target_dir: Path) -> Path:
         hotspot.write_text(f"v = {100 + day}\n", encoding="utf-8", newline="\n")
         _commit_at(target_dir, f"change a/m0.py ({day})", f"2026-04-0{day}")
     return target_dir
+
+
+def create_single_script_repo(target_dir: Path) -> Path:
+    """One shell script and three commits over two weeks by one author."""
+    _init_synthetic(target_dir, {"run.sh": "#!/bin/sh\necho 0\n"})
+    for i, day in enumerate((1, 8, 15)):
+        (target_dir / "run.sh").write_text(f"#!/bin/sh\necho {i}\n", encoding="utf-8", newline="\n")
+        _commit_at(target_dir, f"script {i}", f"2026-01-{day:02}")
+    return target_dir
+
+
+def create_dormant_old_repo(target_dir: Path) -> Path:
+    """Ten commits across 2012-2016, with no recent activity."""
+    _init_synthetic(target_dir, {"old.py": "x = 0\n" * 500})
+    for i in range(10):
+        (target_dir / "old.py").write_text(f"x = {i}\n" * 500, encoding="utf-8", newline="\n")
+        _commit_at(target_dir, f"old {i}", f"{2012 + i // 2}-{1 + (i % 2) * 6:02}-01")
+    return target_dir
+
+
+def create_big_team_repo(target_dir: Path) -> Path:
+    """Forty commits by thirty authors over six calendar months, with CI."""
+    files = {f"src/m{i}.py": "x = 0\n" * 5000 for i in range(6)}
+    files.update({f"tests/test_m{i}.py": "assert True\n" for i in range(4)})
+    files[".github/workflows/ci.yml"] = "name: CI\non: [push]\n"
+    _init_synthetic(target_dir, files)
+    for i in range(40):
+        (target_dir / "src" / "m0.py").write_text(f"x = {i}\n" * 5000, encoding="utf-8", newline="\n")
+        day = date(2025, 10, 1) + timedelta(days=4 * i)
+        _commit_at(target_dir, f"team {i}", day.isoformat(), f"Author {i % 30:02}")
+    return target_dir
+
+
+def create_monorepo_single_author(target_dir: Path) -> Path:
+    """Eight directories and two languages, sixty commits by one author."""
+    files = {f"part{i}/module.{'py' if i % 2 else 'js'}": "x = 0\n" * 1800 for i in range(8)}
+    _init_synthetic(target_dir, files)
+    for i in range(60):
+        (target_dir / "part0" / "module.js").write_text(f"x = {i}\n" * 1800, encoding="utf-8", newline="\n")
+        _commit_at(target_dir, f"mono {i}", (date(2026, 1, 1) + timedelta(days=i)).isoformat())
+    return target_dir
+
+
+def create_docs_only_repo(target_dir: Path) -> Path:
+    """A portfolio member made entirely of Markdown and text."""
+    _init_synthetic(target_dir, {"README.md": "# Notes\n", "guide/intro.md": "# Guide\n",
+                                 "guide/details.txt": "Details\n", "notes.txt": "Notes\n"})
+    _commit_at(target_dir, "write documentation", "2025-07-01")
+    return target_dir
+
+
+def create_fresh_repo(target_dir: Path) -> Path:
+    """Three files and one recent commit."""
+    _init_synthetic(target_dir, {"main.py": "x = 1\n", "helper.py": "y = 2\n", "README.md": "# Fresh\n"})
+    _commit_at(target_dir, "initial fresh commit", "2026-04-15")
+    return target_dir
+
+
+def create_one_hotspot_repo(target_dir: Path) -> Path:
+    """Twenty files, thirty commits, twenty-five touching f0.py."""
+    _init_synthetic(target_dir, {f"f{i}.py": "x = 0\n" for i in range(20)})
+    for i in range(30):
+        index = 0 if i < 25 else i - 24
+        (target_dir / f"f{index}.py").write_text(f"x = {i}\n", encoding="utf-8", newline="\n")
+        _commit_at(target_dir, f"hotspot {i}", (date(2026, 3, 1) + timedelta(days=i)).isoformat())
+    return target_dir
+
+
+def create_deep_tree_repo(target_dir: Path) -> Path:
+    """One path ten directories deep, with a TODO in each of five files."""
+    prefix = "/".join(f"d{i}" for i in range(10))
+    _init_synthetic(target_dir, {f"{prefix}/m{i}.py": "# TODO: finish\nx = 1\n" for i in range(5)})
+    _commit_at(target_dir, "deep tree", "2026-02-01")
+    return target_dir
+
+
+def _init_synthetic(target_dir: Path, files: dict[str, str]) -> None:
+    """Write an uncommitted synthetic tree with explicit LF content."""
+    target_dir.mkdir(parents=True, exist_ok=True)
+    _run_git(target_dir, ["init", "-b", "main"])
+    for name, content in files.items():
+        path = target_dir / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8", newline="\n")

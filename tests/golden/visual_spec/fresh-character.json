@@ -1,0 +1,93 @@
+{
+  "schema_version": "1",
+  "representation": "character",
+  "style": "creature",
+  "style_requested": "auto",
+  "variety": "medium",
+  "seeds": {
+    "identity_seed": "6ad4578019fac8c98c34ed3de7df3f0cf6421315dd3650adb46d303bb8f63f54",
+    "user_seed": null,
+    "style_seed": 11909214997442697332,
+    "effective_seed": 7870442851118419657
+  },
+  "traits": {
+    "scale": "absolute",
+    "table_version": null,
+    "reference_time": "2026-04-16T00:00:00Z",
+    "size": 0.0,
+    "age": 0.0,
+    "alive": 1.0,
+    "crowd": 0.0,
+    "focus": 0.0,
+    "care": 0.0,
+    "sprawl": 0.0,
+    "prose": 0.3333,
+    "debt": 0.0
+  },
+  "footprint": {
+    "coverage": 0.25,
+    "element_count": 40
+  },
+  "masses": [
+    {
+      "name": ".",
+      "is_merged": false,
+      "file_share": 1.0,
+      "churn_share": 1.0,
+      "language": "Python",
+      "hue": 206.60560079070473,
+      "x": -0.00020081119821365937,
+      "y": -0.01269381854506931,
+      "radius": 0.9873045931773544
+    }
+  ],
+  "rings": {
+    "first_year": 2026,
+    "thickness": [
+      1.0
+    ]
+  },
+  "palette": {
+    "mode": "language",
+    "saturation": 0.85,
+    "hue_offset": -3.3943992092952584
+  },
+  "knot": {
+    "mass_index": 0,
+    "path": "README.md",
+    "offset_x": -0.26871761464536925,
+    "offset_y": 0.4141055825590596,
+    "radius": 0.15,
+    "flicker": 0.3333
+  },
+  "strands": {
+    "count": 1,
+    "paths": [
+      {
+        "phase": 0.11806482925118511,
+        "curvature": 0.1810734490324022
+      }
+    ]
+  },
+  "cracks": {
+    "count": 0,
+    "marks": []
+  },
+  "hatching": {
+    "coverage": 0.19998
+  },
+  "edge": {
+    "blur_px": 6.0,
+    "jitter": 0.25
+  },
+  "topology": {
+    "nesting_levels": 0
+  },
+  "motion": {
+    "speed_hz": 1.2,
+    "loop_seconds": 12.0,
+    "pulse": [
+      1.0
+    ]
+  }
+}
