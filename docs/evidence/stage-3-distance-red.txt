@@ -1,0 +1,131 @@
+# Stage 3 red run (distance): four equally weighted components
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_spec_distance.py
+# Wrapper:   python tools/run_min_env.py --cwd . --out docs/evidence/stage-3-distance-red.txt --title "Stage 3 red run (distance): four equally weighted components" -- -m pytest -q -p no:cacheprovider tests/test_spec_distance.py
+#            (python = F:\projects\gitgeist-wt\stage-3-venv\Scripts\python.exe)
+# Directory: F:\projects\gitgeist-wt\stage-3
+# Commit:    0cf566e78b4eda298adbb570f0f32e6e6b06ab5e
+# Date:      2026-10-23T12:57:19+02:00
+# Exit code: 1
+# gitgeist imported from: F:\projects\gitgeist-wt\stage-3\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only SystemRoot, PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+.FFFFF                                                                   [100%]
+================================== FAILURES ===================================
+________________ test_each_component_in_isolation[traits-0.25] ________________
+
+part = 'traits', expected = 0.25
+
+    @pytest.mark.parametrize("part,expected", [("traits", 0.25), ("masses", 0.125), ("hue", 0.25), ("style", 0.25)])
+    def test_each_component_in_isolation(part: str, expected: float) -> None:
+        a = base_spec()
+        if part == "traits":
+            b = a.model_copy(update={"traits": uniform_traits(1)})
+        elif part == "masses":
+            b = a.model_copy(update={"masses": [a.masses[0].model_copy(update={"file_share": 1 / 8}) for _ in range(8)]})
+        elif part == "hue":
+            b = a.model_copy(update={"masses": [a.masses[0].model_copy(update={"hue": 15})]})
+        else:
+            b = a.model_copy(update={"style": "creature"})
+>       assert spec_distance(a, b) == pytest.approx(expected)
+E       assert 0.0 == 0.25 � 2.5e-07
+E         
+E         comparison failed
+E         Obtained: 0.0
+E         Expected: 0.25 � 2.5e-07
+
+tests\test_spec_distance.py:34: AssertionError
+_______________ test_each_component_in_isolation[masses-0.125] ________________
+
+part = 'masses', expected = 0.125
+
+    @pytest.mark.parametrize("part,expected", [("traits", 0.25), ("masses", 0.125), ("hue", 0.25), ("style", 0.25)])
+    def test_each_component_in_isolation(part: str, expected: float) -> None:
+        a = base_spec()
+        if part == "traits":
+            b = a.model_copy(update={"traits": uniform_traits(1)})
+        elif part == "masses":
+            b = a.model_copy(update={"masses": [a.masses[0].model_copy(update={"file_share": 1 / 8}) for _ in range(8)]})
+        elif part == "hue":
+            b = a.model_copy(update={"masses": [a.masses[0].model_copy(update={"hue": 15})]})
+        else:
+            b = a.model_copy(update={"style": "creature"})
+>       assert spec_distance(a, b) == pytest.approx(expected)
+E       assert 0.0 == 0.125 � 1.2e-07
+E         
+E         comparison failed
+E         Obtained: 0.0
+E         Expected: 0.125 � 1.2e-07
+
+tests\test_spec_distance.py:34: AssertionError
+_________________ test_each_component_in_isolation[hue-0.25] __________________
+
+part = 'hue', expected = 0.25
+
+    @pytest.mark.parametrize("part,expected", [("traits", 0.25), ("masses", 0.125), ("hue", 0.25), ("style", 0.25)])
+    def test_each_component_in_isolation(part: str, expected: float) -> None:
+        a = base_spec()
+        if part == "traits":
+            b = a.model_copy(update={"traits": uniform_traits(1)})
+        elif part == "masses":
+            b = a.model_copy(update={"masses": [a.masses[0].model_copy(update={"file_share": 1 / 8}) for _ in range(8)]})
+        elif part == "hue":
+            b = a.model_copy(update={"masses": [a.masses[0].model_copy(update={"hue": 15})]})
+        else:
+            b = a.model_copy(update={"style": "creature"})
+>       assert spec_distance(a, b) == pytest.approx(expected)
+E       assert 0.0 == 0.25 � 2.5e-07
+E         
+E         comparison failed
+E         Obtained: 0.0
+E         Expected: 0.25 � 2.5e-07
+
+tests\test_spec_distance.py:34: AssertionError
+________________ test_each_component_in_isolation[style-0.25] _________________
+
+part = 'style', expected = 0.25
+
+    @pytest.mark.parametrize("part,expected", [("traits", 0.25), ("masses", 0.125), ("hue", 0.25), ("style", 0.25)])
+    def test_each_component_in_isolation(part: str, expected: float) -> None:
+        a = base_spec()
+        if part == "traits":
+            b = a.model_copy(update={"traits": uniform_traits(1)})
+        elif part == "masses":
+            b = a.model_copy(update={"masses": [a.masses[0].model_copy(update={"file_share": 1 / 8}) for _ in range(8)]})
+        elif part == "hue":
+            b = a.model_copy(update={"masses": [a.masses[0].model_copy(update={"hue": 15})]})
+        else:
+            b = a.model_copy(update={"style": "creature"})
+>       assert spec_distance(a, b) == pytest.approx(expected)
+E       assert 0.0 == 0.25 � 2.5e-07
+E         
+E         comparison failed
+E         Obtained: 0.0
+E         Expected: 0.25 � 2.5e-07
+
+tests\test_spec_distance.py:34: AssertionError
+___________ test_mass_distance_sorts_and_pads_and_hue_skips_neutral ___________
+
+    def test_mass_distance_sorts_and_pads_and_hue_skips_neutral() -> None:
+        a = base_spec()
+        neutral = a.masses[0].model_copy(update={"language": None, "hue": None})
+        b = a.model_copy(update={"masses": [neutral]})
+>       assert spec_distance(a, b) == pytest.approx(0.125)
+E       assert 0.0 == 0.125 � 1.2e-07
+E         
+E         comparison failed
+E         Obtained: 0.0
+E         Expected: 0.125 � 1.2e-07
+
+tests\test_spec_distance.py:43: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_spec_distance.py::test_each_component_in_isolation[traits-0.25]
+FAILED tests/test_spec_distance.py::test_each_component_in_isolation[masses-0.125]
+FAILED tests/test_spec_distance.py::test_each_component_in_isolation[hue-0.25]
+FAILED tests/test_spec_distance.py::test_each_component_in_isolation[style-0.25]
+FAILED tests/test_spec_distance.py::test_mass_distance_sorts_and_pads_and_hue_skips_neutral
+5 failed, 1 passed in 0.29s
