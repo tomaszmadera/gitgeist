@@ -17,10 +17,10 @@ Zbudować Fazę 6 architektury Gitgeist: warstwę explainability. Dla przeanaliz
 ## Scope
 
 1. Moduł explainability (`src/gitgeist/explain/explainer.py`, pakiet `src/gitgeist/explain/`):
-   - Funkcja `explain(features: RepositoryFeatures, emotional_state: EmotionalState, profile: VisualLatentProfile, repository_name: str | None = None, output_dir: Path | str | None = None) -> ExplanationArtifacts`.
+   - Funkcja `explain(features: RepositoryFeatures, emotional_state: EmotionalState, profile: VisualLatentProfile, repository_name: str | None = None, output_dir: Path | str | None = None, *, traits: Traits | None = None) -> ExplanationArtifacts`.
    - Klasa wynikowa `ExplanationArtifacts` (pydantic, frozen): `summary_md: str`, `why_this_look: tuple[str, ...]`, `profile_json: str`, `summary_path: Path | None`, `profile_path: Path | None`.
    - `summary_md` to pełna treść artefaktu `summary.md` w języku angielskim ze stałymi sekcjami: nagłówek z nazwą repo, repository overview (sygnały warstwy 1), emotional state (nazwane scores z kwalifikatorami, nouls, dominanty choices), visual latent profile (osie z kwalifikatorami, dominująca materiałowość, dominant features), why-this-look.
-   - `profile_json` to deterministyczna serializacja JSON pakietu `{"repository": ..., "emotional_state": ..., "visual_latent": ...}` przez `model_dump(mode="json")` każdego profilu.
+   - `profile_json` to deterministyczna serializacja JSON pakietu `{"repository": ..., "emotional_state": ..., "visual_latent": ...}` przez `model_dump(mode="json")` każdego profilu. Gdy podano `traits`, pakiet zawiera też klucz `traits` z serializacją `Traits` według [specyfikacji etapu 3](../traits-visualspec-seeds/spec.md); tekst wyjaśnienia nie zmienia się.
 2. Why-this-look (deterministyczne uzasadnienie wyglądu):
    - Nagłówek pytania wskazuje cechy wyglądu wynikające z osi o największej odległości od neutralnej wartości 0.5, opisane stałym, dosłownym słownictwem osi (np. `layering` → „layered", `symmetry` → „symmetrical"); bez metafor i stereotypów.
    - Dla każdej wyróżnionej osi lista 1-3 najsilniej przyczyniających się emotional scores z kierunkiem wpływu i kwalifikatorem (niski/średni/wysoki), na podstawie jawnego, utrzymywanego obok wag mapowania `src/gitgeist/mapping/axes.py`.
@@ -68,6 +68,7 @@ Brak (funkcja czysto lokalna, bez dostępu sieciowego i bez kontroli dostępu).
   - `profile`: `VisualLatentProfile` (wymagane)
   - `repository_name`: `str | None = None`
   - `output_dir`: `Path | str | None = None`
+  - `traits`: argument wyłącznie nazwany, `Traits | None = None`; inny typ powoduje `TypeError`.
 - Wyjście:
   - `ExplanationArtifacts`:
     - `summary_md`: `str`
