@@ -27,6 +27,7 @@ R8 | A breaking API change adds a CHANGELOG entry and updates every spec that co
 R9 | The PR does not reference documents that exist only on an unmerged branch | check: every linked repository path exists on main or in the PR diff
 R10 | A plan criterion the change does not meet is flagged in the PR, and either the plan is changed or the owner decides | check: PR description + plan diff or the owner's decision in the PR or Plane
 R11 | Spec amendments are written in the language of the spec they amend | check: diff of docs/
+R12 | A version bump changes pyproject.toml and CHANGELOG.md in one commit; the Doer does not tag on the branch; after merge, Code Manager proposes the annotated tag on the merge commit and creates it only after Tomasz's yes | check: PR diff (version and CHANGELOG.md in one commit, no tag on the branch) + the tag on the merge commit after merge
 ```
 
 Notes on evidence:
@@ -62,6 +63,11 @@ Notes on evidence:
   quote the old signature, in any language.
 - R10: the owner is Tomasz; his decision is recorded in the PR or the Plane
   work item.
+- R12: tags have no `v` prefix and are annotated, with the version as the
+  message (`git tag -a X.Y.Z -m X.Y.Z <merge commit>`), the same as `0.5.1`.
+  The PR description says that it bumps the version. The tag goes on the
+  merge commit on `main` once its checks are green, not on a branch commit.
+  The CHANGELOG.md entry in the bump commit carries a date, not "Unreleased".
 
 ## Item rules
 
@@ -92,6 +98,7 @@ R8 PASS: not applicable, no API change
 R9 PASS
 R10 PASS
 R11 PASS
+R12 PASS: not applicable, no version bump
 T1 PASS
 T2 FAIL: docs/ unchanged
 Result: FAIL (2), back to the doer
