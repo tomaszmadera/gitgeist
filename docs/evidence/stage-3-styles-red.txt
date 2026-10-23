@@ -1,0 +1,185 @@
+# Stage 3 red run (styles): registry fitting pools and variety limits
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_styles.py
+# Wrapper:   python tools/run_min_env.py --cwd . --out docs/evidence/stage-3-styles-red.txt --title "Stage 3 red run (styles): registry fitting pools and variety limits" -- -m pytest -q -p no:cacheprovider tests/test_styles.py
+#            (python = F:\projects\gitgeist-wt\stage-3-venv\Scripts\python.exe)
+# Directory: F:\projects\gitgeist-wt\stage-3
+# Commit:    cb9df5b8dbd182d9f6dd6a13e407648978066ad3
+# Date:      2026-10-23T12:41:38+02:00
+# Exit code: 1
+# gitgeist imported from: F:\projects\gitgeist-wt\stage-3\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only SystemRoot, PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+FFFFFFFF                                                                 [100%]
+================================== FAILURES ===================================
+__________________ test_registered_and_auto[abstract-orbits] __________________
+
+representation = 'abstract', name = 'orbits'
+
+    @pytest.mark.parametrize("representation,name", [("abstract", "orbits"), ("character", "creature")])
+    def test_registered_and_auto(representation: str, name: str) -> None:
+>       assert styles.registered_styles(representation) == (name,)
+E       AssertionError: assert () == ('orbits',)
+E         
+E         Right contains one more item: 'orbits'
+E         Use -v to get more diff
+
+tests\test_styles.py:10: AssertionError
+________________ test_registered_and_auto[character-creature] _________________
+
+representation = 'character', name = 'creature'
+
+    @pytest.mark.parametrize("representation,name", [("abstract", "orbits"), ("character", "creature")])
+    def test_registered_and_auto(representation: str, name: str) -> None:
+>       assert styles.registered_styles(representation) == (name,)
+E       AssertionError: assert () == ('creature',)
+E         
+E         Right contains one more item: 'creature'
+E         Use -v to get more diff
+
+tests\test_styles.py:10: AssertionError
+________________________ test_pool_sizes_and_fit_rules ________________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001F2A415C170>
+
+    def test_pool_sizes_and_fit_rules(monkeypatch: pytest.MonkeyPatch) -> None:
+        registry = {name: styles.Style("abstract", lambda f: True) for name in ("d", "b", "a", "c")}
+        registry["excluded"] = styles.Style("abstract", lambda f: False)
+        monkeypatch.setattr(styles, "STYLES", registry)
+        for variety, expected in (("low", set("a")), ("medium", set("abc")), ("high", set("abcd"))):
+>           selected = {styles.select_style(None, "abstract", "auto", variety, seed) for seed in range(100)}
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_styles.py:21: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = None, representation = 'abstract', style = 'auto', variety = 'low'
+seed = 0
+
+    def select_style(features, representation, style, variety, seed):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\styles.py:22: NotImplementedError
+_____________________________ test_variety_limits _____________________________
+
+    def test_variety_limits() -> None:
+>       assert [styles.variety_limits(v) for v in ("low", "medium", "high")] == [(10, 0.02), (25, 0.05), (45, 0.10)]
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_styles.py:26: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+variety = 'low'
+
+    def variety_limits(variety):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\styles.py:26: NotImplementedError
+____________________ test_errors[abstract-missing-medium] _____________________
+
+representation = 'abstract', style = 'missing', variety = 'medium'
+
+    @pytest.mark.parametrize("representation,style,variety", [
+        ("abstract", "missing", "medium"), ("abstract", "creature", "medium"),
+        ("other", "auto", "medium"), ("character", "auto", "other"),
+    ])
+    def test_errors(representation: str, style: str, variety: str) -> None:
+        with pytest.raises(ValueError):
+>           styles.select_style(None, representation, style, variety, 0)
+
+tests\test_styles.py:35: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = None, representation = 'abstract', style = 'missing'
+variety = 'medium', seed = 0
+
+    def select_style(features, representation, style, variety, seed):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\styles.py:22: NotImplementedError
+____________________ test_errors[abstract-creature-medium] ____________________
+
+representation = 'abstract', style = 'creature', variety = 'medium'
+
+    @pytest.mark.parametrize("representation,style,variety", [
+        ("abstract", "missing", "medium"), ("abstract", "creature", "medium"),
+        ("other", "auto", "medium"), ("character", "auto", "other"),
+    ])
+    def test_errors(representation: str, style: str, variety: str) -> None:
+        with pytest.raises(ValueError):
+>           styles.select_style(None, representation, style, variety, 0)
+
+tests\test_styles.py:35: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = None, representation = 'abstract', style = 'creature'
+variety = 'medium', seed = 0
+
+    def select_style(features, representation, style, variety, seed):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\styles.py:22: NotImplementedError
+_______________________ test_errors[other-auto-medium] ________________________
+
+representation = 'other', style = 'auto', variety = 'medium'
+
+    @pytest.mark.parametrize("representation,style,variety", [
+        ("abstract", "missing", "medium"), ("abstract", "creature", "medium"),
+        ("other", "auto", "medium"), ("character", "auto", "other"),
+    ])
+    def test_errors(representation: str, style: str, variety: str) -> None:
+        with pytest.raises(ValueError):
+>           styles.select_style(None, representation, style, variety, 0)
+
+tests\test_styles.py:35: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = None, representation = 'other', style = 'auto', variety = 'medium'
+seed = 0
+
+    def select_style(features, representation, style, variety, seed):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\styles.py:22: NotImplementedError
+______________________ test_errors[character-auto-other] ______________________
+
+representation = 'character', style = 'auto', variety = 'other'
+
+    @pytest.mark.parametrize("representation,style,variety", [
+        ("abstract", "missing", "medium"), ("abstract", "creature", "medium"),
+        ("other", "auto", "medium"), ("character", "auto", "other"),
+    ])
+    def test_errors(representation: str, style: str, variety: str) -> None:
+        with pytest.raises(ValueError):
+>           styles.select_style(None, representation, style, variety, 0)
+
+tests\test_styles.py:35: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = None, representation = 'character', style = 'auto', variety = 'other'
+seed = 0
+
+    def select_style(features, representation, style, variety, seed):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\styles.py:22: NotImplementedError
+=========================== short test summary info ===========================
+FAILED tests/test_styles.py::test_registered_and_auto[abstract-orbits] - Asse...
+FAILED tests/test_styles.py::test_registered_and_auto[character-creature] - A...
+FAILED tests/test_styles.py::test_pool_sizes_and_fit_rules - NotImplementedError
+FAILED tests/test_styles.py::test_variety_limits - NotImplementedError
+FAILED tests/test_styles.py::test_errors[abstract-missing-medium] - NotImplem...
+FAILED tests/test_styles.py::test_errors[abstract-creature-medium] - NotImple...
+FAILED tests/test_styles.py::test_errors[other-auto-medium] - NotImplementedE...
+FAILED tests/test_styles.py::test_errors[character-auto-other] - NotImplement...
+8 failed in 0.30s
