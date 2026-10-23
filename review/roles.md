@@ -105,6 +105,12 @@ The decision is yours.
 - Changing [rules](rules.md) or this file.
 - Pushing to `main`, tagging, releasing, publishing, and deploying, as in
   `.agents/safety.md`.
+- The tag for a version bump. A PR that changes `version` in `pyproject.toml`
+  says so in its description. After Tomasz merges it, Code Manager proposes,
+  in its own chat, an annotated tag `X.Y.Z` (no `v` prefix, message `X.Y.Z`)
+  on the merge commit once the checks on `main` are green. After his yes, it
+  creates and pushes the tag and checks it with `git ls-remote --tags`. See
+  rule R12 in [rules](rules.md).
 - Approving commands on his Windows computer, one at a time.
 
 ## Where state lives
