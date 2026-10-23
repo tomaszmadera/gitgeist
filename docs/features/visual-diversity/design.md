@@ -80,11 +80,11 @@ Every scalar becomes a value in [0, 1] in two steps.
 
 | Mode | Meaning | Use |
 |---|---|---|
-| `corpus` (default) | percentile against a reference quantile table shipped in the package | portraits comparable across users |
+| `corpus` | percentile against a reference quantile table shipped in the package | portraits comparable across users |
 | `portfolio` | percentile against the repositories you scanned before, stored in `~/.config/gitgeist/portfolio.json` (features only, opt-in) | maximizes contrast inside your own set |
-| `absolute` | fixed log anchors, then `smoothstep` | reproducible without any table |
+| `absolute` (default) | fixed log anchors, then `smoothstep` | reproducible without any table |
 
-Percentiles spread values evenly by construction, so no trait sits at a cap for most repositories. The reference table is built offline by a dev script from a fixed list of public repositories (target about 200, spread over languages, sizes and ages) and versioned with `engine_version`. Until it exists, `absolute` is the default.
+Percentiles spread values evenly by construction, so no trait sits at a cap for most repositories. The reference table is built offline by a dev script from a fixed list of public repositories (target about 200, spread over languages, sizes and ages) and versioned with `engine_version`. `absolute` is the default (stage 0 decision, see "Decisions").
 
 Absolute anchors (value at 0 and at 1): code size 10 kB and 100 MB; age 7 days and 20 years; days since last commit 1 and 5 years (inverted); authors 1 and 1000; TODO density 0 and 200 per 1000 files.
 
