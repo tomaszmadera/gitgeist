@@ -1,0 +1,94 @@
+# Stage 3 acceptance criterion 3 (GITGEIST-11 T3): trait correlation on the reference corpus
+#
+# Command (run once in each tree, from the tree root, PYTHONPATH=src selects the code under test):
+#   PYTHONPATH=src python tools/diversity_report.py run --out <out> --chrome /usr/bin/google-chrome --reference-time 2026-10-23T13:00:00Z is-odd=<clone of is-odd> click=<clone of click> flask=<clone of flask> requests=<clone of requests> gitgeist=<clone of gitgeist> z=<clone of z> lua=<clone of lua> awesome=<clone of awesome> alpine=<clone of alpine> zlib=<clone of zlib> NeKode=<clone of NeKode> fresh=<clone of fresh>
+# Trees:     branch = b608c29f7c74b7c35f80129ddc406d136cd38852 (PR #17 head before this commit)
+#            main   = 92817bef6f4bb8fda720cedfecd866d7d9d00c3d (branch point)
+# Machine:   Linux, Python 3.13.5, pydantic 2.14.1, Pillow 13.0.0, Google Chrome 156.0.8078.47
+# Date:      2026-10-23 (Europe/Warsaw), run by Code Manager #1
+# Corpus:    the 11 repositories pinned in tools/quantile-corpus.toml (each clone checked at its pinned
+#            commit with a clean tree) plus the synthetic fresh repository of analysis.md:
+#              is-odd    a80ee0d831a8ee69f1fad5b4673491847975eb26
+#              click     2247b35ea1c47c727d7a06e51fa280e12a863ff6
+#              flask     d086db856be187255b8ec61ef409357393020f32
+#              requests  611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60
+#              gitgeist  3d3a7fedc56f0af30fe758d66d47636b8ce7c16e
+#              z         d37a763a6a30e1b32766fecc3b8ffd6127f8a0fd
+#              lua       8cb93bada561977eb370819e39d7d644e5fd0a3f
+#              awesome   bc98e517ddca672f55f9857d714fc3ea3c3540b2
+#              alpine    8d3d9a2f98385d4c879f4b5be080a0221279ed4d
+#              zlib      767c4c947852e143f582c85f14cf573411df1b35
+#              NeKode    997f752224363a20d7242c4f0d1cbff742ac50f8
+#              fresh     3960201a7a635d931d137efc8dfd7037e78dd6d1
+#
+Result: FAIL. Criterion 3 requires no trait pair with |r| above 0.8 on the default absolute scale.
+Pairs above 0.8 (absolute): size/sprawl r = 0.880078, care/sprawl r = 0.842104.
+Maximum |r|: absolute 0.880078 (gated), corpus 0.806053 (reported only, O9).
+The values were recomputed independently (Pearson r over the 12 repositories) from layers.json and match report.md.
+size, care and sprawl do not depend on --reference-time, so the result does not depend on the reference time.
+
+R10 exception accepted by Tomasz Madera on 2026-10-23 13:38 (Europe/Warsaw); follow-up: GITGEIST-12
+(stage 4: reduce the correlation of sprawl with size and care to |r| <= 0.8 on this corpus).
+
+## Absolute traits per repository (from layers.json)
+
+| repo | size | age | alive | crowd | focus | care | sprawl | prose | debt |
+|---|---|---|---|---|---|---|---|---|---|
+| is-odd | 0.005 | 0.826 | 0.075 | 0.213 | 0.073 | 0.000 | 0.000 | 0.286 | 0.928 |
+| click | 0.648 | 0.986 | 0.856 | 0.850 | 0.242 | 0.731 | 0.326 | 0.276 | 0.000 |
+| flask | 0.583 | 0.998 | 0.873 | 0.832 | 0.179 | 0.660 | 0.491 | 0.436 | 0.000 |
+| requests | 0.533 | 0.996 | 0.804 | 0.756 | 0.296 | 0.538 | 0.301 | 0.373 | 0.853 |
+| gitgeist | 0.501 | 0.116 | 1.000 | 0.000 | 0.257 | 0.537 | 0.326 | 0.231 | 1.000 |
+| z | 0.099 | 0.993 | 0.169 | 0.270 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+| lua | 0.649 | 1.000 | 0.923 | 0.070 | 0.246 | 0.055 | 0.145 | 0.015 | 0.000 |
+| awesome | 0.000 | 0.985 | 0.732 | 0.845 | 0.549 | 0.250 | 0.065 | 0.778 | 0.000 |
+| alpine | 0.806 | 0.934 | 0.848 | 0.687 | 0.248 | 0.517 | 0.392 | 0.203 | 0.000 |
+| zlib | 0.722 | 0.997 | 0.617 | 0.517 | 0.176 | 0.288 | 0.423 | 0.312 | 0.353 |
+| NeKode | 0.782 | 0.049 | 0.996 | 0.000 | 0.152 | 0.471 | 0.414 | 0.271 | 0.643 |
+| fresh | 0.000 | 0.000 | 0.996 | 0.000 | 0.000 | 0.000 | 0.000 | 0.333 | 1.000 |
+
+## Report section (report.md of the branch run, unedited)
+
+## Traits
+
+Absolute is the default scale and the correlation gate; corpus is reported for comparison.
+
+| scale | Maximum |r| | participation ratio | constant |
+|---|---|---|---|
+| absolute | 0.880078 | 3.69 | - |
+| corpus | 0.806053 | 4.32 | - |
+
+### Correlation matrix (absolute)
+
+| trait | size | age | alive | crowd | focus | care | sprawl | prose | debt |
+|---|---|---|---|---|---|---|---|---|---|
+| size | 1.000 | 0.088 | 0.518 | 0.157 | 0.154 | 0.668 | 0.880 | -0.282 | -0.253 |
+| age | 0.088 | 1.000 | -0.433 | 0.719 | 0.317 | 0.062 | 0.038 | 0.039 | -0.689 |
+| alive | 0.518 | -0.433 | 1.000 | -0.021 | 0.340 | 0.528 | 0.514 | 0.169 | 0.046 |
+| crowd | 0.157 | 0.719 | -0.021 | 1.000 | 0.545 | 0.548 | 0.344 | 0.531 | -0.547 |
+| focus | 0.154 | 0.317 | 0.340 | 0.545 | 1.000 | 0.402 | 0.214 | 0.629 | -0.309 |
+| care | 0.668 | 0.062 | 0.528 | 0.548 | 0.402 | 1.000 | 0.842 | 0.244 | -0.156 |
+| sprawl | 0.880 | 0.038 | 0.514 | 0.344 | 0.214 | 0.842 | 1.000 | 0.059 | -0.161 |
+| prose | -0.282 | 0.039 | 0.169 | 0.531 | 0.629 | 0.244 | 0.059 | 1.000 | 0.034 |
+| debt | -0.253 | -0.689 | 0.046 | -0.547 | -0.309 | -0.156 | -0.161 | 0.034 | 1.000 |
+
+### Correlation matrix (corpus)
+
+| trait | size | age | alive | crowd | focus | care | sprawl | prose | debt |
+|---|---|---|---|---|---|---|---|---|---|
+| size | 1.000 | 0.240 | 0.219 | 0.044 | 0.097 | 0.510 | 0.789 | -0.362 | -0.325 |
+| age | 0.240 | 1.000 | -0.285 | 0.530 | 0.203 | 0.186 | 0.116 | 0.026 | -0.590 |
+| alive | 0.219 | -0.285 | 1.000 | -0.363 | 0.076 | 0.421 | 0.410 | -0.022 | 0.265 |
+| crowd | 0.044 | 0.530 | -0.363 | 1.000 | 0.469 | 0.493 | 0.227 | 0.506 | -0.582 |
+| focus | 0.097 | 0.203 | 0.076 | 0.469 | 1.000 | 0.521 | 0.263 | 0.212 | -0.194 |
+| care | 0.510 | 0.186 | 0.421 | 0.493 | 0.521 | 1.000 | 0.806 | 0.165 | -0.163 |
+| sprawl | 0.789 | 0.116 | 0.410 | 0.227 | 0.263 | 0.806 | 1.000 | 0.071 | -0.145 |
+| prose | -0.362 | 0.026 | -0.022 | 0.506 | 0.212 | 0.165 | 0.071 | 1.000 | 0.182 |
+| debt | -0.325 | -0.590 | 0.265 | -0.582 | -0.194 | -0.163 | -0.145 | 0.182 | 1.000 |
+
+### Nearest-neighbour spec distance
+
+| representation | minimum | median |
+|---|---|---|
+| abstract | 0.131251 | 0.175756 |
+| character | 0.115850 | 0.139364 |
