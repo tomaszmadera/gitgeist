@@ -1,0 +1,508 @@
+# Stage 3 red run (schemas): traits bounds and frozen validation
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_visual_schemas.py
+# Wrapper:   python tools/run_min_env.py --cwd . --out docs/evidence/stage-3-schemas-red.txt --title "Stage 3 red run (schemas): traits bounds and frozen validation" -- -m pytest -q -p no:cacheprovider tests/test_visual_schemas.py
+#            (python = F:\projects\gitgeist-wt\stage-3-venv\Scripts\python.exe)
+# Directory: F:\projects\gitgeist-wt\stage-3
+# Commit:    92817bef6f4bb8fda720cedfecd866d7d9d00c3d
+# Date:      2026-10-23T12:38:43+02:00
+# Exit code: 1
+# gitgeist imported from: F:\projects\gitgeist-wt\stage-3\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only SystemRoot, PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF                                   [100%]
+================================== FAILURES ===================================
+______________________ test_traits_roundtrip_and_frozen _______________________
+
+    def test_traits_roundtrip_and_frozen() -> None:
+        traits = Traits(**traits_data())
+        assert Traits.model_validate_json(traits.model_dump_json()) == traits
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:21: Failed
+________________ test_traits_reject_outside_range[-0.01-size] _________________
+
+name = 'size', value = -0.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[-0.01-age] _________________
+
+name = 'age', value = -0.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+________________ test_traits_reject_outside_range[-0.01-alive] ________________
+
+name = 'alive', value = -0.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+________________ test_traits_reject_outside_range[-0.01-crowd] ________________
+
+name = 'crowd', value = -0.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+________________ test_traits_reject_outside_range[-0.01-focus] ________________
+
+name = 'focus', value = -0.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+________________ test_traits_reject_outside_range[-0.01-care] _________________
+
+name = 'care', value = -0.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_______________ test_traits_reject_outside_range[-0.01-sprawl] ________________
+
+name = 'sprawl', value = -0.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+________________ test_traits_reject_outside_range[-0.01-prose] ________________
+
+name = 'prose', value = -0.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+________________ test_traits_reject_outside_range[-0.01-debt] _________________
+
+name = 'debt', value = -0.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[1.01-size] _________________
+
+name = 'size', value = 1.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[1.01-age] __________________
+
+name = 'age', value = 1.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+________________ test_traits_reject_outside_range[1.01-alive] _________________
+
+name = 'alive', value = 1.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+________________ test_traits_reject_outside_range[1.01-crowd] _________________
+
+name = 'crowd', value = 1.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+________________ test_traits_reject_outside_range[1.01-focus] _________________
+
+name = 'focus', value = 1.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[1.01-care] _________________
+
+name = 'care', value = 1.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+________________ test_traits_reject_outside_range[1.01-sprawl] ________________
+
+name = 'sprawl', value = 1.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+________________ test_traits_reject_outside_range[1.01-prose] _________________
+
+name = 'prose', value = 1.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[1.01-debt] _________________
+
+name = 'debt', value = 1.01
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[nan-size] __________________
+
+name = 'size', value = nan
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+__________________ test_traits_reject_outside_range[nan-age] __________________
+
+name = 'age', value = nan
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[nan-alive] _________________
+
+name = 'alive', value = nan
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[nan-crowd] _________________
+
+name = 'crowd', value = nan
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[nan-focus] _________________
+
+name = 'focus', value = nan
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[nan-care] __________________
+
+name = 'care', value = nan
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+________________ test_traits_reject_outside_range[nan-sprawl] _________________
+
+name = 'sprawl', value = nan
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[nan-prose] _________________
+
+name = 'prose', value = nan
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[nan-debt] __________________
+
+name = 'debt', value = nan
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[inf-size] __________________
+
+name = 'size', value = inf
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+__________________ test_traits_reject_outside_range[inf-age] __________________
+
+name = 'age', value = inf
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[inf-alive] _________________
+
+name = 'alive', value = inf
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[inf-crowd] _________________
+
+name = 'crowd', value = inf
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[inf-focus] _________________
+
+name = 'focus', value = inf
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[inf-care] __________________
+
+name = 'care', value = inf
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+________________ test_traits_reject_outside_range[inf-sprawl] _________________
+
+name = 'sprawl', value = inf
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[inf-prose] _________________
+
+name = 'prose', value = inf
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+_________________ test_traits_reject_outside_range[inf-debt] __________________
+
+name = 'debt', value = inf
+
+    @pytest.mark.parametrize("name", TRAIT_NAMES)
+    @pytest.mark.parametrize("value", [-0.01, 1.01, float("nan"), float("inf")])
+    def test_traits_reject_outside_range(name: str, value: float) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:28: Failed
+___________________ test_traits_reject_extra_and_naive_time ___________________
+
+    def test_traits_reject_extra_and_naive_time() -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:33: Failed
+=========================== short test summary info ===========================
+FAILED tests/test_visual_schemas.py::test_traits_roundtrip_and_frozen - Faile...
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[-0.01-size]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[-0.01-age]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[-0.01-alive]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[-0.01-crowd]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[-0.01-focus]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[-0.01-care]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[-0.01-sprawl]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[-0.01-prose]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[-0.01-debt]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[1.01-size]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[1.01-age]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[1.01-alive]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[1.01-crowd]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[1.01-focus]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[1.01-care]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[1.01-sprawl]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[1.01-prose]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[1.01-debt]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[nan-size]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[nan-age]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[nan-alive]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[nan-crowd]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[nan-focus]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[nan-care]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[nan-sprawl]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[nan-prose]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[nan-debt]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[inf-size]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[inf-age]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[inf-alive]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[inf-crowd]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[inf-focus]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[inf-care]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[inf-sprawl]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[inf-prose]
+FAILED tests/test_visual_schemas.py::test_traits_reject_outside_range[inf-debt]
+FAILED tests/test_visual_schemas.py::test_traits_reject_extra_and_naive_time
+38 failed in 0.30s
