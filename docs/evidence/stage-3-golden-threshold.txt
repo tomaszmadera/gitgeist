@@ -1,0 +1,20 @@
+# Stage 3 golden threshold: first passing distances before pinning floors
+#
+# Command:   python -m pytest -q -s -p no:cacheprovider tests/test_golden_diversity.py
+# Wrapper:   python tools/run_min_env.py --cwd . --out docs/evidence/stage-3-golden-threshold.txt --title "Stage 3 golden threshold: first passing distances before pinning floors" -- -m pytest -q -s -p no:cacheprovider tests/test_golden_diversity.py
+#            (python = F:\projects\gitgeist-wt\stage-3-venv\Scripts\python.exe)
+# Directory: F:\projects\gitgeist-wt\stage-3
+# Commit:    0cf566e78b4eda298adbb570f0f32e6e6b06ab5e
+# Date:      2026-10-23T13:01:44+02:00
+# Exit code: 0
+# gitgeist imported from: F:\projects\gitgeist-wt\stage-3\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only SystemRoot, PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+.abstract: smallest nearest-neighbour distance = 0.057321333333
+.character: smallest nearest-neighbour distance = 0.023542500000
+.
+3 passed in 23.18s
