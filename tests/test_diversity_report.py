@@ -151,3 +151,45 @@ def test_extract_time_prints_positive_median(minimal_repo: Path, capsys: pytest.
 
     assert code == 0
     assert float(capsys.readouterr().out.strip()) > 0
+
+
+def test_run_writes_traits_specs_and_correlations(minimal_repo: Path, legacy_chaotic_repo: Path,
+                                                tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    from gitgeist.schemas.traits import TRAIT_NAMES, Traits
+    from gitgeist.schemas.visual_spec import VisualSpec
+
+    out = tmp_path / "traits-report"
+    assert report.main(["run", "--no-images", "--out", str(out), "--reference-time", "2026-04-16T00:00:00Z",
+                        f"minimal={minimal_repo}", f"legacy={legacy_chaotic_repo}"]) == 0
+    layers = json.loads((out / "layers.json").read_text(encoding="utf-8"))
+    for layer in layers.values():
+        for scale in ("absolute", "corpus"):
+            traits = Traits.model_validate(layer["traits"][scale])
+            assert traits.reference_time.isoformat() == "2026-04-16T00:00:00+00:00"
+        assert set(layer["visual_spec"]) == {"abstract", "character"}
+        for representation, data in layer["visual_spec"].items():
+            spec = VisualSpec.model_validate(data)
+            assert spec.representation == representation
+            assert spec.traits == Traits.model_validate(layer["traits"]["absolute"])
+    data = json.loads((out / "report.json").read_text(encoding="utf-8"))
+    for scale in ("absolute", "corpus"):
+        summary = data["traits"][scale]
+        assert set(summary["correlation_matrix"]) == set(TRAIT_NAMES)
+        assert summary["max_abs_r"] == pytest.approx(1.0)
+        assert summary["participation_ratio"] >= 1
+        assert summary["correlation_matrix"]["size"]["size"] in (None, 1)
+    for representation in ("abstract", "character"):
+        nearest = data["spec_distance"][representation]
+        assert set(nearest["nearest"]) == {"minimal", "legacy"}
+        assert nearest["minimum"] > 0
+    markdown = (out / "report.md").read_text(encoding="utf-8")
+    assert "## Traits" in markdown and "Maximum |r|" in markdown
+    assert "Nearest-neighbour spec distance" in markdown
+    assert "Correlation matrix (absolute)" in markdown and "Correlation matrix (corpus)" in markdown
+    capsys.readouterr()
+
+
+def test_constant_spread_is_reported_without_division_by_zero() -> None:
+    result = report.spread({"a": {"size": 0.0}, "b": {"size": 0.0}})
+    assert result["constant"] == ["size"]
+    assert result["participation_ratio"] == 0

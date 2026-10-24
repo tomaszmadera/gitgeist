@@ -1,0 +1,140 @@
+# Stage 3 red run (diversity report): trait layers correlations and spec distances
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_diversity_report.py
+# Wrapper:   python tools/run_min_env.py --cwd . --out docs/evidence/stage-3-diversity-report-red.txt --title "Stage 3 red run (diversity report): trait layers correlations and spec distances" -- -m pytest -q -p no:cacheprovider tests/test_diversity_report.py
+#            (python = F:\projects\gitgeist-wt\stage-3-venv\Scripts\python.exe)
+# Directory: F:\projects\gitgeist-wt\stage-3
+# Commit:    0cf566e78b4eda298adbb570f0f32e6e6b06ab5e
+# Date:      2026-10-23T13:02:30+02:00
+# Exit code: 1
+# gitgeist imported from: F:\projects\gitgeist-wt\stage-3\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only SystemRoot, PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+............FF                                                           [100%]
+================================== FAILURES ===================================
+________________ test_run_writes_traits_specs_and_correlations ________________
+
+minimal_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-n9luhrq2/tmp/pytest-of-unknown/pytest-0/test_run_writes_traits_specs_a0/minimal-repo')
+legacy_chaotic_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-n9luhrq2/tmp/pytest-of-unknown/pytest-0/test_run_writes_traits_specs_a0/legacy-chaotic-repo')
+tmp_path = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-n9luhrq2/tmp/pytest-of-unknown/pytest-0/test_run_writes_traits_specs_a0')
+capsys = <_pytest.capture.CaptureFixture object at 0x0000026F330FF610>
+
+    def test_run_writes_traits_specs_and_correlations(minimal_repo: Path, legacy_chaotic_repo: Path,
+                                                    tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+        from gitgeist.schemas.traits import TRAIT_NAMES, Traits
+        from gitgeist.schemas.visual_spec import VisualSpec
+    
+        out = tmp_path / "traits-report"
+        assert report.main(["run", "--no-images", "--out", str(out), "--reference-time", "2026-04-16T00:00:00Z",
+                            f"minimal={minimal_repo}", f"legacy={legacy_chaotic_repo}"]) == 0
+        layers = json.loads((out / "layers.json").read_text(encoding="utf-8"))
+        for layer in layers.values():
+            for scale in ("absolute", "corpus"):
+>               traits = Traits.model_validate(layer["traits"][scale])
+                                               ^^^^^^^^^^^^^^^
+E               KeyError: 'traits'
+
+tests\test_diversity_report.py:167: KeyError
+---------------------------- Captured stdout call -----------------------------
+# Visual diversity report
+
+Repositories: 2. Image distance D version 1.
+
+## Extracted features
+
+| repo | files | size kB | commits | authors | age days | velocity/week | tests | CI |
+|---|---|---|---|---|---|---|---|---|
+| minimal | 2 | 0 | 1 | 1 | 0 | 1.0 | no | no |
+| legacy | 5 | 0 | 5 | 1 | 4 | 8.75 | no | no |
+
+## Saturated rules
+
+| rule | repos |
+|---|---|
+| maturity: age_days >= 180 (sensors/scores.py) | 0/2 |
+| maturity: commits >= 30 (sensors/scores.py) | 0/2 |
+| volatility: velocity >= 5/week (sensors/scores.py) | 1/2 |
+| novelty: floor 0.25 when age >= 90 and commits >= 10 (sensors/scores.py) | 0/2 |
+| identity: README >= 200 chars (sensors/scores.py) | 0/2 |
+| identity: commits >= 2 (sensors/scores.py) | 1/2 |
+| visual tone: size >= 50 kB (sensors/choices.py) | 0/2 |
+| visual tone: files >= 50 (sensors/choices.py) | 0/2 |
+| tension: authors >= 5 (sensors/scores.py) | 0/2 |
+| tension: velocity >= 3/week (sensors/scores.py) | 1/2 |
+| conflict: more than 3 languages (sensors/scores.py) | 1/2 |
+| tension_curvature > 0.5 forces a warm accent (render/palette.py) | 1/2 |
+| feels_overloaded is true | 2/2 |
+| identity_strength >= 0.9 | 0/2 |
+| luminosity qualifier 'medium' | 2/2 |
+| contrast qualifier 'high' | 1/2 |
+| materiality mechanical or crystalline | 0/2 |
+| character symmetry_order == 2 | 0/2 |
+| abstract symmetry_order >= 6 | 0/2 |
+| temperament proud | 0/2 |
+
+## Collapsed dimensions
+
+| layer | participation ratio | first component | pairs with |r| > 0.8 | covariance PCA | constant |
+|---|---|---|---|---|---|
+| scores | 1.0 of 10 | 100% | 28 | 1.0 (100.0%) | discipline, chaos |
+| axes | 1.0 of 14 | 100% | 78 | 1.0 (100.0%) | biological_vs_mechanical |
+
+## Prompts
+
+- abstract: 39 of [48] lines identical for all; mean differing lines 9.0; closest [('minimal|legacy', 9)]
+- character: 39 of [48] lines identical for all; mean differing lines 9.0; closest [('minimal|legacy', 9)]
+
+## Normalized inputs
+
+Reference time 2026-04-16T00:00:00+00:00. Repositories with a value of exactly 0 or 1, and with a clipped raw value, per scale mode.
+
+| input | absolute 0 or 1 | absolute clipped | corpus 0 or 1 | corpus clipped |
+|---|---|---|---|---|
+| code_size | 2/2 | 2/2 | 2/2 | 2/2 |
+| age | 2/2 | 2/2 | 2/2 | 2/2 |
+| recency | 0/2 | 0/2 | 0/2 | 0/2 |
+| authors | 2/2 | 0/2 | 0/2 | 0/2 |
+| top_author_share | 2/2 | 0/2 | 0/2 | 0/2 |
+| active_months | 2/2 | 0/2 | 0/2 | 0/2 |
+| focus | 2/2 | 0/2 | 2/2 | 0/2 |
+| test_ratio | 2/2 | 0/2 | 0/2 | 0/2 |
+| doc_ratio | 2/2 | 0/2 | 2/2 | 0/2 |
+| debt | 2/2 | 1/2 | 1/2 | 1/2 |
+| top_level_dirs | 2/2 | 1/2 | 0/2 | 0/2 |
+| depth | 1/2 | 1/2 | 0/2 | 0/2 |
+
+---------------------------- Captured stderr call -----------------------------
+analysing minimal (C:\Users\tomek\AppData\Local\Temp\gitgeist-min-env-n9luhrq2\tmp\pytest-of-unknown\pytest-0\test_run_writes_traits_specs_a0\minimal-repo)
+analysing legacy (C:\Users\tomek\AppData\Local\Temp\gitgeist-min-env-n9luhrq2\tmp\pytest-of-unknown\pytest-0\test_run_writes_traits_specs_a0\legacy-chaotic-repo)
+__________ test_constant_spread_is_reported_without_division_by_zero __________
+
+    def test_constant_spread_is_reported_without_division_by_zero() -> None:
+>       result = report.spread({"a": {"size": 0.0}, "b": {"size": 0.0}})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_diversity_report.py:193: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tools\diversity_report.py:155: in spread
+    pr_corr, first_corr = ratio(corr)
+                          ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+m = []
+
+    def ratio(m: list[list[float]]) -> tuple[float, float]:
+        ev = [max(0.0, e) for e in symmetric_eigenvalues(m)]
+        total = sum(ev)
+        shares = [e / total for e in ev]
+>       return 1.0 / sum(s * s for s in shares), shares[0]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ZeroDivisionError: float division by zero
+
+tools\diversity_report.py:153: ZeroDivisionError
+=========================== short test summary info ===========================
+FAILED tests/test_diversity_report.py::test_run_writes_traits_specs_and_correlations
+FAILED tests/test_diversity_report.py::test_constant_spread_is_reported_without_division_by_zero
+2 failed, 12 passed in 5.19s

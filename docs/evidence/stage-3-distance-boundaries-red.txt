@@ -1,0 +1,36 @@
+# Stage 3 red run (distance): seven transport boundaries for eight slots
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_spec_distance.py
+# Wrapper:   python tools/run_min_env.py --cwd . --out docs/evidence/stage-3-distance-boundaries-red.txt --title "Stage 3 red run (distance): seven transport boundaries for eight slots" -- -m pytest -q -p no:cacheprovider tests/test_spec_distance.py
+#            (python = F:\projects\gitgeist-wt\stage-3-venv\Scripts\python.exe)
+# Directory: F:\projects\gitgeist-wt\stage-3
+# Commit:    0cf566e78b4eda298adbb570f0f32e6e6b06ab5e
+# Date:      2026-10-23T13:03:50+02:00
+# Exit code: 1
+# gitgeist imported from: F:\projects\gitgeist-wt\stage-3\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only SystemRoot, PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+......F                                                                  [100%]
+================================== FAILURES ===================================
+__________ test_mass_transport_has_seven_boundaries_for_eight_slots ___________
+
+    def test_mass_transport_has_seven_boundaries_for_eight_slots() -> None:
+        a = base_spec()
+        neutral = a.masses[0].model_copy(update={"language": None, "hue": None})
+        a = a.model_copy(update={"masses": [neutral]})
+        b = a.model_copy(update={"masses": [neutral.model_copy(update={"file_share": 0.3333}) for _ in range(3)]})
+>       assert spec_distance(a, b) == pytest.approx((0.6667 + 0.3334 + 5 * 0.0001) / 7 / 4, abs=1e-15)
+E       assert 0.035739285714285765 == 0.03573571428571428 � 1.0e-15
+E         
+E         comparison failed
+E         Obtained: 0.035739285714285765
+E         Expected: 0.03573571428571428 � 1.0e-15
+
+tests\test_spec_distance.py:55: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_spec_distance.py::test_mass_transport_has_seven_boundaries_for_eight_slots
+1 failed, 6 passed in 0.28s

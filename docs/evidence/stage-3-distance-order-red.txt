@@ -1,0 +1,36 @@
+# Stage 3 red run (distance): hue weights must ignore mass order
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_spec_distance.py
+# Wrapper:   python tools/run_min_env.py --cwd . --out docs/evidence/stage-3-distance-order-red.txt --title "Stage 3 red run (distance): hue weights must ignore mass order" -- -m pytest -q -p no:cacheprovider tests/test_spec_distance.py
+#            (python = F:\projects\gitgeist-wt\stage-3-venv\Scripts\python.exe)
+# Directory: F:\projects\gitgeist-wt\stage-3
+# Commit:    0cf566e78b4eda298adbb570f0f32e6e6b06ab5e
+# Date:      2026-10-23T12:59:38+02:00
+# Exit code: 1
+# gitgeist imported from: F:\projects\gitgeist-wt\stage-3\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only SystemRoot, PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+.....F                                                                   [100%]
+================================== FAILURES ===================================
+___________ test_mass_distance_sorts_and_pads_and_hue_skips_neutral ___________
+
+    def test_mass_distance_sorts_and_pads_and_hue_skips_neutral() -> None:
+        a = base_spec()
+        neutral = a.masses[0].model_copy(update={"language": None, "hue": None})
+        b = a.model_copy(update={"masses": [neutral]})
+        assert spec_distance(a, b) == pytest.approx(0.125)
+        masses = [a.masses[0].model_copy(update={"file_share": share}) for share in (0.6, 0.3, 0.1)]
+        c = a.model_copy(update={"masses": masses})
+        d = a.model_copy(update={"masses": list(reversed(masses))})
+>       assert spec_distance(c, d) == 0
+E       AssertionError: assert 1.3877787807814457e-17 == 0
+E        +  where 1.3877787807814457e-17 = spec_distance(VisualSpec(schema_version='1', representation='abstract', style='orbits', style_requested='auto', variety='medium', se...r_px=6.0, jitter=0.25), topology=Topology(nesting_levels=0), motion=Motion(speed_hz=0.05, loop_seconds=12.0, pulse=[])), VisualSpec(schema_version='1', representation='abstract', style='orbits', style_requested='auto', variety='medium', se...r_px=6.0, jitter=0.25), topology=Topology(nesting_levels=0), motion=Motion(speed_hz=0.05, loop_seconds=12.0, pulse=[])))
+
+tests\test_spec_distance.py:47: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_spec_distance.py::test_mass_distance_sorts_and_pads_and_hue_skips_neutral
+1 failed, 5 passed in 0.28s

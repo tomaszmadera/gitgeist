@@ -1,0 +1,93 @@
+{
+  "schema_version": "1",
+  "representation": "abstract",
+  "style": "orbits",
+  "style_requested": "auto",
+  "variety": "medium",
+  "seeds": {
+    "identity_seed": "97fb87284557562049995b5ecebf25733b110ab88f6e077831f1cd9f77de4350",
+    "user_seed": null,
+    "style_seed": 16453198283450077755,
+    "effective_seed": 1522113844098133332
+  },
+  "traits": {
+    "scale": "absolute",
+    "table_version": null,
+    "reference_time": "2026-04-16T00:00:00Z",
+    "size": 0.0,
+    "age": 0.023946,
+    "alive": 0.704486,
+    "crowd": 0.0,
+    "focus": 0.0,
+    "care": 0.0,
+    "sprawl": 0.0,
+    "prose": 0.0,
+    "debt": 0.0
+  },
+  "footprint": {
+    "coverage": 0.25,
+    "element_count": 40
+  },
+  "masses": [
+    {
+      "name": ".",
+      "is_merged": false,
+      "file_share": 1.0,
+      "churn_share": 1.0,
+      "language": "Shell",
+      "hue": 134.0307475288586,
+      "x": 0.0257969949740088,
+      "y": -0.00859913122641567,
+      "radius": 0.9728075376705574
+    }
+  ],
+  "rings": {
+    "first_year": 2026,
+    "thickness": [
+      1.0
+    ]
+  },
+  "palette": {
+    "mode": "language",
+    "saturation": 0.6283644999999999,
+    "hue_offset": 24.030747528858598
+  },
+  "knot": {
+    "mass_index": 0,
+    "path": "run.sh",
+    "offset_x": -0.3742962627379004,
+    "offset_y": -0.31062989881465675,
+    "radius": 0.15,
+    "flicker": 1.0
+  },
+  "strands": {
+    "count": 1,
+    "paths": [
+      {
+        "phase": 0.07366656923420611,
+        "curvature": -0.38679676127857077
+      }
+    ]
+  },
+  "cracks": {
+    "count": 0,
+    "marks": []
+  },
+  "hatching": {
+    "coverage": 0.0
+  },
+  "edge": {
+    "blur_px": 6.0,
+    "jitter": 0.25
+  },
+  "topology": {
+    "nesting_levels": 0
+  },
+  "motion": {
+    "speed_hz": 0.8601589,
+    "loop_seconds": 12.0,
+    "pulse": [
+      1.0
+    ]
+  }
+}

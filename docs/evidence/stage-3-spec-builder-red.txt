@@ -1,0 +1,736 @@
+# Stage 3 red run (spec builder): channels timeline knots determinism and seeds
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_visual_spec.py
+# Wrapper:   python tools/run_min_env.py --cwd . --out docs/evidence/stage-3-spec-builder-red.txt --title "Stage 3 red run (spec builder): channels timeline knots determinism and seeds" -- -m pytest -q -p no:cacheprovider tests/test_visual_spec.py
+#            (python = F:\projects\gitgeist-wt\stage-3-venv\Scripts\python.exe)
+# Directory: F:\projects\gitgeist-wt\stage-3
+# Commit:    6b481c411c16b0285a718dd9ffa9c4ecb4ba5a95
+# Date:      2026-10-23T12:55:31+02:00
+# Exit code: 1
+# gitgeist imported from: F:\projects\gitgeist-wt\stage-3\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only SystemRoot, PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+FFFFFFFFFFFFFFFFFFFFFFFF                                                 [100%]
+================================== FAILURES ===================================
+___________________ test_channel_isolation[size-channels0] ____________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_channel_isolation_size_ch0/wide-repo')
+trait = 'size', channels = {'footprint'}
+
+    @pytest.mark.parametrize("trait,channels", [
+        ("size", {"footprint"}), ("age", set()), ("alive", {"palette", "motion"}),
+        ("crowd", {"strands"}), ("focus", {"knot"}), ("care", {"edge"}),
+        ("sprawl", {"topology"}), ("prose", {"hatching"}), ("debt", {"cracks"}),
+    ])
+    def test_channel_isolation(wide_repo: Path, trait: str, channels: set[str]) -> None:
+        features = extract_features(wide_repo)
+>       low = build(features, uniform_traits(0.2)).model_dump()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:40: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.2, age=0.2, alive=0.2, crowd=0.2, focus=0.2, care=0.2, sprawl=0.2, prose=0.2, debt=0.2)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+____________________ test_channel_isolation[age-channels1] ____________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_channel_isolation_age_cha0/wide-repo')
+trait = 'age', channels = set()
+
+    @pytest.mark.parametrize("trait,channels", [
+        ("size", {"footprint"}), ("age", set()), ("alive", {"palette", "motion"}),
+        ("crowd", {"strands"}), ("focus", {"knot"}), ("care", {"edge"}),
+        ("sprawl", {"topology"}), ("prose", {"hatching"}), ("debt", {"cracks"}),
+    ])
+    def test_channel_isolation(wide_repo: Path, trait: str, channels: set[str]) -> None:
+        features = extract_features(wide_repo)
+>       low = build(features, uniform_traits(0.2)).model_dump()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:40: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.2, age=0.2, alive=0.2, crowd=0.2, focus=0.2, care=0.2, sprawl=0.2, prose=0.2, debt=0.2)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+___________________ test_channel_isolation[alive-channels2] ___________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_channel_isolation_alive_c0/wide-repo')
+trait = 'alive', channels = {'motion', 'palette'}
+
+    @pytest.mark.parametrize("trait,channels", [
+        ("size", {"footprint"}), ("age", set()), ("alive", {"palette", "motion"}),
+        ("crowd", {"strands"}), ("focus", {"knot"}), ("care", {"edge"}),
+        ("sprawl", {"topology"}), ("prose", {"hatching"}), ("debt", {"cracks"}),
+    ])
+    def test_channel_isolation(wide_repo: Path, trait: str, channels: set[str]) -> None:
+        features = extract_features(wide_repo)
+>       low = build(features, uniform_traits(0.2)).model_dump()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:40: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.2, age=0.2, alive=0.2, crowd=0.2, focus=0.2, care=0.2, sprawl=0.2, prose=0.2, debt=0.2)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+___________________ test_channel_isolation[crowd-channels3] ___________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_channel_isolation_crowd_c0/wide-repo')
+trait = 'crowd', channels = {'strands'}
+
+    @pytest.mark.parametrize("trait,channels", [
+        ("size", {"footprint"}), ("age", set()), ("alive", {"palette", "motion"}),
+        ("crowd", {"strands"}), ("focus", {"knot"}), ("care", {"edge"}),
+        ("sprawl", {"topology"}), ("prose", {"hatching"}), ("debt", {"cracks"}),
+    ])
+    def test_channel_isolation(wide_repo: Path, trait: str, channels: set[str]) -> None:
+        features = extract_features(wide_repo)
+>       low = build(features, uniform_traits(0.2)).model_dump()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:40: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.2, age=0.2, alive=0.2, crowd=0.2, focus=0.2, care=0.2, sprawl=0.2, prose=0.2, debt=0.2)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+___________________ test_channel_isolation[focus-channels4] ___________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_channel_isolation_focus_c0/wide-repo')
+trait = 'focus', channels = {'knot'}
+
+    @pytest.mark.parametrize("trait,channels", [
+        ("size", {"footprint"}), ("age", set()), ("alive", {"palette", "motion"}),
+        ("crowd", {"strands"}), ("focus", {"knot"}), ("care", {"edge"}),
+        ("sprawl", {"topology"}), ("prose", {"hatching"}), ("debt", {"cracks"}),
+    ])
+    def test_channel_isolation(wide_repo: Path, trait: str, channels: set[str]) -> None:
+        features = extract_features(wide_repo)
+>       low = build(features, uniform_traits(0.2)).model_dump()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:40: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.2, age=0.2, alive=0.2, crowd=0.2, focus=0.2, care=0.2, sprawl=0.2, prose=0.2, debt=0.2)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+___________________ test_channel_isolation[care-channels5] ____________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_channel_isolation_care_ch0/wide-repo')
+trait = 'care', channels = {'edge'}
+
+    @pytest.mark.parametrize("trait,channels", [
+        ("size", {"footprint"}), ("age", set()), ("alive", {"palette", "motion"}),
+        ("crowd", {"strands"}), ("focus", {"knot"}), ("care", {"edge"}),
+        ("sprawl", {"topology"}), ("prose", {"hatching"}), ("debt", {"cracks"}),
+    ])
+    def test_channel_isolation(wide_repo: Path, trait: str, channels: set[str]) -> None:
+        features = extract_features(wide_repo)
+>       low = build(features, uniform_traits(0.2)).model_dump()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:40: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.2, age=0.2, alive=0.2, crowd=0.2, focus=0.2, care=0.2, sprawl=0.2, prose=0.2, debt=0.2)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+__________________ test_channel_isolation[sprawl-channels6] ___________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_channel_isolation_sprawl_0/wide-repo')
+trait = 'sprawl', channels = {'topology'}
+
+    @pytest.mark.parametrize("trait,channels", [
+        ("size", {"footprint"}), ("age", set()), ("alive", {"palette", "motion"}),
+        ("crowd", {"strands"}), ("focus", {"knot"}), ("care", {"edge"}),
+        ("sprawl", {"topology"}), ("prose", {"hatching"}), ("debt", {"cracks"}),
+    ])
+    def test_channel_isolation(wide_repo: Path, trait: str, channels: set[str]) -> None:
+        features = extract_features(wide_repo)
+>       low = build(features, uniform_traits(0.2)).model_dump()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:40: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.2, age=0.2, alive=0.2, crowd=0.2, focus=0.2, care=0.2, sprawl=0.2, prose=0.2, debt=0.2)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+___________________ test_channel_isolation[prose-channels7] ___________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_channel_isolation_prose_c0/wide-repo')
+trait = 'prose', channels = {'hatching'}
+
+    @pytest.mark.parametrize("trait,channels", [
+        ("size", {"footprint"}), ("age", set()), ("alive", {"palette", "motion"}),
+        ("crowd", {"strands"}), ("focus", {"knot"}), ("care", {"edge"}),
+        ("sprawl", {"topology"}), ("prose", {"hatching"}), ("debt", {"cracks"}),
+    ])
+    def test_channel_isolation(wide_repo: Path, trait: str, channels: set[str]) -> None:
+        features = extract_features(wide_repo)
+>       low = build(features, uniform_traits(0.2)).model_dump()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:40: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.2, age=0.2, alive=0.2, crowd=0.2, focus=0.2, care=0.2, sprawl=0.2, prose=0.2, debt=0.2)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+___________________ test_channel_isolation[debt-channels8] ____________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_channel_isolation_debt_ch0/wide-repo')
+trait = 'debt', channels = {'cracks'}
+
+    @pytest.mark.parametrize("trait,channels", [
+        ("size", {"footprint"}), ("age", set()), ("alive", {"palette", "motion"}),
+        ("crowd", {"strands"}), ("focus", {"knot"}), ("care", {"edge"}),
+        ("sprawl", {"topology"}), ("prose", {"hatching"}), ("debt", {"cracks"}),
+    ])
+    def test_channel_isolation(wide_repo: Path, trait: str, channels: set[str]) -> None:
+        features = extract_features(wide_repo)
+>       low = build(features, uniform_traits(0.2)).model_dump()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:40: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.2, age=0.2, alive=0.2, crowd=0.2, focus=0.2, care=0.2, sprawl=0.2, prose=0.2, debt=0.2)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+_________________________ test_channel_endpoints[0.0] _________________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_channel_endpoints_0_0_0/wide-repo')
+value = 0.0
+
+    @pytest.mark.parametrize("value", [0.0, 1.0])
+    def test_channel_endpoints(wide_repo: Path, value: float) -> None:
+>       spec = build(extract_features(wide_repo), uniform_traits(value))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.0, crowd=0.0, focus=0.0, care=0.0, sprawl=0.0, prose=0.0, debt=0.0)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+_________________________ test_channel_endpoints[1.0] _________________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_channel_endpoints_1_0_0/wide-repo')
+value = 1.0
+
+    @pytest.mark.parametrize("value", [0.0, 1.0])
+    def test_channel_endpoints(wide_repo: Path, value: float) -> None:
+>       spec = build(extract_features(wide_repo), uniform_traits(value))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=1.0, age=1.0, alive=1.0, crowd=1.0, focus=1.0, care=1.0, sprawl=1.0, prose=1.0, debt=1.0)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+________________________ test_timeline_rings_and_pulse ________________________
+
+timeline_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_timeline_rings_and_pulse0/timeline-repo')
+
+    def test_timeline_rings_and_pulse(timeline_repo: Path) -> None:
+        features = extract_features(timeline_repo)
+>       spec = build(features)
+               ^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:71: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...ount=5, file_share=1.0, churn_share=1.0, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.333624, alive=0.590964, crowd=0.329394, focus=0.0, care=0.0, sprawl=0.0, prose=0.0, debt=0.0)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+_________________________ test_knot_owns_top_hotspot __________________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_knot_owns_top_hotspot0/wide-repo')
+
+    def test_knot_owns_top_hotspot(wide_repo: Path) -> None:
+>       spec = build(extract_features(wide_repo))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:85: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.924992, crowd=0.0, focus=0.0754, care=0.0, sprawl=0.201278, prose=0.0179, debt=0.0)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+____________________________ test_empty_and_no_git ____________________________
+
+tmp_path = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_empty_and_no_git0')
+non_git_dir = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_empty_and_no_git0/plain-directory')
+
+    def test_empty_and_no_git(tmp_path: Path, non_git_dir: Path) -> None:
+>       emptied = build(extract_features(create_emptied_repo(tmp_path / "emptied")))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:94: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.690177, crowd=0.0, focus=0.0, care=0.0, sprawl=0.0, prose=0.0, debt=0.0)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+_________________________ test_real_and_merged_other __________________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_real_and_merged_other0/wide-repo')
+
+    def test_real_and_merged_other(wide_repo: Path) -> None:
+        features = extract_features(wide_repo)
+        masses = [Mass(name="other", is_merged=False, file_share=0.7),
+                  Mass(name="other", is_merged=True, file_share=0.3)]
+        features = features.model_copy(update={
+            "structure": StructureFeatures(masses=masses),
+            "history": features.history.model_copy(update={"hotspots": [Hotspot(path="deleted/a.py", change_count=1,
+                                                                               change_share=0.2, mass="other")]}),
+        })
+>       assert build(features).knot.mass_index == 1
+               ^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:111: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...le_count=0, file_share=0.3, churn_share=0.0, dominant_language=None, test_file_share=0.0)], hotspot_concentration=0.0))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.924992, crowd=0.0, focus=0.0, care=0.0, sprawl=0.201278, prose=0.0179, debt=0.0)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+_______________ test_determinism_roundtrip_and_free_seed_fields _______________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_determinism_roundtrip_and0/wide-repo')
+
+    def test_determinism_roundtrip_and_free_seed_fields(wide_repo: Path) -> None:
+        features = extract_features(wide_repo)
+        traits = uniform_traits(0.5)
+>       a, b = build(features, traits, user_seed=1), build(features, traits, user_seed=2)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.5, age=0.5, alive=0.5, crowd=0.5, focus=0.5, care=0.5, sprawl=0.5, prose=0.5, debt=0.5)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = 1, variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+______________________ test_one_file_commit_keeps_layout ______________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_one_file_commit_keeps_lay0/wide-repo')
+
+    def test_one_file_commit_keeps_layout(wide_repo: Path) -> None:
+        identity = compute_identity_seed(wide_repo)
+        before = extract_features(wide_repo)
+        (wide_repo / "a" / "m1.py").write_text("v = 999\n", encoding="utf-8", newline="\n")
+        _commit_at(wide_repo, "change one file", "2026-04-07")
+        after = extract_features(wide_repo)
+        assert compute_identity_seed(wide_repo) == identity
+>       specs = [build_visual_spec(f, compute_traits(f, reference_time=REF), identity, "abstract") for f in (before, after)]
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:145: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.924992, crowd=0.0, focus=0.0754, care=0.0, sprawl=0.201278, prose=0.0179, debt=0.0)
+identity = IdentitySeed(identity_seed='2f4c1d1107dd734abc5a468dc422b8b581ca09ef59dd6ce2087e2bde0faaf70d', source='root-commits', root_commits=['a67e16c0e79def43c853194f14c6868edfa97ebc'])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+________________________ test_invalid_options[kwargs0] ________________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_invalid_options_kwargs0_0/wide-repo')
+kwargs = {'style': 'unknown'}
+
+    @pytest.mark.parametrize("kwargs", [dict(style="unknown"), dict(style="creature"), dict(variety="bad"),
+                                       dict(user_seed=-1), dict(user_seed=2**63)])
+    def test_invalid_options(wide_repo: Path, kwargs: dict) -> None:
+        with pytest.raises(ValueError):
+>           build(extract_features(wide_repo), **kwargs)
+
+tests\test_visual_spec.py:153: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.924992, crowd=0.0, focus=0.0754, care=0.0, sprawl=0.201278, prose=0.0179, debt=0.0)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'unknown', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+________________________ test_invalid_options[kwargs1] ________________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_invalid_options_kwargs1_0/wide-repo')
+kwargs = {'style': 'creature'}
+
+    @pytest.mark.parametrize("kwargs", [dict(style="unknown"), dict(style="creature"), dict(variety="bad"),
+                                       dict(user_seed=-1), dict(user_seed=2**63)])
+    def test_invalid_options(wide_repo: Path, kwargs: dict) -> None:
+        with pytest.raises(ValueError):
+>           build(extract_features(wide_repo), **kwargs)
+
+tests\test_visual_spec.py:153: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.924992, crowd=0.0, focus=0.0754, care=0.0, sprawl=0.201278, prose=0.0179, debt=0.0)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'creature', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+________________________ test_invalid_options[kwargs2] ________________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_invalid_options_kwargs2_0/wide-repo')
+kwargs = {'variety': 'bad'}
+
+    @pytest.mark.parametrize("kwargs", [dict(style="unknown"), dict(style="creature"), dict(variety="bad"),
+                                       dict(user_seed=-1), dict(user_seed=2**63)])
+    def test_invalid_options(wide_repo: Path, kwargs: dict) -> None:
+        with pytest.raises(ValueError):
+>           build(extract_features(wide_repo), **kwargs)
+
+tests\test_visual_spec.py:153: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.924992, crowd=0.0, focus=0.0754, care=0.0, sprawl=0.201278, prose=0.0179, debt=0.0)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None, variety = 'bad'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+________________________ test_invalid_options[kwargs3] ________________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_invalid_options_kwargs3_0/wide-repo')
+kwargs = {'user_seed': -1}
+
+    @pytest.mark.parametrize("kwargs", [dict(style="unknown"), dict(style="creature"), dict(variety="bad"),
+                                       dict(user_seed=-1), dict(user_seed=2**63)])
+    def test_invalid_options(wide_repo: Path, kwargs: dict) -> None:
+        with pytest.raises(ValueError):
+>           build(extract_features(wide_repo), **kwargs)
+
+tests\test_visual_spec.py:153: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.924992, crowd=0.0, focus=0.0754, care=0.0, sprawl=0.201278, prose=0.0179, debt=0.0)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = -1, variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+________________________ test_invalid_options[kwargs4] ________________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_invalid_options_kwargs4_0/wide-repo')
+kwargs = {'user_seed': 9223372036854775808}
+
+    @pytest.mark.parametrize("kwargs", [dict(style="unknown"), dict(style="creature"), dict(variety="bad"),
+                                       dict(user_seed=-1), dict(user_seed=2**63)])
+    def test_invalid_options(wide_repo: Path, kwargs: dict) -> None:
+        with pytest.raises(ValueError):
+>           build(extract_features(wide_repo), **kwargs)
+
+tests\test_visual_spec.py:153: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.924992, crowd=0.0, focus=0.0754, care=0.0, sprawl=0.201278, prose=0.0179, debt=0.0)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = 9223372036854775808
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+____________________ test_invalid_types_and_representation ____________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_invalid_types_and_represe0/wide-repo')
+
+    def test_invalid_types_and_representation(wide_repo: Path) -> None:
+        features = extract_features(wide_repo)
+        with pytest.raises(TypeError, match="traits"):
+>           build_visual_spec(features, {}, IDENTITY, "abstract")
+
+tests\test_visual_spec.py:159: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = {}
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+________________ test_scene_schema_rejects_invalid_references _________________
+
+wide_repo = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-wxpwb5yq/tmp/pytest-of-unknown/pytest-0/test_scene_schema_rejects_inva0/wide-repo')
+
+    def test_scene_schema_rejects_invalid_references(wide_repo: Path) -> None:
+>       data = build(extract_features(wide_repo)).model_dump()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_spec.py:167: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_visual_spec.py:29: in build
+    return build_visual_spec(features, traits or compute_traits(features, reference_time=REF), IDENTITY,
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+features = RepositoryFeatures(repository_path='C:\\Users\\tomek\\AppData\\Local\\Temp\\gitgeist-min-env-wxpwb5yq\\tmp\\pytest-of-...file_share=0.125, churn_share=0.1429, dominant_language='Python', test_file_share=0.0)], hotspot_concentration=0.0754))
+traits = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.924992, crowd=0.0, focus=0.0754, care=0.0, sprawl=0.201278, prose=0.0179, debt=0.0)
+identity = IdentitySeed(identity_seed='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', source='directory-name', root_commits=[])
+representation = 'abstract', style = 'auto', user_seed = None
+variety = 'medium'
+
+    def build_visual_spec(features, traits, identity, representation, *, style="auto", user_seed=None, variety="medium"):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\spec_builder.py:5: NotImplementedError
+=========================== short test summary info ===========================
+FAILED tests/test_visual_spec.py::test_channel_isolation[size-channels0] - No...
+FAILED tests/test_visual_spec.py::test_channel_isolation[age-channels1] - Not...
+FAILED tests/test_visual_spec.py::test_channel_isolation[alive-channels2] - N...
+FAILED tests/test_visual_spec.py::test_channel_isolation[crowd-channels3] - N...
+FAILED tests/test_visual_spec.py::test_channel_isolation[focus-channels4] - N...
+FAILED tests/test_visual_spec.py::test_channel_isolation[care-channels5] - No...
+FAILED tests/test_visual_spec.py::test_channel_isolation[sprawl-channels6] - ...
+FAILED tests/test_visual_spec.py::test_channel_isolation[prose-channels7] - N...
+FAILED tests/test_visual_spec.py::test_channel_isolation[debt-channels8] - No...
+FAILED tests/test_visual_spec.py::test_channel_endpoints[0.0] - NotImplemente...
+FAILED tests/test_visual_spec.py::test_channel_endpoints[1.0] - NotImplemente...
+FAILED tests/test_visual_spec.py::test_timeline_rings_and_pulse - NotImplemen...
+FAILED tests/test_visual_spec.py::test_knot_owns_top_hotspot - NotImplemented...
+FAILED tests/test_visual_spec.py::test_empty_and_no_git - NotImplementedError
+FAILED tests/test_visual_spec.py::test_real_and_merged_other - NotImplemented...
+FAILED tests/test_visual_spec.py::test_determinism_roundtrip_and_free_seed_fields
+FAILED tests/test_visual_spec.py::test_one_file_commit_keeps_layout - NotImpl...
+FAILED tests/test_visual_spec.py::test_invalid_options[kwargs0] - NotImplemen...
+FAILED tests/test_visual_spec.py::test_invalid_options[kwargs1] - NotImplemen...
+FAILED tests/test_visual_spec.py::test_invalid_options[kwargs2] - NotImplemen...
+FAILED tests/test_visual_spec.py::test_invalid_options[kwargs3] - NotImplemen...
+FAILED tests/test_visual_spec.py::test_invalid_options[kwargs4] - NotImplemen...
+FAILED tests/test_visual_spec.py::test_invalid_types_and_representation - Not...
+FAILED tests/test_visual_spec.py::test_scene_schema_rejects_invalid_references
+24 failed in 29.29s

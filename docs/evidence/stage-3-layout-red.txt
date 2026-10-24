@@ -1,0 +1,87 @@
+# Stage 3 red run (layout): deterministic spiral packing and unit circle
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_visual_layout.py
+# Wrapper:   python tools/run_min_env.py --cwd . --out docs/evidence/stage-3-layout-red.txt --title "Stage 3 red run (layout): deterministic spiral packing and unit circle" -- -m pytest -q -p no:cacheprovider tests/test_visual_layout.py
+#            (python = F:\projects\gitgeist-wt\stage-3-venv\Scripts\python.exe)
+# Directory: F:\projects\gitgeist-wt\stage-3
+# Commit:    cb9df5b8dbd182d9f6dd6a13e407648978066ad3
+# Date:      2026-10-23T12:53:32+02:00
+# Exit code: 1
+# gitgeist imported from: F:\projects\gitgeist-wt\stage-3\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only SystemRoot, PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+FFF                                                                      [100%]
+================================== FAILURES ===================================
+___________________________ test_empty_and_one_mass ___________________________
+
+    def test_empty_and_one_mass() -> None:
+>       assert pack_masses([], 1, "medium") == []
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_layout.py:13: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+masses = [], seed = 1, variety = 'medium'
+
+    def pack_masses(masses, seed, variety):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\layout.py:5: NotImplementedError
+______________ test_packing_is_deterministic_and_in_unit_circle _______________
+
+    def test_packing_is_deterministic_and_in_unit_circle() -> None:
+        masses = [Mass(name=str(i), file_share=share) for i, share in enumerate([0.5, 0.3, 0.2])]
+>       packed = pack_masses(masses, 456, "medium")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_layout.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+masses = [Mass(name='0', is_merged=False, file_count=0, file_share=0.5, churn_share=0.0, dominant_language=None, test_file_shar...name='2', is_merged=False, file_count=0, file_share=0.2, churn_share=0.0, dominant_language=None, test_file_share=0.0)]
+seed = 456, variety = 'medium'
+
+    def pack_masses(masses, seed, variety):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\layout.py:5: NotImplementedError
+__________________ test_two_mass_spiral_matches_step_search ___________________
+
+    def test_two_mass_spiral_matches_step_search() -> None:
+        masses = [Mass(name="a", file_share=0.6), Mass(name="b", file_share=0.4)]
+        rng = Random(123)
+        start = rng.uniform(0, 2 * math.pi)
+        first = (rng.uniform(-0.02, 0.02), rng.uniform(-0.02, 0.02), math.sqrt(0.6))
+        angle = start + math.radians(137.508)
+        radius = math.sqrt(0.4)
+        step = 0
+        while math.hypot(step * 0.01 * math.cos(angle) - first[0],
+                         step * 0.01 * math.sin(angle) - first[1]) < first[2] + radius:
+            step += 1
+        second = (step * 0.01 * math.cos(angle) + rng.uniform(-0.02, 0.02),
+                  step * 0.01 * math.sin(angle) + rng.uniform(-0.02, 0.02), radius)
+        extent = max(math.hypot(x, y) + r for x, y, r in [first, second])
+>       assert pack_masses(masses, 123, "low") == pytest.approx([tuple(v / extent for v in p) for p in [first, second]])
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_layout.py:45: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+masses = [Mass(name='a', is_merged=False, file_count=0, file_share=0.6, churn_share=0.0, dominant_language=None, test_file_shar...name='b', is_merged=False, file_count=0, file_share=0.4, churn_share=0.0, dominant_language=None, test_file_share=0.0)]
+seed = 123, variety = 'low'
+
+    def pack_masses(masses, seed, variety):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\layout.py:5: NotImplementedError
+=========================== short test summary info ===========================
+FAILED tests/test_visual_layout.py::test_empty_and_one_mass - NotImplementedE...
+FAILED tests/test_visual_layout.py::test_packing_is_deterministic_and_in_unit_circle
+FAILED tests/test_visual_layout.py::test_two_mass_spiral_matches_step_search
+3 failed in 0.27s

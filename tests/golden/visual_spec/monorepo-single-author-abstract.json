@@ -1,0 +1,172 @@
+{
+  "schema_version": "1",
+  "representation": "abstract",
+  "style": "orbits",
+  "style_requested": "auto",
+  "variety": "medium",
+  "seeds": {
+    "identity_seed": "76383a576c5e00d9820ff04740105c4ac32272fa094f1589eb8883f795263b88",
+    "user_seed": null,
+    "style_seed": 12928182220931003207,
+    "effective_seed": 1607502517538820539
+  },
+  "traits": {
+    "scale": "absolute",
+    "table_version": null,
+    "reference_time": "2026-04-16T00:00:00Z",
+    "size": 0.336295,
+    "age": 0.210479,
+    "alive": 0.77858,
+    "crowd": 0.0,
+    "focus": 0.0,
+    "care": 0.0,
+    "sprawl": 0.164206,
+    "prose": 0.0,
+    "debt": 0.0
+  },
+  "footprint": {
+    "coverage": 0.451777,
+    "element_count": 228
+  },
+  "masses": [
+    {
+      "name": "part0",
+      "is_merged": false,
+      "file_share": 0.125,
+      "churn_share": 0.8955,
+      "language": "JavaScript",
+      "hue": 57.00901046484007,
+      "x": -0.004907333734852632,
+      "y": 0.01073005106516395,
+      "radius": 0.21937566263008418
+    },
+    {
+      "name": "part1",
+      "is_merged": false,
+      "file_share": 0.125,
+      "churn_share": 0.0149,
+      "language": "Python",
+      "hue": 212.00901046484006,
+      "x": -0.13403904001511324,
+      "y": -0.40459856938279404,
+      "radius": 0.21937566263008418
+    },
+    {
+      "name": "part2",
+      "is_merged": false,
+      "file_share": 0.125,
+      "churn_share": 0.0149,
+      "language": "JavaScript",
+      "hue": 57.00901046484007,
+      "x": 0.3506951355899123,
+      "y": 0.26665461307583,
+      "radius": 0.21937566263008418
+    },
+    {
+      "name": "part3",
+      "is_merged": false,
+      "file_share": 0.125,
+      "churn_share": 0.0149,
+      "language": "Python",
+      "hue": 212.00901046484006,
+      "x": -0.4103749643548147,
+      "y": 0.0797217276081102,
+      "radius": 0.21937566263008418
+    },
+    {
+      "name": "part4",
+      "is_merged": false,
+      "file_share": 0.125,
+      "churn_share": 0.0149,
+      "language": "JavaScript",
+      "hue": 57.00901046484007,
+      "x": 0.28437920704893155,
+      "y": -0.40890812429561435,
+      "radius": 0.21937566263008418
+    },
+    {
+      "name": "part5",
+      "is_merged": false,
+      "file_share": 0.125,
+      "churn_share": 0.0149,
+      "language": "Python",
+      "hue": 212.00901046484006,
+      "x": 0.05085202294821641,
+      "y": 0.6170297370459303,
+      "radius": 0.21937566263008418
+    },
+    {
+      "name": "part6",
+      "is_merged": false,
+      "file_share": 0.125,
+      "churn_share": 0.0149,
+      "language": "JavaScript",
+      "hue": 57.00901046484007,
+      "x": -0.5902674795741041,
+      "y": -0.5108411285825124,
+      "radius": 0.21937566263008418
+    },
+    {
+      "name": "part7",
+      "is_merged": false,
+      "file_share": 0.125,
+      "churn_share": 0.0149,
+      "language": "Python",
+      "hue": 212.00901046484006,
+      "x": 0.6775936916010307,
+      "y": 0.02210594581767634,
+      "radius": 0.21937566263008418
+    }
+  ],
+  "rings": {
+    "first_year": 2026,
+    "thickness": [
+      1.0
+    ]
+  },
+  "palette": {
+    "mode": "language",
+    "saturation": 0.6839350000000001,
+    "hue_offset": 2.009010464840067
+  },
+  "knot": {
+    "mass_index": 0,
+    "path": "part0/module.js",
+    "offset_x": -0.05088457947536012,
+    "offset_y": 0.09717087994977142,
+    "radius": 0.15,
+    "flicker": 0.8955
+  },
+  "strands": {
+    "count": 1,
+    "paths": [
+      {
+        "phase": 0.9835622246877794,
+        "curvature": 0.762066928988355
+      }
+    ]
+  },
+  "cracks": {
+    "count": 0,
+    "marks": []
+  },
+  "hatching": {
+    "coverage": 0.0
+  },
+  "edge": {
+    "blur_px": 6.0,
+    "jitter": 0.25
+  },
+  "topology": {
+    "nesting_levels": 0
+  },
+  "motion": {
+    "speed_hz": 0.9453670000000001,
+    "loop_seconds": 12.0,
+    "pulse": [
+      1.0,
+      0.9032258064516129,
+      0.03225806451612903
+    ]
+  }
+}

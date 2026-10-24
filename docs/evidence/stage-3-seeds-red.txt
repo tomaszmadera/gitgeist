@@ -1,0 +1,213 @@
+# Stage 3 red run (seeds): hashes labels and invalid user seeds
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_seeds.py
+# Wrapper:   python tools/run_min_env.py --cwd . --out docs/evidence/stage-3-seeds-red.txt --title "Stage 3 red run (seeds): hashes labels and invalid user seeds" -- -m pytest -q -p no:cacheprovider tests/test_seeds.py
+#            (python = F:\projects\gitgeist-wt\stage-3-venv\Scripts\python.exe)
+# Directory: F:\projects\gitgeist-wt\stage-3
+# Commit:    cb9df5b8dbd182d9f6dd6a13e407648978066ad3
+# Date:      2026-10-23T12:41:36+02:00
+# Exit code: 1
+# gitgeist imported from: F:\projects\gitgeist-wt\stage-3\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only SystemRoot, PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+FFFFFFFFF                                                                [100%]
+================================== FAILURES ===================================
+__________________________ test_seed_formulas[None] ___________________________
+
+user = None
+
+    @pytest.mark.parametrize("user", [None, 0, 1, 2**63 - 1])
+    def test_seed_formulas(user: int | None) -> None:
+        text = "" if user is None else str(user)
+>       assert style_seed(IDENTITY, user) == int(sha256(f"style:{IDENTITY}:{text}".encode()).hexdigest()[:16], 16)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_seeds.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+identity = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+user_seed = None
+
+    def style_seed(identity, user_seed=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\seeds.py:5: NotImplementedError
+____________________________ test_seed_formulas[0] ____________________________
+
+user = 0
+
+    @pytest.mark.parametrize("user", [None, 0, 1, 2**63 - 1])
+    def test_seed_formulas(user: int | None) -> None:
+        text = "" if user is None else str(user)
+>       assert style_seed(IDENTITY, user) == int(sha256(f"style:{IDENTITY}:{text}".encode()).hexdigest()[:16], 16)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_seeds.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+identity = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+user_seed = 0
+
+    def style_seed(identity, user_seed=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\seeds.py:5: NotImplementedError
+____________________________ test_seed_formulas[1] ____________________________
+
+user = 1
+
+    @pytest.mark.parametrize("user", [None, 0, 1, 2**63 - 1])
+    def test_seed_formulas(user: int | None) -> None:
+        text = "" if user is None else str(user)
+>       assert style_seed(IDENTITY, user) == int(sha256(f"style:{IDENTITY}:{text}".encode()).hexdigest()[:16], 16)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_seeds.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+identity = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+user_seed = 1
+
+    def style_seed(identity, user_seed=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\seeds.py:5: NotImplementedError
+___________________ test_seed_formulas[9223372036854775807] ___________________
+
+user = 9223372036854775807
+
+    @pytest.mark.parametrize("user", [None, 0, 1, 2**63 - 1])
+    def test_seed_formulas(user: int | None) -> None:
+        text = "" if user is None else str(user)
+>       assert style_seed(IDENTITY, user) == int(sha256(f"style:{IDENTITY}:{text}".encode()).hexdigest()[:16], 16)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_seeds.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+identity = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+user_seed = 9223372036854775807
+
+    def style_seed(identity, user_seed=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\seeds.py:5: NotImplementedError
+_________________________ test_invalid_user_seed[-1] __________________________
+
+user = -1
+
+    @pytest.mark.parametrize("user", [-1, 2**63, 1.5, "random", True])
+    def test_invalid_user_seed(user) -> None:
+        with pytest.raises(ValueError, match="user_seed"):
+>           style_seed(IDENTITY, user)
+
+tests\test_seeds.py:26: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+identity = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+user_seed = -1
+
+    def style_seed(identity, user_seed=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\seeds.py:5: NotImplementedError
+_________________ test_invalid_user_seed[9223372036854775808] _________________
+
+user = 9223372036854775808
+
+    @pytest.mark.parametrize("user", [-1, 2**63, 1.5, "random", True])
+    def test_invalid_user_seed(user) -> None:
+        with pytest.raises(ValueError, match="user_seed"):
+>           style_seed(IDENTITY, user)
+
+tests\test_seeds.py:26: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+identity = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+user_seed = 9223372036854775808
+
+    def style_seed(identity, user_seed=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\seeds.py:5: NotImplementedError
+_________________________ test_invalid_user_seed[1.5] _________________________
+
+user = 1.5
+
+    @pytest.mark.parametrize("user", [-1, 2**63, 1.5, "random", True])
+    def test_invalid_user_seed(user) -> None:
+        with pytest.raises(ValueError, match="user_seed"):
+>           style_seed(IDENTITY, user)
+
+tests\test_seeds.py:26: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+identity = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+user_seed = 1.5
+
+    def style_seed(identity, user_seed=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\seeds.py:5: NotImplementedError
+_______________________ test_invalid_user_seed[random] ________________________
+
+user = 'random'
+
+    @pytest.mark.parametrize("user", [-1, 2**63, 1.5, "random", True])
+    def test_invalid_user_seed(user) -> None:
+        with pytest.raises(ValueError, match="user_seed"):
+>           style_seed(IDENTITY, user)
+
+tests\test_seeds.py:26: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+identity = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+user_seed = 'random'
+
+    def style_seed(identity, user_seed=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\seeds.py:5: NotImplementedError
+________________________ test_invalid_user_seed[True] _________________________
+
+user = True
+
+    @pytest.mark.parametrize("user", [-1, 2**63, 1.5, "random", True])
+    def test_invalid_user_seed(user) -> None:
+        with pytest.raises(ValueError, match="user_seed"):
+>           style_seed(IDENTITY, user)
+
+tests\test_seeds.py:26: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+identity = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+user_seed = True
+
+    def style_seed(identity, user_seed=None):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\seeds.py:5: NotImplementedError
+=========================== short test summary info ===========================
+FAILED tests/test_seeds.py::test_seed_formulas[None] - NotImplementedError
+FAILED tests/test_seeds.py::test_seed_formulas[0] - NotImplementedError
+FAILED tests/test_seeds.py::test_seed_formulas[1] - NotImplementedError
+FAILED tests/test_seeds.py::test_seed_formulas[9223372036854775807] - NotImpl...
+FAILED tests/test_seeds.py::test_invalid_user_seed[-1] - NotImplementedError
+FAILED tests/test_seeds.py::test_invalid_user_seed[9223372036854775808] - Not...
+FAILED tests/test_seeds.py::test_invalid_user_seed[1.5] - NotImplementedError
+FAILED tests/test_seeds.py::test_invalid_user_seed[random] - NotImplementedError
+FAILED tests/test_seeds.py::test_invalid_user_seed[True] - NotImplementedError
+9 failed in 0.23s

@@ -1,0 +1,62 @@
+# Stage 3 red run (golden fixtures): construction must run inside environment isolation
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_golden_diversity.py
+# Wrapper:   python tools/run_min_env.py --cwd . --out docs/evidence/stage-3-golden-isolation-red.txt --title "Stage 3 red run (golden fixtures): construction must run inside environment isolation" -- -m pytest -q -p no:cacheprovider tests/test_golden_diversity.py
+#            (python = F:\projects\gitgeist-wt\stage-3-venv\Scripts\python.exe)
+# Directory: F:\projects\gitgeist-wt\stage-3
+# Commit:    0cf566e78b4eda298adbb570f0f32e6e6b06ab5e
+# Date:      2026-10-23T13:10:10+02:00
+# Exit code: 1
+# gitgeist imported from: F:\projects\gitgeist-wt\stage-3\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only SystemRoot, PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+EEE                                                                      [100%]
+=================================== ERRORS ====================================
+__________________ ERROR at setup of test_fixture_contracts ___________________
+
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x0000015BF2D51E00>, _basetemp=None, _retention_count=3, _retention_policy='all')
+golden_environment_sentinel = None
+
+    @pytest.fixture(scope="module")
+    def portfolio(tmp_path_factory: pytest.TempPathFactory, golden_environment_sentinel):
+        sentinel_visible = "GITGEIST_GOLDEN_ENV_SENTINEL" in os.environ
+>       assert not sentinel_visible, "portfolio builds outside per-test environment isolation"
+E       AssertionError: portfolio builds outside per-test environment isolation
+E       assert not True
+
+tests\test_golden_diversity.py:43: AssertionError
+______________ ERROR at setup of test_golden_diversity[abstract] ______________
+
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x0000015BF2D51E00>, _basetemp=None, _retention_count=3, _retention_policy='all')
+golden_environment_sentinel = None
+
+    @pytest.fixture(scope="module")
+    def portfolio(tmp_path_factory: pytest.TempPathFactory, golden_environment_sentinel):
+        sentinel_visible = "GITGEIST_GOLDEN_ENV_SENTINEL" in os.environ
+>       assert not sentinel_visible, "portfolio builds outside per-test environment isolation"
+E       AssertionError: portfolio builds outside per-test environment isolation
+E       assert not True
+
+tests\test_golden_diversity.py:43: AssertionError
+_____________ ERROR at setup of test_golden_diversity[character] ______________
+
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x0000015BF2D51E00>, _basetemp=None, _retention_count=3, _retention_policy='all')
+golden_environment_sentinel = None
+
+    @pytest.fixture(scope="module")
+    def portfolio(tmp_path_factory: pytest.TempPathFactory, golden_environment_sentinel):
+        sentinel_visible = "GITGEIST_GOLDEN_ENV_SENTINEL" in os.environ
+>       assert not sentinel_visible, "portfolio builds outside per-test environment isolation"
+E       AssertionError: portfolio builds outside per-test environment isolation
+E       assert not True
+
+tests\test_golden_diversity.py:43: AssertionError
+=========================== short test summary info ===========================
+ERROR tests/test_golden_diversity.py::test_fixture_contracts - AssertionError...
+ERROR tests/test_golden_diversity.py::test_golden_diversity[abstract] - Asser...
+ERROR tests/test_golden_diversity.py::test_golden_diversity[character] - Asse...
+3 errors in 0.37s

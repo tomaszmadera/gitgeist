@@ -1,10 +1,12 @@
 from pathlib import Path
+from datetime import datetime, timezone
 import pytest
 from gitgeist.explain import explain
 from gitgeist.features.extractor import extract_features
 from gitgeist.interpretation.emotional_model import evaluate_emotional_state
 from gitgeist.mapping.latent_mapper import map_emotional_to_latent
 from gitgeist.schemas.features import RepositoryFeatures
+from gitgeist.visual import compute_traits
 
 
 def test_extract_features_minimal_repo(minimal_repo: Path) -> None:
@@ -117,7 +119,8 @@ def test_v2_fields_do_not_change_downstream_layers(fixture: str, request: pytest
 
     assert state == baseline_state
     assert profile == baseline_profile
-    assert explain(features, state, profile).summary_md == explain(baseline, baseline_state, baseline_profile).summary_md
+    traits = compute_traits(features, reference_time=datetime(2026, 4, 16, tzinfo=timezone.utc))
+    assert explain(features, state, profile, traits=traits).summary_md == explain(baseline, baseline_state, baseline_profile).summary_md
 
 
 def test_extract_features_fills_structure(wide_repo: Path) -> None:
