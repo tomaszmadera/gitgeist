@@ -17,7 +17,8 @@ concurrency:
 
 jobs:
   verify:
-    # review/rules.md R1 refers to these checks by the name "verify".
+    # Review rule R1 (F:\projects\grok-bot\review\gitgeist\rules.md, outside this
+    # repository) refers to these checks by the name "verify".
     name: verify (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     timeout-minutes: 15

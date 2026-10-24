@@ -22,7 +22,7 @@ Add the third step of the counter strategy from `design.md` "Architecture": turn
 - `docs/features/visual-latent-mapper/spec.md` (layer 3 contract that this spec amends; see "Effect on existing specs").
 - `docs/features/live-renderers/spec.md` (seed rule from stage 1; unchanged here).
 - `docs/features/mvp-completion/spec.md:41` (snapshot stability of `profile.json`).
-- `review/rules.md` (R5: offline tests; R8: CHANGELOG for API changes; R11: amendments in the language of the amended spec).
+- The gitgeist review rules outside the repository, `F:\projects\grok-bot\review\gitgeist\rules.md` (R5: offline tests; R8: CHANGELOG for API changes; R11: amendments in the language of the amended spec).
 
 ## Scope
 
