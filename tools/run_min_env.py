@@ -1,7 +1,8 @@
 """Run a Python command in a deliberately minimal environment and write a raw log.
 
-Used for red-run evidence (review/rules.md R2, R6) when the code under test can
-print environment variables on failure. The child process gets only these
+Used for red-run evidence (review rules R2 and R6, kept outside this repository
+in F:\\projects\\grok-bot\\review\\gitgeist\\rules.md) when the code under test
+can print environment variables on failure. The child process gets only these
 variables, so no real secret is in the process at all:
 
     SystemRoot (Windows only), PATH (this Python's directory, git's directory
