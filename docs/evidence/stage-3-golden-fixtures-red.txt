@@ -1,0 +1,83 @@
+# Stage 3 red run (golden fixtures): eight repository contracts and snapshots
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_golden_diversity.py
+# Wrapper:   python tools/run_min_env.py --cwd . --out docs/evidence/stage-3-golden-fixtures-red.txt --title "Stage 3 red run (golden fixtures): eight repository contracts and snapshots" -- -m pytest -q -p no:cacheprovider tests/test_golden_diversity.py
+#            (python = F:\projects\gitgeist-wt\stage-3-venv\Scripts\python.exe)
+# Directory: F:\projects\gitgeist-wt\stage-3
+# Commit:    0cf566e78b4eda298adbb570f0f32e6e6b06ab5e
+# Date:      2026-10-23T12:59:12+02:00
+# Exit code: 1
+# gitgeist imported from: F:\projects\gitgeist-wt\stage-3\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only SystemRoot, PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+EEE                                                                      [100%]
+=================================== ERRORS ====================================
+__________________ ERROR at setup of test_fixture_contracts ___________________
+
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x0000023AF95B15B0>, _basetemp=Wi...ata/Local/Temp/gitgeist-min-env-6vgpuf1c/tmp/pytest-of-unknown/pytest-0'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module")
+    def portfolio(tmp_path_factory: pytest.TempPathFactory):
+        root = tmp_path_factory.mktemp("portfolio")
+>       return {name: extract_features(factory(root / name)) for name, factory in BUILDERS.items()}
+                                       ^^^^^^^^^^^^^^^^^^^^
+
+tests\test_golden_diversity.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+target_dir = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-6vgpuf1c/tmp/pytest-of-unknown/pytest-0/portfolio0/single-script')
+
+    def create_single_script_repo(target_dir: Path) -> Path:
+>       raise NotImplementedError
+E       NotImplementedError
+
+tests\fixtures\builder.py:246: NotImplementedError
+______________ ERROR at setup of test_golden_diversity[abstract] ______________
+
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x0000023AF95B15B0>, _basetemp=Wi...ata/Local/Temp/gitgeist-min-env-6vgpuf1c/tmp/pytest-of-unknown/pytest-0'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module")
+    def portfolio(tmp_path_factory: pytest.TempPathFactory):
+        root = tmp_path_factory.mktemp("portfolio")
+>       return {name: extract_features(factory(root / name)) for name, factory in BUILDERS.items()}
+                                       ^^^^^^^^^^^^^^^^^^^^
+
+tests\test_golden_diversity.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+target_dir = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-6vgpuf1c/tmp/pytest-of-unknown/pytest-0/portfolio0/single-script')
+
+    def create_single_script_repo(target_dir: Path) -> Path:
+>       raise NotImplementedError
+E       NotImplementedError
+
+tests\fixtures\builder.py:246: NotImplementedError
+_____________ ERROR at setup of test_golden_diversity[character] ______________
+
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x0000023AF95B15B0>, _basetemp=Wi...ata/Local/Temp/gitgeist-min-env-6vgpuf1c/tmp/pytest-of-unknown/pytest-0'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module")
+    def portfolio(tmp_path_factory: pytest.TempPathFactory):
+        root = tmp_path_factory.mktemp("portfolio")
+>       return {name: extract_features(factory(root / name)) for name, factory in BUILDERS.items()}
+                                       ^^^^^^^^^^^^^^^^^^^^
+
+tests\test_golden_diversity.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+target_dir = WindowsPath('C:/Users/tomek/AppData/Local/Temp/gitgeist-min-env-6vgpuf1c/tmp/pytest-of-unknown/pytest-0/portfolio0/single-script')
+
+    def create_single_script_repo(target_dir: Path) -> Path:
+>       raise NotImplementedError
+E       NotImplementedError
+
+tests\fixtures\builder.py:246: NotImplementedError
+=========================== short test summary info ===========================
+ERROR tests/test_golden_diversity.py::test_fixture_contracts - NotImplemented...
+ERROR tests/test_golden_diversity.py::test_golden_diversity[abstract] - NotIm...
+ERROR tests/test_golden_diversity.py::test_golden_diversity[character] - NotI...
+3 errors in 0.28s

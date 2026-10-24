@@ -16,6 +16,8 @@ Zbudować deterministyczny moduł tłumaczący wielowymiarowy profil stanu emocj
 
 ## Scope
 
+Warstwa 3 ma też drugi zestaw wyjść: `Traits` i `VisualSpec`, opisane w [specyfikacji etapu 3](../traits-visualspec-seeds/spec.md). Powstają z cech v2, normalizacji i ziaren. Istniejący mapper, 14 osi i reguły biznesowe pozostają bez zmian.
+
 1. Schematy danych Pydantic v2 dla parametrów latentnych (`src/gitgeist/schemas/visual_latent.py`):
    - `VisualLatentAxes`: ciągłe znormalizowane osie wizualne w przedziale [0.0, 1.0]:
      - `form_complexity`: złożoność formy (prosta/minimalistyczna vs złożona/wieloczłonowa).
@@ -88,6 +90,8 @@ Zbudować deterministyczny moduł tłumaczący wielowymiarowy profil stanu emocj
 none
 
 ## Data / API
+
+- Drugie wyjścia Warstwy 3: `Traits` (`gitgeist.schemas.traits`) i `VisualSpec` (`gitgeist.schemas.visual_spec`), budowane przez `compute_traits` i `build_visual_spec` z `gitgeist.visual`; kontrakt w [specyfikacji etapu 3](../traits-visualspec-seeds/spec.md).
 
 - Wejście: `EmotionalState` z pakietu `gitgeist.schemas.emotional`.
 - Wyjście: `VisualLatentProfile` z pakietu `gitgeist.schemas.visual_latent`.

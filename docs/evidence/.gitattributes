@@ -1,0 +1,2 @@
+# Preserve raw pytest output, including its diagnostic whitespace (R6).
+stage-3-*-red.txt -whitespace

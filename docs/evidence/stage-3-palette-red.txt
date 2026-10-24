@@ -1,0 +1,114 @@
+# Stage 3 red run (palette): pinned hues offset ranges and neutral masses
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_visual_palette.py
+# Wrapper:   python tools/run_min_env.py --cwd . --out docs/evidence/stage-3-palette-red.txt --title "Stage 3 red run (palette): pinned hues offset ranges and neutral masses" -- -m pytest -q -p no:cacheprovider tests/test_visual_palette.py
+#            (python = F:\projects\gitgeist-wt\stage-3-venv\Scripts\python.exe)
+# Directory: F:\projects\gitgeist-wt\stage-3
+# Commit:    cb9df5b8dbd182d9f6dd6a13e407648978066ad3
+# Date:      2026-10-23T12:53:30+02:00
+# Exit code: 1
+# gitgeist imported from: F:\projects\gitgeist-wt\stage-3\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only SystemRoot, PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+FFFFF                                                                    [100%]
+================================== FAILURES ===================================
+_________________ test_language_table_is_complete_and_pinned __________________
+
+    def test_language_table_is_complete_and_pinned() -> None:
+>       assert LANGUAGE_HUES == EXPECTED_HUES
+E       AssertionError: assert {} == {'Python': 21...TML': 15, ...}
+E         
+E         Right contains 22 more items:
+E         {'C': 235,
+E          'C++': 255,
+E          'C/C++ Header': 245,
+E          'CSS': 275,
+E          'Go': 190,...
+E         
+E         ...Full output truncated (18 lines hidden), use '-vv' to show
+
+tests\test_visual_palette.py:17: AssertionError
+______________________ test_offsets_and_wrapping[low-10] ______________________
+
+variety = 'low', maximum = 10
+
+    @pytest.mark.parametrize("variety,maximum", [("low", 10), ("medium", 25), ("high", 45)])
+    def test_offsets_and_wrapping(variety: str, maximum: int) -> None:
+>       values = [hue_offset(seed, variety) for seed in range(20)]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_palette.py:23: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+seed = 0, variety = 'low'
+
+    def hue_offset(seed, variety):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\palette.py:7: NotImplementedError
+____________________ test_offsets_and_wrapping[medium-25] _____________________
+
+variety = 'medium', maximum = 25
+
+    @pytest.mark.parametrize("variety,maximum", [("low", 10), ("medium", 25), ("high", 45)])
+    def test_offsets_and_wrapping(variety: str, maximum: int) -> None:
+>       values = [hue_offset(seed, variety) for seed in range(20)]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_palette.py:23: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+seed = 0, variety = 'medium'
+
+    def hue_offset(seed, variety):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\palette.py:7: NotImplementedError
+_____________________ test_offsets_and_wrapping[high-45] ______________________
+
+variety = 'high', maximum = 45
+
+    @pytest.mark.parametrize("variety,maximum", [("low", 10), ("medium", 25), ("high", 45)])
+    def test_offsets_and_wrapping(variety: str, maximum: int) -> None:
+>       values = [hue_offset(seed, variety) for seed in range(20)]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_visual_palette.py:23: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+seed = 0, variety = 'high'
+
+    def hue_offset(seed, variety):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\palette.py:7: NotImplementedError
+_____________________________ test_palette_errors _____________________________
+
+    def test_palette_errors() -> None:
+        with pytest.raises(ValueError, match="variety"):
+>           hue_offset(1, "missing")
+
+tests\test_visual_palette.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+seed = 1, variety = 'missing'
+
+    def hue_offset(seed, variety):
+>       raise NotImplementedError
+E       NotImplementedError
+
+src\gitgeist\visual\palette.py:7: NotImplementedError
+=========================== short test summary info ===========================
+FAILED tests/test_visual_palette.py::test_language_table_is_complete_and_pinned
+FAILED tests/test_visual_palette.py::test_offsets_and_wrapping[low-10] - NotI...
+FAILED tests/test_visual_palette.py::test_offsets_and_wrapping[medium-25] - N...
+FAILED tests/test_visual_palette.py::test_offsets_and_wrapping[high-45] - Not...
+FAILED tests/test_visual_palette.py::test_palette_errors - NotImplementedError
+5 failed in 0.27s

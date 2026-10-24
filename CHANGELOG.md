@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 This file starts at 0.6.0. Earlier versions (tags `0.0.1` to `0.5.1`) have no changelog entries.
 
+## [0.8.0] - 2026-10-23
+
+### Changed
+
+- `profile.json`: `analyze` and `render` add the top-level `traits` block with nine portrait traits in the default `absolute` scale. `traits.reference_time` defaults to midnight UTC of the extraction day; it and `traits.alive` may change on different UTC days. Existing emotional scores, axes, materiality, summaries, live rendering and prompts keep their behavior, apart from the engine version string.
+- `explain()` gains the optional keyword-only argument `traits: Traits | None = None`. When supplied, it serializes `Traits` into `profile.json`; `summary.md` and `why_this_look` stay unchanged. Existing calls keep working.
+
+### Added
+
+- `gitgeist.visual`: `compute_traits()`, `build_visual_spec()`, `registered_styles()` and `spec_distance()`. Traits compose stage 2 normalized inputs in both scale modes. VisualSpec assembles isolated channels, factual masses and timelines, language hues, seeded spiral packing and marks, with registered styles `orbits` and `creature` and variety levels `low`, `medium`, `high`.
+- Frozen Pydantic schemas in `gitgeist.schemas.traits` (`Traits`, `TRAIT_NAMES`) and `gitgeist.schemas.visual_spec` (`VisualSpec`, `SeedInfo`, `Footprint`, `SpecMass`, `Rings`, `Palette`, `Knot`, `StrandPath`, `Strands`, `CrackMark`, `Cracks`, `Hatching`, `Edge`, `Topology`, `Motion`). The [schema document](docs/features/traits-visualspec-seeds/visual-spec.md) lists field ranges and a golden example.
+- `tools/diversity_report.py`: `traits` layers for both scales, `visual_spec` layers for both representations with absolute traits, and a "Traits" section with correlation matrices, maximum |r|, participation ratios and nearest-neighbour spec distances.
+- Eight synthetic repository fixtures and sixteen explicit-update golden VisualSpec snapshots, with per-representation diversity thresholds.
+
 ## [0.7.0] - 2026-10-22
 
 ### Changed
@@ -45,5 +59,6 @@ This file starts at 0.6.0. Earlier versions (tags `0.0.1` to `0.5.1`) have no ch
 - The default `gitgeist-output` directory is skipped when scanning, so a rerun inside the repository does not analyse its own artifacts.
 - Empty values in a local `.env` no longer shadow the user-level `~/.config/gitgeist/.env`.
 
+[0.8.0]: https://github.com/tomaszmadera/gitgeist/compare/0.7.0...0.8.0
 [0.7.0]: https://github.com/tomaszmadera/gitgeist/compare/0.6.0...0.7.0
 [0.6.0]: https://github.com/tomaszmadera/gitgeist/compare/0.5.1...0.6.0

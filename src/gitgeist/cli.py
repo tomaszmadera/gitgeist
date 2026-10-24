@@ -29,6 +29,7 @@ from gitgeist.render.image_backend import (
 )
 from gitgeist.schemas.emotional import EmotionalState
 from gitgeist.schemas.visual_latent import VisualLatentProfile
+from gitgeist.visual import compute_traits
 
 REPRESENTATION_MODES = ("character", "abstract")
 GENERATION_MODES = ("live", "prompt-to-image")
@@ -90,6 +91,7 @@ def _analyze(
         profile,
         repository_name=repository_name,
         output_dir=output_dir,
+        traits=compute_traits(features),
     )
     written = [
         path

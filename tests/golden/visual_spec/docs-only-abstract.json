@@ -1,0 +1,104 @@
+{
+  "schema_version": "1",
+  "representation": "abstract",
+  "style": "orbits",
+  "style_requested": "auto",
+  "variety": "medium",
+  "seeds": {
+    "identity_seed": "b8bc558be99abc86bf174a50cc680d735a72bae25f81608e3d61cb1354ba07d0",
+    "user_seed": null,
+    "style_seed": 4964623945381152046,
+    "effective_seed": 12581521852927131069
+  },
+  "traits": {
+    "scale": "absolute",
+    "table_version": null,
+    "reference_time": "2026-04-16T00:00:00Z",
+    "size": 0.0,
+    "age": 0.0,
+    "alive": 0.589747,
+    "crowd": 0.0,
+    "focus": 0.0,
+    "care": 0.0,
+    "sprawl": 0.0,
+    "prose": 1.0,
+    "debt": 0.0
+  },
+  "footprint": {
+    "coverage": 0.25,
+    "element_count": 40
+  },
+  "masses": [
+    {
+      "name": ".",
+      "is_merged": false,
+      "file_share": 0.5,
+      "churn_share": 0.5,
+      "language": "Markdown",
+      "hue": 160.367838197763,
+      "x": 0.0020434253421151775,
+      "y": -0.0014004272991735656,
+      "radius": 0.33561509057876415
+    },
+    {
+      "name": "guide",
+      "is_merged": false,
+      "file_share": 0.5,
+      "churn_share": 0.5,
+      "language": "Markdown",
+      "hue": 160.367838197763,
+      "x": -0.08164388671616987,
+      "y": 0.6593493638645153,
+      "radius": 0.33561509057876415
+    }
+  ],
+  "rings": {
+    "first_year": 2025,
+    "thickness": [
+      1.0
+    ]
+  },
+  "palette": {
+    "mode": "language",
+    "saturation": 0.54231025,
+    "hue_offset": -9.632161802237004
+  },
+  "knot": {
+    "mass_index": 0,
+    "path": "README.md",
+    "offset_x": 0.12730286973401575,
+    "offset_y": -0.10933138439410814,
+    "radius": 0.15,
+    "flicker": 0.25
+  },
+  "strands": {
+    "count": 1,
+    "paths": [
+      {
+        "phase": 0.9314317835030292,
+        "curvature": -0.33391428075606666
+      }
+    ]
+  },
+  "cracks": {
+    "count": 0,
+    "marks": []
+  },
+  "hatching": {
+    "coverage": 0.6
+  },
+  "edge": {
+    "blur_px": 6.0,
+    "jitter": 0.25
+  },
+  "topology": {
+    "nesting_levels": 0
+  },
+  "motion": {
+    "speed_hz": 0.72820905,
+    "loop_seconds": 12.0,
+    "pulse": [
+      1.0
+    ]
+  }
+}

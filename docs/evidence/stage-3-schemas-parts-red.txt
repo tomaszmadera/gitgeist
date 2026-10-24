@@ -1,0 +1,56 @@
+# Stage 3 red run (schemas): mark counts must match their lists
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_visual_schemas.py
+# Wrapper:   python tools/run_min_env.py --cwd . --out docs/evidence/stage-3-schemas-parts-red.txt --title "Stage 3 red run (schemas): mark counts must match their lists" -- -m pytest -q -p no:cacheprovider tests/test_visual_schemas.py
+#            (python = F:\projects\gitgeist-wt\stage-3-venv\Scripts\python.exe)
+# Directory: F:\projects\gitgeist-wt\stage-3
+# Commit:    92817bef6f4bb8fda720cedfecd866d7d9d00c3d
+# Date:      2026-10-23T12:39:17+02:00
+# Exit code: 1
+# gitgeist imported from: F:\projects\gitgeist-wt\stage-3\src\gitgeist\__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only SystemRoot, PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+........................................FF                               [100%]
+================================== FAILURES ===================================
+____________ test_scene_parts_reject_invalid_values[Strands-data2] ____________
+
+model = <class 'gitgeist.schemas.visual_spec.Strands'>
+data = {'count': 2, 'paths': []}
+
+    @pytest.mark.parametrize("model,data", [
+        (Footprint, {"coverage": 0.2, "element_count": 40}),
+        (SeedInfo, dict(identity_seed="bad", user_seed=None, style_seed=0, effective_seed=0)),
+        (Strands, {"count": 2, "paths": []}),
+        (Cracks, {"count": 1, "marks": []}),
+    ])
+    def test_scene_parts_reject_invalid_values(model: type, data: dict) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:47: Failed
+____________ test_scene_parts_reject_invalid_values[Cracks-data3] _____________
+
+model = <class 'gitgeist.schemas.visual_spec.Cracks'>
+data = {'count': 1, 'marks': []}
+
+    @pytest.mark.parametrize("model,data", [
+        (Footprint, {"coverage": 0.2, "element_count": 40}),
+        (SeedInfo, dict(identity_seed="bad", user_seed=None, style_seed=0, effective_seed=0)),
+        (Strands, {"count": 2, "paths": []}),
+        (Cracks, {"count": 1, "marks": []}),
+    ])
+    def test_scene_parts_reject_invalid_values(model: type, data: dict) -> None:
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\test_visual_schemas.py:47: Failed
+=========================== short test summary info ===========================
+FAILED tests/test_visual_schemas.py::test_scene_parts_reject_invalid_values[Strands-data2]
+FAILED tests/test_visual_schemas.py::test_scene_parts_reject_invalid_values[Cracks-data3]
+2 failed, 40 passed in 0.28s

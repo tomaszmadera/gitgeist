@@ -34,7 +34,7 @@ The examples below call `.venv/bin/gitgeist` directly; after `source .venv/bin/a
 .venv/bin/gitgeist analyze /path/to/repo
 ```
 
-Writes `profile.json` and `summary.md` to `./gitgeist-output/<repo-name>`, relative to the current working directory. Use `-o DIR` for a different directory. When you run the command from inside the analyzed repository, the scan skips `gitgeist-output/`, so earlier artifacts do not change the result. A custom `-o` directory inside the repository is not skipped.
+Writes `profile.json` and `summary.md` to `./gitgeist-output/<repo-name>`, relative to the current working directory. `profile.json` includes the repository features, emotional state, visual latent profile and nine portrait `traits` computed with the `absolute` scale. Use `-o DIR` for a different directory. When you run the command from inside the analyzed repository, the scan skips `gitgeist-output/`, so earlier artifacts do not change the result. A custom `-o` directory inside the repository is not skipped.
 
 ### Live portrait (HTML, no network)
 
@@ -93,7 +93,7 @@ By default the portrait keeps the format returned by the backend (`--image-forma
 diff /tmp/gg-a/summary.md /tmp/gg-b/summary.md
 ```
 
-The same repository state gives a byte-identical `summary.md`. `profile.json` differs only in run-specific fields (`calculated_at`, `extracted_at`, `source_commit`, `engine_version`).
+The same repository state gives a byte-identical `summary.md`. `profile.json` differs only in run-specific fields (`calculated_at`, `extracted_at`, `source_commit`, `engine_version`). On different UTC days, `traits.reference_time` and `traits.alive` may also change: the default trait reference time is the extraction day's midnight UTC.
 
 ## Tests
 
@@ -106,6 +106,8 @@ The same repository state gives a byte-identical `summary.md`. `profile.json` di
 `tools/diversity_report.py` is a development tool, not part of the package. It runs the pipeline on several repositories (read-only, offline) and writes per-layer JSON, saturation counts, participation ratios, prompt overlap, live screenshots, contact sheets and the image distance `D` (definition in the script). Screenshots need Pillow (`dev` extra) and Chrome or Chromium.
 
 The `normalized` layer holds every normalized input in the `absolute` and `corpus` scale modes (corpus with the quantile table shipped in the package), and `report.md` has a "Normalized inputs" section with the number of repositories at exactly 0 or 1 and with a clipped value per input. `--reference-time` (ISO 8601 with a zone, default: now) is the time recency is measured against; it is stored in `report.json`. `extract-time` prints the median time of `extract_features` over `--runs` runs (default 5) after one warm-up run.
+
+The `traits` layer records all nine portrait traits in both scale modes, using `--reference-time`. The `visual_spec` layer records one renderer-neutral scene per representation with the default `absolute` traits. The "Traits" report section includes correlation matrices, maximum |r| and participation ratios for both scales, plus nearest-neighbour spec distances for both representations. Stage 3 adds these scene descriptions to the library and report; the current live renderers and prompt composer keep their existing inputs. See the [VisualSpec schema](docs/features/traits-visualspec-seeds/visual-spec.md).
 
 ```bash
 .venv/bin/python tools/diversity_report.py run --out tmp/diversity /path/to/repo-a /path/to/repo-b /path/to/repo-c

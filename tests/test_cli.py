@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -15,10 +16,33 @@ from gitgeist.render.image_backend import FakeImageBackend, GeneratedImage
 from gitgeist.schemas.emotional import EmotionalState
 from gitgeist.schemas.features import RepositoryFeatures
 from gitgeist.schemas.visual_latent import VisualLatentProfile
+from gitgeist.schemas.traits import TRAIT_NAMES, Traits
 
 REQUIRED_ARTIFACTS = ("profile.json", "summary.md")
 LIVE_ARTIFACTS = ("live-preview.html", "live-state.json")
 PROMPT_ARTIFACTS = ("prompt.txt", "portrait.png")
+
+
+@pytest.mark.parametrize("command", ["analyze", "render"])
+def test_cli_writes_traits_at_fixed_reference(command: str, clean_modular_repo: Path, tmp_path: Path,
+                                             monkeypatch: pytest.MonkeyPatch) -> None:
+    from gitgeist.features.extractor import extract_features
+    from gitgeist import cli
+
+    fixed = extract_features(clean_modular_repo).model_copy(update={
+        "extracted_at": datetime(2026, 4, 16, 12, tzinfo=timezone.utc)})
+    monkeypatch.setattr(cli, "extract_features", lambda path: fixed)
+    out = tmp_path / "out"
+    args = [command, str(clean_modular_repo), "-o", str(out)]
+    if command == "render":
+        args += ["--representation", "abstract", "--mode", "live"]
+    assert main(args) == 0
+    data = json.loads((out / "profile.json").read_text(encoding="utf-8"))
+    traits = Traits.model_validate(data["traits"])
+    assert all(name in data["traits"] for name in TRAIT_NAMES)
+    assert traits.reference_time == datetime(2026, 4, 16, tzinfo=timezone.utc)
+    assert traits.scale == "absolute"
+    assert not (out / "visual-spec.json").exists()
 
 
 def _assert_required_artifacts(output_dir: Path) -> tuple[dict, dict, dict]:

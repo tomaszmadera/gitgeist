@@ -1,0 +1,65 @@
+# Stage 3 acceptance criterion 4 (GITGEIST-11 T4): no picture change against main at the branch point
+#
+# Command (run once in each tree, from the tree root, PYTHONPATH=src selects the code under test):
+#   PYTHONPATH=src python tools/diversity_report.py run --out <out> --chrome /usr/bin/google-chrome --reference-time 2026-10-23T13:00:00Z is-odd=<clone of is-odd> click=<clone of click> flask=<clone of flask> requests=<clone of requests> gitgeist=<clone of gitgeist> z=<clone of z> lua=<clone of lua> awesome=<clone of awesome> alpine=<clone of alpine> zlib=<clone of zlib> NeKode=<clone of NeKode> fresh=<clone of fresh>
+# Trees:     branch = b608c29f7c74b7c35f80129ddc406d136cd38852 (PR #17 head before this commit)
+#            main   = 92817bef6f4bb8fda720cedfecd866d7d9d00c3d (branch point)
+# Machine:   Linux, Python 3.13.5, pydantic 2.14.1, Pillow 13.0.0, Google Chrome 156.0.8078.47
+# Date:      2026-10-23 (Europe/Warsaw), run by Code Manager #1
+# Corpus:    the 11 repositories pinned in tools/quantile-corpus.toml (each clone checked at its pinned
+#            commit with a clean tree) plus the synthetic fresh repository of analysis.md:
+#              is-odd    a80ee0d831a8ee69f1fad5b4673491847975eb26
+#              click     2247b35ea1c47c727d7a06e51fa280e12a863ff6
+#              flask     d086db856be187255b8ec61ef409357393020f32
+#              requests  611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60
+#              gitgeist  3d3a7fedc56f0af30fe758d66d47636b8ce7c16e
+#              z         d37a763a6a30e1b32766fecc3b8ffd6127f8a0fd
+#              lua       8cb93bada561977eb370819e39d7d644e5fd0a3f
+#              awesome   bc98e517ddca672f55f9857d714fc3ea3c3540b2
+#              alpine    8d3d9a2f98385d4c879f4b5be080a0221279ed4d
+#              zlib      767c4c947852e143f582c85f14cf573411df1b35
+#              NeKode    997f752224363a20d7242c4f0d1cbff742ac50f8
+#              fresh     3960201a7a635d931d137efc8dfd7037e78dd6d1
+#
+Result: PASS (same allowed difference as stage 2 criterion 4: the engine version string only).
+
+## Layers of layers.json, all 12 repositories
+
+- features: identical
+- normalized: identical
+- scores: identical
+- nouls: identical
+- choices: identical
+- axes: identical
+- materiality: identical
+- dominant_features: identical
+- prompt_abstract: identical
+- prompt_character: identical
+- live_abstract: identical
+- live_character: identical
+
+## Live files (live-state.json, live-preview.html, snapshot.html)
+
+- 96 files per side; 72 differ; 0 differ in anything other than the engine version string (0.7.0 on main, 0.8.0 on the branch).
+
+## Image distance D v1 (report.md, | mode | NN median | closest pair | mean |)
+
+main:
+| live abstract | 0.186 | 0.076 (gitgeist, NeKode) | 0.983 |
+| live character | 0.091 | 0.039 (gitgeist, NeKode) | 1.144 |
+branch:
+| live abstract | 0.186 | 0.076 (gitgeist, NeKode) | 0.983 |
+| live character | 0.091 | 0.039 (gitgeist, NeKode) | 1.144 |
+
+Pair distances that differ: 11, maximum absolute difference 0.001 (the version label in the HTML shifts a few pixels):
+- /live abstract/pairs/awesome|fresh: main 2.048, branch 2.047
+- /live abstract/pairs/flask|lua: main 0.88, branch 0.879
+- /live abstract/pairs/is-odd|gitgeist: main 1.957, branch 1.956
+- /live abstract/pairs/requests|z: main 0.594, branch 0.593
+- /live abstract/pairs/z|NeKode: main 1.148, branch 1.147
+- /live character/pairs/flask|gitgeist: main 0.16, branch 0.159
+- /live character/pairs/gitgeist|awesome: main 1.357, branch 1.356
+- /live character/pairs/is-odd|fresh: main 1.925, branch 1.924
+- /live character/pairs/is-odd|lua: main 0.995, branch 0.994
+- /live character/pairs/requests|zlib: main 1.789, branch 1.788
+- /live character/pairs/z|zlib: main 1.433, branch 1.432
