@@ -17,7 +17,7 @@ Dodać do Warstwy 1 (ekstrakcja cech) strukturalne cechy repozytorium z sekcji "
 - `docs/features/visual-diversity/analysis.md:70-103` (nasycone wejścia, cechy pomijane lub niewyciągane).
 - `docs/decisions/0002-optional-llm-evaluation-strategy.md` (punkt 4: spec ekstrakcji cech pozostaje wyłącznie deterministyczny).
 - `docs/features/feature-extraction/spec.md` (kontrakt, który ten spec rozszerza; patrz "Effect on existing specs").
-- `review/rules.md` (R5: testy offline).
+- Reguły przeglądu gitgeist poza repozytorium, `F:\projects\grok-bot\review\gitgeist\rules.md` (R5: testy offline).
 
 ## Scope
 
