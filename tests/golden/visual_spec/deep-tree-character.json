@@ -20,7 +20,7 @@
     "crowd": 0.0,
     "focus": 0.0,
     "care": 0.0,
-    "sprawl": 0.457148,
+    "sprawl": 0.0,
     "prose": 0.0,
     "debt": 1.0
   },
@@ -442,7 +442,7 @@
     "jitter": 0.25
   },
   "topology": {
-    "nesting_levels": 1
+    "nesting_levels": 0
   },
   "motion": {
     "speed_hz": 0.8859119999999999,
