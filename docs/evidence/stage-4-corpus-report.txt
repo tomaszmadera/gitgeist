@@ -27,6 +27,7 @@
 #            - --no-images: the headless Chrome run was refused by the sandbox Auto-review (classification error) on every
 #              attempt, so no screenshots and no image distance D were produced. Trait correlations and spec distances do
 #              not need images and are unaffected. D is not a gate of GITGEIST-12.
+#              Tomasz decided on 2026-10-30 to skip the image run and not to repeat it.
 #
 Result: PASS for T1 on the absolute scale. No trait pair has |r| above 0.8.
 Maximum |r| absolute (gated): before 0.880078 (size/sprawl), after 0.757437 (care/sprawl).
