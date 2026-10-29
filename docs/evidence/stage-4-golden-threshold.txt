@@ -1,0 +1,20 @@
+# Stage 4 golden threshold (GITGEIST-12): first passing distances with the sprawl change, abstract floor 0.04
+#
+# Command:   python -m pytest -q -s -p no:cacheprovider tests/test_golden_diversity.py
+# Wrapper:   python tools/run_min_env.py --cwd . --out docs/evidence/stage-4-golden-threshold.txt --title 'Stage 4 golden threshold (GITGEIST-12): first passing distances with the sprawl change, abstract floor 0.04' -- -m pytest -q -s -p no:cacheprovider tests/test_golden_diversity.py
+#            (python = /workspace/gg-venv/bin/python)
+# Directory: /workspace/gitgeist-cm2
+# Commit:    bf361f9c08fa7ccb15a36bebb90fad2a45ecd153
+# Date:      2026-10-30T00:06:03+01:00
+# Exit code: 0
+# gitgeist imported from: /workspace/gitgeist-cm2/src/gitgeist/__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+.abstract: smallest nearest-neighbour distance = 0.044622777778
+.character: smallest nearest-neighbour distance = 0.023542500000
+.
+3 passed in 1.23s
