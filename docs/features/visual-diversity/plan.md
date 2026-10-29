@@ -57,7 +57,7 @@ Acceptance:
 
 Size: standard. Needs a spec (amends `docs/features/visual-latent-mapper/spec.md`; new schema doc for `VisualSpec`).
 
-Status: done. Spec `docs/features/traits-visualspec-seeds/spec.md` (approved on 2026-10-23, decisions O1-O13); implementation merged in PR #17 on 2026-10-24, version 0.8.0. Criterion 3 was not met: size/sprawl r = 0.880 and care/sprawl r = 0.842 are above the target. Tomasz accepted this as an R10 exception; the fix moves to stage 4 (Plane GITGEIST-12). Evidence: `docs/evidence/stage-3-corpus-report.txt` and `docs/evidence/stage-3-diversity-vs-main.txt`.
+Status: done. Spec `docs/features/traits-visualspec-seeds/spec.md` (approved on 2026-10-23, decisions O1-O13); implementation merged in PR #17 on 2026-10-24, version 0.8.0. Criterion 3 was not met: size/sprawl r = 0.880 and care/sprawl r = 0.842 are above the target. Tomasz accepted this as an R10 exception; the fix moves to stage 4 (Plane GITGEIST-12). Fix on branch `gitgeist-12-sprawl-correlation` (O14 of `docs/features/traits-visualspec-seeds/spec.md`, proposed, waits for Tomasz): `sprawl` becomes the share of breadth, `top_level_dirs / (top_level_dirs + depth)`; evidence in `docs/evidence/stage-4-corpus-report.txt`. Evidence: `docs/evidence/stage-3-corpus-report.txt` and `docs/evidence/stage-3-diversity-vs-main.txt`.
 
 - 9 traits from `design.md` "Traits".
 - `VisualSpec` schema: masses with positions and sizes, rings, palette, marks (knot, strands, cracks, hatching), motion, style, seeds.

@@ -4,6 +4,8 @@ Path: `docs/features/traits-visualspec-seeds/spec.md`
 
 Status: approved 2026-10-23 (stage 3 of `docs/features/visual-diversity/plan.md`). Tomasz accepted the recommended option (a) of every decision O1-O13 in "Decisions"; the spec describes those options.
 
+Amended 2026-10-29 for GITGEIST-12 (follow-up of stage 3 criterion 3): the `sprawl` formula changes (O14). O14 is proposed and waits for Tomasz's decision (R10); until he approves it, the amendment applies only to the branch `gitgeist-12-sprawl-correlation`.
+
 ## Goal
 
 Add the third step of the counter strategy from `design.md` "Architecture": turn the normalized inputs of stage 2 into 9 portrait traits, and build one renderer-neutral scene description, `VisualSpec`, from the traits, the factual structure of features v2 and the seeds. `VisualSpec` holds masses with positions and sizes, rings, palette, marks (knot, strands, cracks, hatching), edge quality, motion, style and seeds. A style registry with `auto` selection and a variety level picks the style. `profile.json` gains `traits`. The stage changes no picture: the live renderers, the prompt composer and `summary.md` do not read the new data yet. `VisualSpec` is the input of stages 4 (abstract live), 5 (character live) and 6 (prompt composer).
@@ -71,11 +73,12 @@ Add the third step of the counter strategy from `design.md` "Architecture": turn
 | `crowd` | `authors`, `top_author_share` | `0.5 * authors + 0.5 * (1 - top_author_share)` | `design.md:100` |
 | `focus` | `focus` | `focus` | `design.md:101` |
 | `care` | `test_ratio`, `ci` | `0.75 * test_ratio + 0.25 * ci` (O2) | `design.md:102` |
-| `sprawl` | `top_level_dirs`, `depth` | `0.5 * top_level_dirs + 0.5 * depth` (O3) | `design.md:103` |
+| `sprawl` | `top_level_dirs`, `depth` | `top_level_dirs / (top_level_dirs + depth)`, `0.0` when both are `0.0` (O14; O3 before 0.9.0) | `design.md:103` |
 | `prose` | `doc_ratio` | `doc_ratio` | `design.md:104` |
 | `debt` | `debt` | `debt` | `design.md:105` |
 
 - Every normalized input feeds exactly one trait, so changing one raw feature changes at most one trait.
+- `sprawl` is the share of breadth in the structure of the tree (O14): more top-level directories raise it and more depth lowers it. It is a ratio of two normalized values, so it describes the shape of the tree (wide and shallow or narrow and deep) and not its scale. A tree with no top-level directory beyond the first and no depth has `sprawl = 0.0`; a tree with more than one top-level directory and depth 0 or 1 has `sprawl = 1.0`.
 - Without history (`history.commit_count == 0`), `age`, `alive` and `crowd` are `0.0` (otherwise `top_author_share = 0.0` would give `crowd = 0.5` for a directory without Git).
 
 ### Structure
@@ -322,6 +325,7 @@ Files written:
 
 1. The tests from `design.md` "Testing diversity" pass: channel isolation for each of the 9 traits, monotonicity on a 20-point grid per input, determinism (identical spec for the same inputs), user seed (business rule 2), and a fixture commit that changes one file keeps the identity seed and moves no mass by more than 0.05 footprint units (O11).
 2. The golden diversity test on 8 synthetic fixtures passes: the smallest nearest-neighbour spec distance is at least the threshold recorded from the first passing run (O10), and no trait is constant across the fixtures. The golden `VisualSpec` snapshots of all 8 fixtures in both representations are committed.
+3. (amendment, GITGEIST-12) `sprawl` equals `top_level_dirs / (top_level_dirs + depth)` of the normalized inputs in both scale modes, is `0.0` for a flat tree, and decreases when only `depth` grows (isolation and monotonicity test with `depth` inverted). On the 12-repository reference corpus no trait pair has |r| above 0.8 on the `absolute` scale (O9, T1 of GITGEIST-12).
 3. Reference corpus report (offline, `tools/diversity_report.py`, not CI): on the 12-repository corpus of `analysis.md`, no trait pair has |r| above 0.8 with the default `absolute` scale; the `corpus` scale is reported, not gated (O9). The report log with its command goes into the PR.
 4. No picture change: `tools/diversity_report.py run` on the same corpus gives on the branch and on `main` at the branch point identical `scores`, `nouls`, `choices`, `axes`, `materiality`, `live-state.json`, prompts and D v1 values, apart from the engine version string, as in stage 2 criterion 4.
 5. `profile.json` from `analyze` contains `traits` with all 9 values, and `Traits` and `VisualSpec` pass a JSON roundtrip (`model_validate` after `model_dump(mode="json")`) with equal models.
@@ -345,8 +349,8 @@ New fixtures in `tests/fixtures/builder.py` for the golden diversity test (`desi
 `tests/test_traits.py` (new), `reference_time = 2026-04-16T00:00:00Z`, scale `absolute`, values to 6 places:
 
 - `timeline_repo`: `size 0.0`, `age 0.333624`, `alive 0.590964`, `crowd 0.329394`, `focus 0.0`, `care 0.0`, `sprawl 0.0`, `prose 0.0`, `debt 0.0`.
-- `wide_repo`: `alive 0.924992`, `crowd 0.0`, `focus 0.0754`, `sprawl 0.201278`, `prose 0.0179`.
-- `clean-modular-repo`: `age 0.023946`, `alive 0.750103`, `crowd 0.172755`, `care 0.625`, `sprawl 0.118739`, `prose 0.2857`.
+- `wide_repo`: `alive 0.924992`, `crowd 0.0`, `focus 0.0754`, `sprawl 1.0` (`0.201278` before O14), `prose 0.0179`.
+- `clean-modular-repo`: `age 0.023946`, `alive 0.750103`, `crowd 0.172755`, `care 0.625`, `sprawl 0.582136` (`0.118739` before O14), `prose 0.2857`.
 - Default reference time is `extracted_at` truncated to the UTC day.
 - Directory without Git: `age`, `alive`, `crowd` are `0.0`.
 - `corpus` scale on a test table built in the test: traits in [0, 1] and `table_version` recorded.
@@ -415,6 +419,14 @@ O11. Values the design does not give. (a) Accept: `topology.nesting_levels` 0 to
 O12. `VisualSpec` schema document (plan: "new schema doc"). (a) `docs/features/traits-visualspec-seeds/visual-spec.md` in the implementation PR, with field ranges and one example from a golden snapshot. (b) In this spec PR, before the code exists. (c) No separate document; "Data / API" here is the schema doc. Recommendation: (a). Decided: (a).
 
 O13. Version. (a) 0.8.0: new `profile.json` key and new public API. (b) 0.7.1: the change is additive and no picture changes. Recommendation: (a), the same reasoning as stage 2 (O9 there). Decided: (a).
+
+O14. `sprawl` formula (amendment, GITGEIST-12; proposed, waits for Tomasz). Stage 3 criterion 3 failed on the 12-repository corpus with `absolute` traits: `size`/`sprawl` r = 0.880078 and `care`/`sprawl` r = 0.842104 (`docs/evidence/stage-3-corpus-report.txt`). Cause: with the sum of O3 a repository with more code, more tests or CI also has more top-level directories and more depth, so `sprawl` measures how substantial the repository is. Options screened on the same corpus (absolute scale, max |r| over all trait pairs involving `sprawl`):
+(a) The share of breadth, `top_level_dirs / (top_level_dirs + depth)`: scale-free shape of the tree, uses only the two existing inputs, keeps isolation (`depth` now lowers `sprawl`), max |r| 0.757 (`absolute`, with `size` 0.74 and `care` 0.76), 0.217 on the `corpus` scale. Not defined where both inputs are 0, which gives 0.0 by definition.
+(b) Size-adjusted spread, `max(0, 0.5 * (top_level_dirs + depth) - 0.5 * size)`: max |r| 0.465, but `code_size` would feed two traits, which breaks channel isolation (T3, `design.md:421`), and almost every repository would get `sprawl` between 0 and 0.2.
+(c) Evenness of the file shares of the directory masses: max |r| 0.796 (with `focus`, 0.832 on the `corpus` scale), so the correlation only moves to another pair and the margin is 0.004; also `top_level_dirs` and `depth` would feed nothing.
+(d) Weights only (depth only 0.858, directories only 0.803 with `size`): no weighting of the two inputs passes.
+(e) Keep O3 and accept the R10 exception for good: no change.
+Recommendation: (a). Limits to know: the options were screened on the same 12 repositories that gate the result, so the margin of (a) (0.043 below 0.8) is a guard and not proof of independence; (a) changes the meaning of `depth` for `sprawl` (a deeper tree is less sprawling); a repository with more than one top-level directory and depth 0 or 1 jumps to 1.0. Version: 0.8.1 is not enough because the `traits.sprawl` values and the `orbits` and `creature` topology of every repository change, so the proposal is 0.9.0 (see the CHANGELOG entry). Decided: (a) is proposed on the branch; the decision is Tomasz's.
 
 ## Relevant SDD / ADR
 
