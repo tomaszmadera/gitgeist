@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 This file starts at 0.6.0. Earlier versions (tags `0.0.1` to `0.5.1`) have no changelog entries.
 
+## [0.9.0] - 2026-10-30
+
+### Changed
+
+- `traits.sprawl` (in `profile.json` and in `gitgeist.visual.compute_traits()`, both scale modes) is now the share of breadth in the tree structure, `top_level_dirs / (top_level_dirs + depth)` on the normalized inputs, and `0.0` when both are `0.0`. It was `0.5 * top_level_dirs + 0.5 * depth`. More top-level directories raise it, more depth lowers it. On the 12-repository reference corpus the correlation of `sprawl` with `size` falls from 0.880 to 0.740 and with `care` from 0.842 to 0.757 (absolute scale), so no trait pair is above 0.8 (GITGEIST-12; spec decision O14, proposed, waits for the owner). The values of `sprawl` and the `topology.nesting_levels` of `VisualSpec` change for most repositories; the other traits and the signatures do not change.
+- The `engine_version` string in `profile.json` follows the package version, so it changes to `0.9.0`.
+
 ## [0.8.0] - 2026-10-23
 
 ### Changed
