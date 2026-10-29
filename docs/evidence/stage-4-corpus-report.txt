@@ -1,0 +1,111 @@
+# Stage 4 corpus report (GITGEIST-12): trait correlation with the sprawl change (spec O14)
+#
+# Command (run once per tree from the tree root; PYTHONPATH=src selects the code under test; --no-images, see below):
+#   PYTHONPATH=src python tools/diversity_report.py run --out <out> --no-images --reference-time 2026-10-23T13:00:00Z is-odd=<clone of is-odd> click=<clone of click> flask=<clone of flask> requests=<clone of requests> gitgeist=<clone of gitgeist> z=<clone of z> lua=<clone of lua> awesome=<clone of awesome> alpine=<clone of alpine> zlib=<clone of zlib> NeKode=<clone of NeKode> fresh=<clone of fresh>
+# Trees:     before = main 9f46c40 (traits.py unchanged)
+#            after  = gitgeist-12-sprawl-correlation at bf361f9 (sprawl = top_level_dirs / (top_level_dirs + depth))
+# Machine:   Linux, Python 3.13.5, pydantic 2.14.2, Pillow 13.0.0; no Chrome run
+# Date:      2026-10-30 (Europe/Warsaw), run by Code Manager #2
+# Corpus:    the 11 repositories pinned in tools/quantile-corpus.toml (each clone checked out at its pinned commit, clean tree)
+#            plus the synthetic fresh repository of analysis.md (3 files, 1 author, 1 commit), rebuilt on 2026-10-30:
+#              is-odd    a80ee0d831a8ee69f1fad5b4673491847975eb26
+#              click     2247b35ea1c47c727d7a06e51fa280e12a863ff6
+#              flask     d086db856be187255b8ec61ef409357393020f32
+#              requests  611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60
+#              gitgeist  3d3a7fedc56f0af30fe758d66d47636b8ce7c16e
+#              z         d37a763a6a30e1b32766fecc3b8ffd6127f8a0fd
+#              lua       8cb93bada561977eb370819e39d7d644e5fd0a3f
+#              awesome   bc98e517ddca672f55f9857d714fc3ea3c3540b2
+#              alpine    8d3d9a2f98385d4c879f4b5be080a0221279ed4d
+#              zlib      767c4c947852e143f582c85f14cf573411df1b35
+#              NeKode    997f752224363a20d7242c4f0d1cbff742ac50f8
+#              fresh     0e5567896141c87710198dacb131c2eaf1b88deb  (rebuilt: README.md, app.py with three TODO/FIXME lines, config.json; one commit at 2026-10-23T11:30:00Z)
+# Notes:     - The rebuilt `fresh` differs from the stage 3 one only in `alive` (1.0 instead of 0.996: its commit is a few
+#              hours old against the reference time, the original commit time was not recorded); size, care and sprawl are 0.
+#            - The `before` run reproduces the stage 3 numbers: absolute maximum |r| 0.880078 (size/sprawl), size/sprawl 0.880078,
+#              care/sprawl 0.842104, corpus maximum 0.806053, participation ratio 3.69 / 4.32.
+#            - --no-images: the headless Chrome run was refused by the sandbox Auto-review (classification error) on every
+#              attempt, so no screenshots and no image distance D were produced. Trait correlations and spec distances do
+#              not need images and are unaffected. D is not a gate of GITGEIST-12.
+#
+Result: PASS for T1 on the absolute scale. No trait pair has |r| above 0.8.
+Maximum |r| absolute (gated): before 0.880078 (size/sprawl), after 0.757437 (care/sprawl).
+Maximum |r| corpus (reported only, O9): before 0.806053 (care/sprawl), after 0.592749 (age/debt).
+Participation ratio (absolute / corpus): before 3.69 / 4.32, after 3.75 / 5.05.
+Margin is small: the largest |r| after the change is care/sprawl in the absolute scale; the formula was screened against this same corpus (spec O14, limits).
+
+## Pairs with sprawl, before and after (Pearson r over 12 repositories)
+
+| pair | absolute before | absolute after | corpus before | corpus after |
+|---|---|---|---|---|
+| sprawl/size | +0.880 | +0.740 | +0.789 | -0.065 |
+| sprawl/age | +0.038 | +0.053 | +0.116 | -0.203 |
+| sprawl/alive | +0.512 | +0.452 | +0.381 | -0.187 |
+| sprawl/crowd | +0.344 | +0.382 | +0.227 | -0.204 |
+| sprawl/focus | +0.214 | +0.465 | +0.263 | -0.124 |
+| sprawl/care | +0.842 | +0.757 | +0.806 | -0.217 |
+| sprawl/prose | +0.059 | +0.239 | +0.071 | +0.078 |
+| sprawl/debt | -0.161 | -0.085 | -0.152 | +0.183 |
+
+## Absolute traits per repository after the change (from layers.json); sprawl before in the last column
+
+| repo | size | age | alive | crowd | focus | care | sprawl | prose | debt | sprawl before |
+|---|---|---|---|---|---|---|---|---|---|---|
+| is-odd | 0.005 | 0.826 | 0.075 | 0.213 | 0.073 | 0.000 | 0.000 | 0.286 | 0.928 | 0.000 |
+| click | 0.648 | 0.986 | 0.856 | 0.850 | 0.242 | 0.731 | 0.369 | 0.276 | 0.000 | 0.326 |
+| flask | 0.583 | 0.998 | 0.873 | 0.832 | 0.179 | 0.660 | 0.245 | 0.436 | 0.000 | 0.491 |
+| requests | 0.533 | 0.996 | 0.804 | 0.756 | 0.296 | 0.538 | 0.318 | 0.373 | 0.853 | 0.301 |
+| gitgeist | 0.501 | 0.116 | 1.000 | 0.000 | 0.256 | 0.537 | 0.369 | 0.231 | 1.000 | 0.326 |
+| z | 0.099 | 0.993 | 0.169 | 0.270 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+| lua | 0.649 | 1.000 | 0.923 | 0.070 | 0.246 | 0.055 | 0.103 | 0.015 | 0.000 | 0.145 |
+| awesome | 0.000 | 0.985 | 0.732 | 0.845 | 0.549 | 0.250 | 0.231 | 0.778 | 0.000 | 0.065 |
+| alpine | 0.806 | 0.934 | 0.848 | 0.687 | 0.248 | 0.517 | 0.308 | 0.203 | 0.000 | 0.392 |
+| zlib | 0.722 | 0.997 | 0.617 | 0.517 | 0.176 | 0.288 | 0.514 | 0.312 | 0.353 | 0.423 |
+| NeKode | 0.782 | 0.049 | 0.996 | 0.000 | 0.152 | 0.471 | 0.346 | 0.271 | 0.643 | 0.414 |
+| fresh | 0.000 | 0.000 | 1.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.333 | 1.000 | 0.000 |
+
+## Report section (report.md of the after run, unedited)
+
+## Traits
+
+Absolute is the default scale and the correlation gate; corpus is reported for comparison.
+
+| scale | Maximum |r| | participation ratio | constant |
+|---|---|---|---|
+| absolute | 0.757437 | 3.75 | - |
+| corpus | 0.592749 | 5.05 | - |
+
+### Correlation matrix (absolute)
+
+| trait | size | age | alive | crowd | focus | care | sprawl | prose | debt |
+|---|---|---|---|---|---|---|---|---|---|
+| size | 1.000 | 0.088 | 0.516 | 0.157 | 0.154 | 0.668 | 0.740 | -0.282 | -0.253 |
+| age | 0.088 | 1.000 | -0.434 | 0.719 | 0.318 | 0.062 | 0.053 | 0.039 | -0.689 |
+| alive | 0.516 | -0.434 | 1.000 | -0.022 | 0.338 | 0.526 | 0.452 | 0.169 | 0.047 |
+| crowd | 0.157 | 0.719 | -0.022 | 1.000 | 0.546 | 0.548 | 0.382 | 0.531 | -0.547 |
+| focus | 0.154 | 0.318 | 0.338 | 0.546 | 1.000 | 0.401 | 0.465 | 0.630 | -0.310 |
+| care | 0.668 | 0.062 | 0.526 | 0.548 | 0.401 | 1.000 | 0.757 | 0.244 | -0.156 |
+| sprawl | 0.740 | 0.053 | 0.452 | 0.382 | 0.465 | 0.757 | 1.000 | 0.239 | -0.085 |
+| prose | -0.282 | 0.039 | 0.169 | 0.531 | 0.630 | 0.244 | 0.239 | 1.000 | 0.034 |
+| debt | -0.253 | -0.689 | 0.047 | -0.547 | -0.310 | -0.156 | -0.085 | 0.034 | 1.000 |
+
+### Correlation matrix (corpus)
+
+| trait | size | age | alive | crowd | focus | care | sprawl | prose | debt |
+|---|---|---|---|---|---|---|---|---|---|
+| size | 1.000 | 0.240 | 0.193 | 0.044 | 0.099 | 0.510 | -0.065 | -0.362 | -0.330 |
+| age | 0.240 | 1.000 | -0.300 | 0.530 | 0.206 | 0.186 | -0.203 | 0.026 | -0.593 |
+| alive | 0.193 | -0.300 | 1.000 | -0.375 | 0.050 | 0.391 | -0.187 | -0.011 | 0.287 |
+| crowd | 0.044 | 0.530 | -0.375 | 1.000 | 0.475 | 0.493 | -0.204 | 0.506 | -0.585 |
+| focus | 0.099 | 0.206 | 0.050 | 0.475 | 1.000 | 0.520 | -0.124 | 0.215 | -0.206 |
+| care | 0.510 | 0.186 | 0.391 | 0.493 | 0.520 | 1.000 | -0.217 | 0.165 | -0.169 |
+| sprawl | -0.065 | -0.203 | -0.187 | -0.204 | -0.124 | -0.217 | 1.000 | 0.078 | 0.183 |
+| prose | -0.362 | 0.026 | -0.011 | 0.506 | 0.215 | 0.165 | 0.078 | 1.000 | 0.184 |
+| debt | -0.330 | -0.593 | 0.287 | -0.585 | -0.206 | -0.169 | 0.183 | 0.184 | 1.000 |
+
+### Nearest-neighbour spec distance
+
+| representation | minimum | median |
+|---|---|---|
+| abstract | 0.060032 | 0.173533 |
+| character | 0.120348 | 0.174761 |
