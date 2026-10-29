@@ -42,4 +42,8 @@ def test_two_mass_spiral_matches_step_search() -> None:
     second = (step * 0.01 * math.cos(angle) + rng.uniform(-0.02, 0.02),
               step * 0.01 * math.sin(angle) + rng.uniform(-0.02, 0.02), radius)
     extent = max(math.hypot(x, y) + r for x, y, r in [first, second])
-    assert pack_masses(masses, 123, "low") == pytest.approx([tuple(v / extent for v in p) for p in [first, second]])
+    packed = pack_masses(masses, 123, "low")
+    expected = [tuple(v / extent for v in p) for p in [first, second]]
+    assert len(packed) == len(expected)
+    for actual_mass, expected_mass in zip(packed, expected):
+        assert actual_mass == pytest.approx(expected_mass)
