@@ -2,7 +2,7 @@
 
 Path: `docs/features/visual-diversity/plan.md`
 
-Status: stage 0 decided on 2026-10-22; stage 1 done (merged in PR #3 on 2026-10-22, version 0.6.0); stage 2 done (spec in PR #5, implementation merged in PR #6, version 0.7.0); stage 3 spec approved on 2026-10-23 (`docs/features/traits-visualspec-seeds/spec.md`), implementation not started; stages 4 to 13 are not started. `D` means D v1 as defined in `tools/diversity_report.py`; baselines are in `analysis.md`. Evidence: `analysis.md`. Target design: `design.md`. Stages 0 to 8 build the counter strategy and the shared portrait format; stages 9 to 13 add the evaluation strategy.
+Status: stage 0 decided on 2026-10-22; stage 1 done (merged in PR #3 on 2026-10-22, version 0.6.0); stage 2 done (spec in PR #5, implementation merged in PR #6, version 0.7.0); stage 3 done (spec approved on 2026-10-23, implementation merged in PR #17, version 0.8.0); stages 4 to 13 are not started. `D` means D v1 as defined in `tools/diversity_report.py`; baselines are in `analysis.md`. Evidence: `analysis.md`. Target design: `design.md`. Stages 0 to 8 build the counter strategy and the shared portrait format; stages 9 to 13 add the evaluation strategy.
 
 ## Classification
 
@@ -57,7 +57,7 @@ Acceptance:
 
 Size: standard. Needs a spec (amends `docs/features/visual-latent-mapper/spec.md`; new schema doc for `VisualSpec`).
 
-Status: spec approved on 2026-10-23 (`docs/features/traits-visualspec-seeds/spec.md`, decisions O1-O13); implementation not started.
+Status: done. Spec `docs/features/traits-visualspec-seeds/spec.md` (approved on 2026-10-23, decisions O1-O13); implementation merged in PR #17 on 2026-10-24, version 0.8.0. Criterion 3 was not met: size/sprawl r = 0.880 and care/sprawl r = 0.842 are above the target. Tomasz accepted this as an R10 exception; the fix moves to stage 4 (Plane GITGEIST-12). Evidence: `docs/evidence/stage-3-corpus-report.txt` and `docs/evidence/stage-3-diversity-vs-main.txt`.
 
 - 9 traits from `design.md` "Traits".
 - `VisualSpec` schema: masses with positions and sizes, rings, palette, marks (knot, strands, cracks, hatching), motion, style, seeds.
