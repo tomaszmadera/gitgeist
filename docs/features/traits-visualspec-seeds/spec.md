@@ -4,7 +4,7 @@ Path: `docs/features/traits-visualspec-seeds/spec.md`
 
 Status: approved 2026-10-23 (stage 3 of `docs/features/visual-diversity/plan.md`). Tomasz accepted the recommended option (a) of every decision O1-O13 in "Decisions"; the spec describes those options.
 
-Amended 2026-10-29 for GITGEIST-12 (follow-up of stage 3 criterion 3): the `sprawl` formula changes (O14). O14 was accepted by Tomasz on 2026-10-30 (R10), together with the lowered abstract golden floor and version 0.9.0.
+Amended 2026-10-30 for GITGEIST-12 (follow-up of stage 3 criterion 3): the `sprawl` formula changes (O14). O14 was accepted by Tomasz on 2026-10-30 (R10), together with the lowered abstract golden floor and version 0.9.0.
 
 ## Goal
 
@@ -325,11 +325,11 @@ Files written:
 
 1. The tests from `design.md` "Testing diversity" pass: channel isolation for each of the 9 traits, monotonicity on a 20-point grid per input, determinism (identical spec for the same inputs), user seed (business rule 2), and a fixture commit that changes one file keeps the identity seed and moves no mass by more than 0.05 footprint units (O11).
 2. The golden diversity test on 8 synthetic fixtures passes: the smallest nearest-neighbour spec distance is at least the threshold recorded from the first passing run (O10), and no trait is constant across the fixtures. The golden `VisualSpec` snapshots of all 8 fixtures in both representations are committed.
-3. (amendment, GITGEIST-12) `sprawl` equals `top_level_dirs / (top_level_dirs + depth)` of the normalized inputs in both scale modes, is `0.0` for a flat tree, and decreases when only `depth` grows (isolation and monotonicity test with `depth` inverted). On the 12-repository reference corpus no trait pair has |r| above 0.8 on the `absolute` scale (O9, T1 of GITGEIST-12).
 3. Reference corpus report (offline, `tools/diversity_report.py`, not CI): on the 12-repository corpus of `analysis.md`, no trait pair has |r| above 0.8 with the default `absolute` scale; the `corpus` scale is reported, not gated (O9). The report log with its command goes into the PR.
 4. No picture change: `tools/diversity_report.py run` on the same corpus gives on the branch and on `main` at the branch point identical `scores`, `nouls`, `choices`, `axes`, `materiality`, `live-state.json`, prompts and D v1 values, apart from the engine version string, as in stage 2 criterion 4.
 5. `profile.json` from `analyze` contains `traits` with all 9 values, and `Traits` and `VisualSpec` pass a JSON roundtrip (`model_validate` after `model_dump(mode="json")`) with equal models.
 6. All tests pass offline (R5) on Python 3.11, 3.12 and 3.13 in CI `verify` and in `verify-windows`.
+7. (amendment, GITGEIST-12) `sprawl` equals `top_level_dirs / (top_level_dirs + depth)` of the normalized inputs in both scale modes, is `0.0` for a flat tree, and decreases when only `depth` grows (isolation and monotonicity test with `depth` inverted). On the 12-repository reference corpus no trait pair has |r| above 0.8 on the `absolute` scale (O9, T1 of GITGEIST-12).
 
 ## Required tests
 
