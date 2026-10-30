@@ -1,0 +1,419 @@
+# Stage 4 red run (GITGEIST-12): sprawl as the share of breadth
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_traits.py
+# Wrapper:   python tools/run_min_env.py --cwd . --out docs/evidence/stage-4-sprawl-red.txt --title 'Stage 4 red run (GITGEIST-12): sprawl as the share of breadth' -- -m pytest -q -p no:cacheprovider tests/test_traits.py
+#            (python = /workspace/gg-venv/bin/python)
+# Directory: /workspace/gitgeist-cm2
+# Commit:    1dc8f9de78380b148989177d9693c2872e3c4d6e
+# Date:      2026-10-30T00:04:48+01:00
+# Exit code: 1
+# gitgeist imported from: /workspace/gitgeist-cm2/src/gitgeist/__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+.FF.............F............F.....FFFFFFFFFFFFFF..                      [100%]
+=================================== FAILURES ===================================
+________________ test_exact_fixture_traits[wide_repo-expected1] ________________
+
+fixture = 'wide_repo'
+expected = {'alive': 0.924992, 'crowd': 0.0, 'focus': 0.0754, 'sprawl': 1.0, ...}
+request = <FixtureRequest for <Function test_exact_fixture_traits[wide_repo-expected1]>>
+
+    @pytest.mark.parametrize("fixture,expected", [
+        ("timeline_repo", dict(size=0.0, age=0.333624, alive=0.590964, crowd=0.329394,
+                               focus=0.0, care=0.0, sprawl=0.0, prose=0.0, debt=0.0)),
+        ("wide_repo", dict(alive=0.924992, crowd=0.0, focus=0.0754, sprawl=1.0, prose=0.0179)),
+        ("clean_modular_repo", dict(age=0.023946, alive=0.750103, crowd=0.172755,
+                                    care=0.625, sprawl=0.582136, prose=0.2857)),
+    ])
+    def test_exact_fixture_traits(fixture: str, expected: dict, request: pytest.FixtureRequest) -> None:
+        traits = compute_traits(extract_features(request.getfixturevalue(fixture)), reference_time=REF)
+>       assert {name: getattr(traits, name) for name in expected} == expected
+E       AssertionError: assert {'alive': 0.9...0.201278, ...} == {'alive': 0.9...wl': 1.0, ...}
+E         
+E         Omitting 4 identical items, use -vv to show
+E         Differing items:
+E         {'sprawl': 0.201278} != {'sprawl': 1.0}
+E         Use -v to get more diff
+
+tests/test_traits.py:26: AssertionError
+___________ test_exact_fixture_traits[clean_modular_repo-expected2] ____________
+
+fixture = 'clean_modular_repo'
+expected = {'age': 0.023946, 'alive': 0.750103, 'crowd': 0.172755, 'care': 0.625, ...}
+request = <FixtureRequest for <Function test_exact_fixture_traits[clean_modular_repo-expected2]>>
+
+    @pytest.mark.parametrize("fixture,expected", [
+        ("timeline_repo", dict(size=0.0, age=0.333624, alive=0.590964, crowd=0.329394,
+                               focus=0.0, care=0.0, sprawl=0.0, prose=0.0, debt=0.0)),
+        ("wide_repo", dict(alive=0.924992, crowd=0.0, focus=0.0754, sprawl=1.0, prose=0.0179)),
+        ("clean_modular_repo", dict(age=0.023946, alive=0.750103, crowd=0.172755,
+                                    care=0.625, sprawl=0.582136, prose=0.2857)),
+    ])
+    def test_exact_fixture_traits(fixture: str, expected: dict, request: pytest.FixtureRequest) -> None:
+        traits = compute_traits(extract_features(request.getfixturevalue(fixture)), reference_time=REF)
+>       assert {name: getattr(traits, name) for name in expected} == expected
+E       AssertionError: assert {'age': 0.023...': 0.625, ...} == {'age': 0.023...': 0.625, ...}
+E         
+E         Omitting 5 identical items, use -vv to show
+E         Differing items:
+E         {'sprawl': 0.118739} != {'sprawl': 0.582136}
+E         Use -v to get more diff
+
+tests/test_traits.py:26: AssertionError
+_____ test_input_isolation_and_monotonicity[absolute-depth-sprawl-15-True] _____
+
+input_name = 'depth', trait = 'sprawl', maximum = 15, inverted = True
+scale = 'absolute'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, True),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+        integer_inputs = {"code_size", "age", "authors", "top_level_dirs", "depth", "ci"}
+        grid = [int(maximum * i / 19) if input_name in integer_inputs else maximum * i / 19 for i in range(20)]
+        # sprawl is a share of breadth: depth only moves it when there is breadth to compare with
+        base = {"top_level_dirs": 10} if input_name == "depth" else {}
+        results = [compute_traits(_features(**base, **{input_name: value}), scale,
+                                  reference_time=REF, table=_test_table()) for value in grid]
+        values = [getattr(t, trait) for t in results]
+>       assert values == sorted(values, reverse=inverted)
+E       assert [0.201278, 0....0.330908, ...] == [0.701278, 0....0.675217, ...]
+E         
+E         At index 0 diff: 0.201278 != 0.701278
+E         Use -v to get more diff
+
+tests/test_traits.py:65: AssertionError
+______ test_input_isolation_and_monotonicity[corpus-depth-sprawl-15-True] ______
+
+input_name = 'depth', trait = 'sprawl', maximum = 15, inverted = True
+scale = 'corpus'
+
+    @pytest.mark.parametrize("input_name,trait,maximum,inverted", [
+        ("code_size", "size", 100_000_000, False), ("age", "age", 7300, False),
+        ("recency", "alive", 1825, True), ("active_months", "alive", 1, False),
+        ("authors", "crowd", 1000, False), ("top_author_share", "crowd", 1, True),
+        ("focus", "focus", 1, False), ("test_ratio", "care", 1, False), ("ci", "care", 1, False),
+        ("top_level_dirs", "sprawl", 100, False), ("depth", "sprawl", 15, True),
+        ("doc_ratio", "prose", 1, False), ("debt", "debt", 200, False),
+    ])
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    def test_input_isolation_and_monotonicity(input_name: str, trait: str, maximum: float,
+                                             inverted: bool, scale: str) -> None:
+        integer_inputs = {"code_size", "age", "authors", "top_level_dirs", "depth", "ci"}
+        grid = [int(maximum * i / 19) if input_name in integer_inputs else maximum * i / 19 for i in range(20)]
+        # sprawl is a share of breadth: depth only moves it when there is breadth to compare with
+        base = {"top_level_dirs": 10} if input_name == "depth" else {}
+        results = [compute_traits(_features(**base, **{input_name: value}), scale,
+                                  reference_time=REF, table=_test_table()) for value in grid]
+        values = [getattr(t, trait) for t in results]
+>       assert values == sorted(values, reverse=inverted)
+E       assert [0.130174, 0....0.205432, ...] == [0.280689, 0....0.265072, ...]
+E         
+E         At index 0 diff: 0.130174 != 0.280689
+E         Use -v to get more diff
+
+tests/test_traits.py:65: AssertionError
+_______________ test_sprawl_is_the_share_of_breadth[1-1-corpus] ________________
+
+dirs = 1, depth = 1, scale = 'corpus'
+
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    @pytest.mark.parametrize("dirs,depth", [(0, 0), (1, 1), (2, 1), (6, 4), (6, 7), (11, 4), (40, 2), (3, 12)])
+    def test_sprawl_is_the_share_of_breadth(dirs: int, depth: int, scale: str) -> None:
+        """GITGEIST-12 (O14): sprawl = top_level_dirs / (top_level_dirs + depth) of the normalized inputs."""
+        features = _features(top_level_dirs=dirs, depth=depth)
+        normalized = normalize_features(features, scale, reference_time=REF, table=_test_table()).inputs
+        breadth, nesting = normalized["top_level_dirs"].value, normalized["depth"].value
+        expected = 0.0 if breadth + nesting == 0 else breadth / (breadth + nesting)
+>       assert compute_traits(features, scale, reference_time=REF, table=_test_table()).sprawl == round(expected, 6)
+E       AssertionError: assert 0.075257 == 0.5
+E        +  where 0.075257 = Traits(scale='corpus', table_version='test', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.310876, crowd=0.5, focus=0.0, care=0.0, sprawl=0.075257, prose=0.0, debt=0.0).sprawl
+E        +    where Traits(scale='corpus', table_version='test', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.310876, crowd=0.5, focus=0.0, care=0.0, sprawl=0.075257, prose=0.0, debt=0.0) = compute_traits(RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0)), 'corpus', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), table=QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}))
+E        +      where QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}) = _test_table()
+E        +  and   0.5 = round(0.5, 6)
+
+tests/test_traits.py:80: AssertionError
+______________ test_sprawl_is_the_share_of_breadth[2-1-absolute] _______________
+
+dirs = 2, depth = 1, scale = 'absolute'
+
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    @pytest.mark.parametrize("dirs,depth", [(0, 0), (1, 1), (2, 1), (6, 4), (6, 7), (11, 4), (40, 2), (3, 12)])
+    def test_sprawl_is_the_share_of_breadth(dirs: int, depth: int, scale: str) -> None:
+        """GITGEIST-12 (O14): sprawl = top_level_dirs / (top_level_dirs + depth) of the normalized inputs."""
+        features = _features(top_level_dirs=dirs, depth=depth)
+        normalized = normalize_features(features, scale, reference_time=REF, table=_test_table()).inputs
+        breadth, nesting = normalized["top_level_dirs"].value, normalized["depth"].value
+        expected = 0.0 if breadth + nesting == 0 else breadth / (breadth + nesting)
+>       assert compute_traits(features, scale, reference_time=REF, table=_test_table()).sprawl == round(expected, 6)
+E       AssertionError: assert 0.014927 == 1.0
+E        +  where 0.014927 = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.317219, crowd=0.5, focus=0.0, care=0.0, sprawl=0.014927, prose=0.0, debt=0.0).sprawl
+E        +    where Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.317219, crowd=0.5, focus=0.0, care=0.0, sprawl=0.014927, prose=0.0, debt=0.0) = compute_traits(RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0)), 'absolute', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), table=QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}))
+E        +      where QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}) = _test_table()
+E        +  and   1.0 = round(1.0, 6)
+
+tests/test_traits.py:80: AssertionError
+_______________ test_sprawl_is_the_share_of_breadth[2-1-corpus] ________________
+
+dirs = 2, depth = 1, scale = 'corpus'
+
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    @pytest.mark.parametrize("dirs,depth", [(0, 0), (1, 1), (2, 1), (6, 4), (6, 7), (11, 4), (40, 2), (3, 12)])
+    def test_sprawl_is_the_share_of_breadth(dirs: int, depth: int, scale: str) -> None:
+        """GITGEIST-12 (O14): sprawl = top_level_dirs / (top_level_dirs + depth) of the normalized inputs."""
+        features = _features(top_level_dirs=dirs, depth=depth)
+        normalized = normalize_features(features, scale, reference_time=REF, table=_test_table()).inputs
+        breadth, nesting = normalized["top_level_dirs"].value, normalized["depth"].value
+        expected = 0.0 if breadth + nesting == 0 else breadth / (breadth + nesting)
+>       assert compute_traits(features, scale, reference_time=REF, table=_test_table()).sprawl == round(expected, 6)
+E       AssertionError: assert 0.097269 == 0.613147
+E        +  where 0.097269 = Traits(scale='corpus', table_version='test', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.310876, crowd=0.5, focus=0.0, care=0.0, sprawl=0.097269, prose=0.0, debt=0.0).sprawl
+E        +    where Traits(scale='corpus', table_version='test', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.310876, crowd=0.5, focus=0.0, care=0.0, sprawl=0.097269, prose=0.0, debt=0.0) = compute_traits(RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0)), 'corpus', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), table=QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}))
+E        +      where QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}) = _test_table()
+E        +  and   0.613147 = round(0.6131471927654584, 6)
+
+tests/test_traits.py:80: AssertionError
+______________ test_sprawl_is_the_share_of_breadth[6-4-absolute] _______________
+
+dirs = 6, depth = 4, scale = 'absolute'
+
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    @pytest.mark.parametrize("dirs,depth", [(0, 0), (1, 1), (2, 1), (6, 4), (6, 7), (11, 4), (40, 2), (3, 12)])
+    def test_sprawl_is_the_share_of_breadth(dirs: int, depth: int, scale: str) -> None:
+        """GITGEIST-12 (O14): sprawl = top_level_dirs / (top_level_dirs + depth) of the normalized inputs."""
+        features = _features(top_level_dirs=dirs, depth=depth)
+        normalized = normalize_features(features, scale, reference_time=REF, table=_test_table()).inputs
+        breadth, nesting = normalized["top_level_dirs"].value, normalized["depth"].value
+        expected = 0.0 if breadth + nesting == 0 else breadth / (breadth + nesting)
+>       assert compute_traits(features, scale, reference_time=REF, table=_test_table()).sprawl == round(expected, 6)
+E       AssertionError: assert 0.326146 == 0.369328
+E        +  where 0.326146 = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.317219, crowd=0.5, focus=0.0, care=0.0, sprawl=0.326146, prose=0.0, debt=0.0).sprawl
+E        +    where Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.317219, crowd=0.5, focus=0.0, care=0.0, sprawl=0.326146, prose=0.0, debt=0.0) = compute_traits(RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0)), 'absolute', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), table=QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}))
+E        +      where QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}) = _test_table()
+E        +  and   0.369328 = round(0.3693275023742895, 6)
+
+tests/test_traits.py:80: AssertionError
+_______________ test_sprawl_is_the_share_of_breadth[6-4-corpus] ________________
+
+dirs = 6, depth = 4, scale = 'corpus'
+
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    @pytest.mark.parametrize("dirs,depth", [(0, 0), (1, 1), (2, 1), (6, 4), (6, 7), (11, 4), (40, 2), (3, 12)])
+    def test_sprawl_is_the_share_of_breadth(dirs: int, depth: int, scale: str) -> None:
+        """GITGEIST-12 (O14): sprawl = top_level_dirs / (top_level_dirs + depth) of the normalized inputs."""
+        features = _features(top_level_dirs=dirs, depth=depth)
+        normalized = normalize_features(features, scale, reference_time=REF, table=_test_table()).inputs
+        breadth, nesting = normalized["top_level_dirs"].value, normalized["depth"].value
+        expected = 0.0 if breadth + nesting == 0 else breadth / (breadth + nesting)
+>       assert compute_traits(features, scale, reference_time=REF, table=_test_table()).sprawl == round(expected, 6)
+E       AssertionError: assert 0.193009 == 0.547319
+E        +  where 0.193009 = Traits(scale='corpus', table_version='test', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.310876, crowd=0.5, focus=0.0, care=0.0, sprawl=0.193009, prose=0.0, debt=0.0).sprawl
+E        +    where Traits(scale='corpus', table_version='test', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.310876, crowd=0.5, focus=0.0, care=0.0, sprawl=0.193009, prose=0.0, debt=0.0) = compute_traits(RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0)), 'corpus', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), table=QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}))
+E        +      where QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}) = _test_table()
+E        +  and   0.547319 = round(0.5473191697130572, 6)
+
+tests/test_traits.py:80: AssertionError
+______________ test_sprawl_is_the_share_of_breadth[6-7-absolute] _______________
+
+dirs = 6, depth = 7, scale = 'absolute'
+
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    @pytest.mark.parametrize("dirs,depth", [(0, 0), (1, 1), (2, 1), (6, 4), (6, 7), (11, 4), (40, 2), (3, 12)])
+    def test_sprawl_is_the_share_of_breadth(dirs: int, depth: int, scale: str) -> None:
+        """GITGEIST-12 (O14): sprawl = top_level_dirs / (top_level_dirs + depth) of the normalized inputs."""
+        features = _features(top_level_dirs=dirs, depth=depth)
+        normalized = normalize_features(features, scale, reference_time=REF, table=_test_table()).inputs
+        breadth, nesting = normalized["top_level_dirs"].value, normalized["depth"].value
+        expected = 0.0 if breadth + nesting == 0 else breadth / (breadth + nesting)
+>       assert compute_traits(features, scale, reference_time=REF, table=_test_table()).sprawl == round(expected, 6)
+E       AssertionError: assert 0.490825 == 0.245413
+E        +  where 0.490825 = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.317219, crowd=0.5, focus=0.0, care=0.0, sprawl=0.490825, prose=0.0, debt=0.0).sprawl
+E        +    where Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.317219, crowd=0.5, focus=0.0, care=0.0, sprawl=0.490825, prose=0.0, debt=0.0) = compute_traits(RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0)), 'absolute', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), table=QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}))
+E        +      where QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}) = _test_table()
+E        +  and   0.245413 = round(0.24541252899244898, 6)
+
+tests/test_traits.py:80: AssertionError
+_______________ test_sprawl_is_the_share_of_breadth[6-7-corpus] ________________
+
+dirs = 6, depth = 7, scale = 'corpus'
+
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    @pytest.mark.parametrize("dirs,depth", [(0, 0), (1, 1), (2, 1), (6, 4), (6, 7), (11, 4), (40, 2), (3, 12)])
+    def test_sprawl_is_the_share_of_breadth(dirs: int, depth: int, scale: str) -> None:
+        """GITGEIST-12 (O14): sprawl = top_level_dirs / (top_level_dirs + depth) of the normalized inputs."""
+        features = _features(top_level_dirs=dirs, depth=depth)
+        normalized = normalize_features(features, scale, reference_time=REF, table=_test_table()).inputs
+        breadth, nesting = normalized["top_level_dirs"].value, normalized["depth"].value
+        expected = 0.0 if breadth + nesting == 0 else breadth / (breadth + nesting)
+>       assert compute_traits(features, scale, reference_time=REF, table=_test_table()).sprawl == round(expected, 6)
+E       AssertionError: assert 0.218524 == 0.483414
+E        +  where 0.218524 = Traits(scale='corpus', table_version='test', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.310876, crowd=0.5, focus=0.0, care=0.0, sprawl=0.218524, prose=0.0, debt=0.0).sprawl
+E        +    where Traits(scale='corpus', table_version='test', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.310876, crowd=0.5, focus=0.0, care=0.0, sprawl=0.218524, prose=0.0, debt=0.0) = compute_traits(RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0)), 'corpus', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), table=QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}))
+E        +      where QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}) = _test_table()
+E        +  and   0.483414 = round(0.48341369861770567, 6)
+
+tests/test_traits.py:80: AssertionError
+______________ test_sprawl_is_the_share_of_breadth[11-4-absolute] ______________
+
+dirs = 11, depth = 4, scale = 'absolute'
+
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    @pytest.mark.parametrize("dirs,depth", [(0, 0), (1, 1), (2, 1), (6, 4), (6, 7), (11, 4), (40, 2), (3, 12)])
+    def test_sprawl_is_the_share_of_breadth(dirs: int, depth: int, scale: str) -> None:
+        """GITGEIST-12 (O14): sprawl = top_level_dirs / (top_level_dirs + depth) of the normalized inputs."""
+        features = _features(top_level_dirs=dirs, depth=depth)
+        normalized = normalize_features(features, scale, reference_time=REF, table=_test_table()).inputs
+        breadth, nesting = normalized["top_level_dirs"].value, normalized["depth"].value
+        expected = 0.0 if breadth + nesting == 0 else breadth / (breadth + nesting)
+>       assert compute_traits(features, scale, reference_time=REF, table=_test_table()).sprawl == round(expected, 6)
+E       AssertionError: assert 0.42341 == 0.514204
+E        +  where 0.42341 = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.317219, crowd=0.5, focus=0.0, care=0.0, sprawl=0.42341, prose=0.0, debt=0.0).sprawl
+E        +    where Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.317219, crowd=0.5, focus=0.0, care=0.0, sprawl=0.42341, prose=0.0, debt=0.0) = compute_traits(RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0)), 'absolute', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), table=QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}))
+E        +      where QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}) = _test_table()
+E        +  and   0.514204 = round(0.5142035038168797, 6)
+
+tests/test_traits.py:80: AssertionError
+_______________ test_sprawl_is_the_share_of_breadth[11-4-corpus] _______________
+
+dirs = 11, depth = 4, scale = 'corpus'
+
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    @pytest.mark.parametrize("dirs,depth", [(0, 0), (1, 1), (2, 1), (6, 4), (6, 7), (11, 4), (40, 2), (3, 12)])
+    def test_sprawl_is_the_share_of_breadth(dirs: int, depth: int, scale: str) -> None:
+        """GITGEIST-12 (O14): sprawl = top_level_dirs / (top_level_dirs + depth) of the normalized inputs."""
+        features = _features(top_level_dirs=dirs, depth=depth)
+        normalized = normalize_features(features, scale, reference_time=REF, table=_test_table()).inputs
+        breadth, nesting = normalized["top_level_dirs"].value, normalized["depth"].value
+        expected = 0.0 if breadth + nesting == 0 else breadth / (breadth + nesting)
+>       assert compute_traits(features, scale, reference_time=REF, table=_test_table()).sprawl == round(expected, 6)
+E       AssertionError: assert 0.222269 == 0.606912
+E        +  where 0.222269 = Traits(scale='corpus', table_version='test', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.310876, crowd=0.5, focus=0.0, care=0.0, sprawl=0.222269, prose=0.0, debt=0.0).sprawl
+E        +    where Traits(scale='corpus', table_version='test', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.310876, crowd=0.5, focus=0.0, care=0.0, sprawl=0.222269, prose=0.0, debt=0.0) = compute_traits(RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0)), 'corpus', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), table=QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}))
+E        +      where QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}) = _test_table()
+E        +  and   0.606912 = round(0.6069119518459337, 6)
+
+tests/test_traits.py:80: AssertionError
+______________ test_sprawl_is_the_share_of_breadth[40-2-absolute] ______________
+
+dirs = 40, depth = 2, scale = 'absolute'
+
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    @pytest.mark.parametrize("dirs,depth", [(0, 0), (1, 1), (2, 1), (6, 4), (6, 7), (11, 4), (40, 2), (3, 12)])
+    def test_sprawl_is_the_share_of_breadth(dirs: int, depth: int, scale: str) -> None:
+        """GITGEIST-12 (O14): sprawl = top_level_dirs / (top_level_dirs + depth) of the normalized inputs."""
+        features = _features(top_level_dirs=dirs, depth=depth)
+        normalized = normalize_features(features, scale, reference_time=REF, table=_test_table()).inputs
+        breadth, nesting = normalized["top_level_dirs"].value, normalized["depth"].value
+        expected = 0.0 if breadth + nesting == 0 else breadth / (breadth + nesting)
+>       assert compute_traits(features, scale, reference_time=REF, table=_test_table()).sprawl == round(expected, 6)
+E       AssertionError: assert 0.482502 == 0.897168
+E        +  where 0.482502 = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.317219, crowd=0.5, focus=0.0, care=0.0, sprawl=0.482502, prose=0.0, debt=0.0).sprawl
+E        +    where Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.317219, crowd=0.5, focus=0.0, care=0.0, sprawl=0.482502, prose=0.0, debt=0.0) = compute_traits(RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0)), 'absolute', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), table=QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}))
+E        +      where QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}) = _test_table()
+E        +  and   0.897168 = round(0.897167848295067, 6)
+
+tests/test_traits.py:80: AssertionError
+_______________ test_sprawl_is_the_share_of_breadth[40-2-corpus] _______________
+
+dirs = 40, depth = 2, scale = 'corpus'
+
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    @pytest.mark.parametrize("dirs,depth", [(0, 0), (1, 1), (2, 1), (6, 4), (6, 7), (11, 4), (40, 2), (3, 12)])
+    def test_sprawl_is_the_share_of_breadth(dirs: int, depth: int, scale: str) -> None:
+        """GITGEIST-12 (O14): sprawl = top_level_dirs / (top_level_dirs + depth) of the normalized inputs."""
+        features = _features(top_level_dirs=dirs, depth=depth)
+        normalized = normalize_features(features, scale, reference_time=REF, table=_test_table()).inputs
+        breadth, nesting = normalized["top_level_dirs"].value, normalized["depth"].value
+        expected = 0.0 if breadth + nesting == 0 else breadth / (breadth + nesting)
+>       assert compute_traits(features, scale, reference_time=REF, table=_test_table()).sprawl == round(expected, 6)
+E       AssertionError: assert 0.261238 == 0.771702
+E        +  where 0.261238 = Traits(scale='corpus', table_version='test', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.310876, crowd=0.5, focus=0.0, care=0.0, sprawl=0.261238, prose=0.0, debt=0.0).sprawl
+E        +    where Traits(scale='corpus', table_version='test', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.310876, crowd=0.5, focus=0.0, care=0.0, sprawl=0.261238, prose=0.0, debt=0.0) = compute_traits(RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0)), 'corpus', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), table=QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}))
+E        +      where QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}) = _test_table()
+E        +  and   0.771702 = round(0.7717019533049274, 6)
+
+tests/test_traits.py:80: AssertionError
+______________ test_sprawl_is_the_share_of_breadth[3-12-absolute] ______________
+
+dirs = 3, depth = 12, scale = 'absolute'
+
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    @pytest.mark.parametrize("dirs,depth", [(0, 0), (1, 1), (2, 1), (6, 4), (6, 7), (11, 4), (40, 2), (3, 12)])
+    def test_sprawl_is_the_share_of_breadth(dirs: int, depth: int, scale: str) -> None:
+        """GITGEIST-12 (O14): sprawl = top_level_dirs / (top_level_dirs + depth) of the normalized inputs."""
+        features = _features(top_level_dirs=dirs, depth=depth)
+        normalized = normalize_features(features, scale, reference_time=REF, table=_test_table()).inputs
+        breadth, nesting = normalized["top_level_dirs"].value, normalized["depth"].value
+        expected = 0.0 if breadth + nesting == 0 else breadth / (breadth + nesting)
+>       assert compute_traits(features, scale, reference_time=REF, table=_test_table()).sprawl == round(expected, 6)
+E       AssertionError: assert 0.527372 == 0.078374
+E        +  where 0.527372 = Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.317219, crowd=0.5, focus=0.0, care=0.0, sprawl=0.527372, prose=0.0, debt=0.0).sprawl
+E        +    where Traits(scale='absolute', table_version=None, reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.317219, crowd=0.5, focus=0.0, care=0.0, sprawl=0.527372, prose=0.0, debt=0.0) = compute_traits(RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0)), 'absolute', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), table=QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}))
+E        +      where QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}) = _test_table()
+E        +  and   0.078374 = round(0.0783739672540969, 6)
+
+tests/test_traits.py:80: AssertionError
+_______________ test_sprawl_is_the_share_of_breadth[3-12-corpus] _______________
+
+dirs = 3, depth = 12, scale = 'corpus'
+
+    @pytest.mark.parametrize("scale", ["absolute", "corpus"])
+    @pytest.mark.parametrize("dirs,depth", [(0, 0), (1, 1), (2, 1), (6, 4), (6, 7), (11, 4), (40, 2), (3, 12)])
+    def test_sprawl_is_the_share_of_breadth(dirs: int, depth: int, scale: str) -> None:
+        """GITGEIST-12 (O14): sprawl = top_level_dirs / (top_level_dirs + depth) of the normalized inputs."""
+        features = _features(top_level_dirs=dirs, depth=depth)
+        normalized = normalize_features(features, scale, reference_time=REF, table=_test_table()).inputs
+        breadth, nesting = normalized["top_level_dirs"].value, normalized["depth"].value
+        expected = 0.0 if breadth + nesting == 0 else breadth / (breadth + nesting)
+>       assert compute_traits(features, scale, reference_time=REF, table=_test_table()).sprawl == round(expected, 6)
+E       AssertionError: assert 0.2145 == 0.35085
+E        +  where 0.2145 = Traits(scale='corpus', table_version='test', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.310876, crowd=0.5, focus=0.0, care=0.0, sprawl=0.2145, prose=0.0, debt=0.0).sprawl
+E        +    where Traits(scale='corpus', table_version='test', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), size=0.0, age=0.0, alive=0.310876, crowd=0.5, focus=0.0, care=0.0, sprawl=0.2145, prose=0.0, debt=0.0) = compute_traits(RepositoryFeatures(repository_path='/test', extracted_at=datetime.datetime(2026, 3, 16, 10, 0, tzinfo=datetime.timezon...ngth_chars=0, readme_snippet='', license_type=None), structure=StructureFeatures(masses=[], hotspot_concentration=0.0)), 'corpus', reference_time=datetime.datetime(2026, 4, 16, 0, 0, tzinfo=datetime.timezone.utc), table=QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}))
+E        +      where QuantileTable(table_version='test', probabilities=[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0...], 'depth': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0]}) = _test_table()
+E        +  and   0.35085 = round(0.35085012716390906, 6)
+
+tests/test_traits.py:80: AssertionError
+__________________ test_sprawl_extremes_in_the_absolute_scale __________________
+
+    def test_sprawl_extremes_in_the_absolute_scale() -> None:
+        def sprawl(**raw: int) -> float:
+            return compute_traits(_features(**raw), reference_time=REF).sprawl
+    
+        assert sprawl(top_level_dirs=0, depth=0) == 0.0
+        assert sprawl(top_level_dirs=1, depth=1) == 0.0
+>       assert sprawl(top_level_dirs=10, depth=1) == 1.0
+E       assert 0.201278 == 1.0
+E        +  where 0.201278 = <function test_sprawl_extremes_in_the_absolute_scale.<locals>.sprawl at 0x7fbb72842a20>(top_level_dirs=10, depth=1)
+
+tests/test_traits.py:89: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_traits.py::test_exact_fixture_traits[wide_repo-expected1]
+FAILED tests/test_traits.py::test_exact_fixture_traits[clean_modular_repo-expected2]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[absolute-depth-sprawl-15-True]
+FAILED tests/test_traits.py::test_input_isolation_and_monotonicity[corpus-depth-sprawl-15-True]
+FAILED tests/test_traits.py::test_sprawl_is_the_share_of_breadth[1-1-corpus]
+FAILED tests/test_traits.py::test_sprawl_is_the_share_of_breadth[2-1-absolute]
+FAILED tests/test_traits.py::test_sprawl_is_the_share_of_breadth[2-1-corpus]
+FAILED tests/test_traits.py::test_sprawl_is_the_share_of_breadth[6-4-absolute]
+FAILED tests/test_traits.py::test_sprawl_is_the_share_of_breadth[6-4-corpus]
+FAILED tests/test_traits.py::test_sprawl_is_the_share_of_breadth[6-7-absolute]
+FAILED tests/test_traits.py::test_sprawl_is_the_share_of_breadth[6-7-corpus]
+FAILED tests/test_traits.py::test_sprawl_is_the_share_of_breadth[11-4-absolute]
+FAILED tests/test_traits.py::test_sprawl_is_the_share_of_breadth[11-4-corpus]
+FAILED tests/test_traits.py::test_sprawl_is_the_share_of_breadth[40-2-absolute]
+FAILED tests/test_traits.py::test_sprawl_is_the_share_of_breadth[40-2-corpus]
+FAILED tests/test_traits.py::test_sprawl_is_the_share_of_breadth[3-12-absolute]
+FAILED tests/test_traits.py::test_sprawl_is_the_share_of_breadth[3-12-corpus]
+FAILED tests/test_traits.py::test_sprawl_extremes_in_the_absolute_scale - ass...
+18 failed, 33 passed in 0.40s

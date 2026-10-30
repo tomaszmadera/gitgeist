@@ -100,7 +100,7 @@ Each trait has distinct inputs, so they do not move together the way today's axe
 | `crowd` | `author_count`, `top_author_share` | `0.5 * log(authors) / log(1000) + 0.5 * (1 - top_author_share)` |
 | `focus` | size-adjusted `hotspot_concentration` | clipped to [0, 1] |
 | `care` | `test_ratio`, CI, `doc_ratio` | `0.6 * test_ratio + 0.2 * ci + 0.2 * min(1, 3 * doc_ratio)` |
-| `sprawl` | top-level directory count, `max_directory_depth` | `log10(dirs + 1) + 0.1 * depth` |
+| `sprawl` | top-level directory count, `max_directory_depth` | share of breadth, `dirs / (dirs + depth)` on the normalized inputs, `0` when both are `0` (spec O14, GITGEIST-12; the original `log10(dirs + 1) + 0.1 * depth` correlated with `size` and `care`) |
 | `prose` | `doc_ratio` | linear |
 | `debt` | `todo_density` | `log10` |
 
