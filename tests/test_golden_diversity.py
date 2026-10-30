@@ -24,8 +24,9 @@ BUILDERS = {
     "one-hotspot": builder.create_one_hotspot_repo,
     "deep-tree": builder.create_deep_tree_repo,
 }
-# Floors of the first passing run, recorded in stage-3-golden-threshold.txt.
-THRESHOLDS = {"abstract": 0.05, "character": 0.02}
+# Floors of the first passing run (O10), rounded down to 0.01. Stage 3: stage-3-golden-threshold.txt (abstract 0.05,
+# character 0.02). GITGEIST-12 (O14) lowers the abstract floor to 0.04: stage-4-golden-threshold.txt.
+THRESHOLDS = {"abstract": 0.04, "character": 0.02}
 GOLDEN = Path(__file__).parent / "golden" / "visual_spec"
 
 

@@ -7,6 +7,12 @@ from gitgeist.schemas.features import RepositoryFeatures
 from gitgeist.schemas.traits import Traits
 
 
+def _breadth_share(breadth: float, nesting: float) -> float:
+    """Share of breadth in the tree structure (spec O14); 0.0 when both inputs are 0.0."""
+    total = breadth + nesting
+    return breadth / total if total else 0.0
+
+
 def compute_traits(
     features: RepositoryFeatures,
     scale: ScaleMode = "absolute",
@@ -26,7 +32,7 @@ def compute_traits(
         size=v["code_size"], age=v["age"], alive=0.5 * v["recency"] + 0.5 * v["active_months"],
         crowd=0.5 * v["authors"] + 0.5 * (1 - v["top_author_share"]), focus=v["focus"],
         care=0.75 * v["test_ratio"] + 0.25 * v["ci"],
-        sprawl=0.5 * v["top_level_dirs"] + 0.5 * v["depth"], prose=v["doc_ratio"], debt=v["debt"],
+        sprawl=_breadth_share(v["top_level_dirs"], v["depth"]), prose=v["doc_ratio"], debt=v["debt"],
     )
     if features.history.commit_count == 0:
         values.update(age=0.0, alive=0.0, crowd=0.0)
