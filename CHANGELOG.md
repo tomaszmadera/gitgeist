@@ -66,6 +66,7 @@ This file starts at 0.6.0. Earlier versions (tags `0.0.1` to `0.5.1`) have no ch
 - The default `gitgeist-output` directory is skipped when scanning, so a rerun inside the repository does not analyse its own artifacts.
 - Empty values in a local `.env` no longer shadow the user-level `~/.config/gitgeist/.env`.
 
+[0.9.0]: https://github.com/tomaszmadera/gitgeist/compare/0.8.0...0.9.0
 [0.8.0]: https://github.com/tomaszmadera/gitgeist/compare/0.7.0...0.8.0
 [0.7.0]: https://github.com/tomaszmadera/gitgeist/compare/0.6.0...0.7.0
 [0.6.0]: https://github.com/tomaszmadera/gitgeist/compare/0.5.1...0.6.0
