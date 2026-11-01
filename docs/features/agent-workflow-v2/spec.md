@@ -10,7 +10,7 @@ Skrócić drogę agenta do poprawnego rezultatu bez osłabienia kontroli użytko
 
 ## Related requirements
 
-- `docs/agent-workflow/session-efficiency-review.md`, z korektami faktów zapisanymi w `.agents/tasks/session-efficiency-audit-review/task.md`.
+- `docs/agent-workflow/session-efficiency-review.md`, z korektami faktów zapisanymi w `docs/agent-workflow/session-efficiency-audit-review.md`.
 - `_inbox/gitgeist-workflow-improvement-agent-prompt.md`.
 - `docs/product/emotional-repository-portrait-system.md#L336-L359`, `#L786-L806`, `#L1390-L1393` i `#L1419-L1468`.
 - `docs/features/feature-extraction/spec.md` oraz `docs/features/emotional-state-model/spec.md`, których łączne znaczenie pozostaje w konflikcie z produktowym wymaganiem prawdziwego JEV.
