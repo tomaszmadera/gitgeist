@@ -1,6 +1,17 @@
 """Standalone HTML5/Canvas template generator for live preview."""
 
 import html
+from gitgeist.render.page_common import (
+    JS_FRAME,
+    JS_HEAD,
+    JS_HOVER_OPEN,
+    JS_HOVER_TAIL,
+    JS_PULSE,
+    JS_RESIZE,
+    JS_SCENE_VARS,
+    JS_SEED,
+    page_html,
+)
 from gitgeist.schemas.live_state import LiveSimulationState, OrbitsScene
 
 
@@ -268,61 +279,7 @@ def generate_live_html(state: LiveSimulationState) -> str:
 """
 
 
-_ORBITS_CSS = """
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: #121218;
-      color: #e8e8ee;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      overflow: hidden;
-      width: 100vw;
-      height: 100vh;
-    }
-    #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-    canvas { display: block; width: 100%; height: 100%; }
-    /* The HUD has a fixed height (HUD_STRIP in the script reserves the strip above the composition). */
-    #hud {
-      position: absolute; top: 12px; left: 12px; z-index: 10;
-      height: 104px;
-      width: 340px; max-width: calc(100vw - 24px);
-      background: rgba(0, 0, 0, 0.45);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 8px;
-      padding: 8px 14px;
-      overflow: hidden;
-      pointer-events: none;
-      user-select: none;
-    }
-    #hud h1 { font-size: 15px; line-height: 20px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 6px; }
-    #hud h1, #hud li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    #hud ul { list-style: none; }
-    #hud li { font-size: 13px; line-height: 20px; opacity: 0.9; }
-    #hover {
-      position: absolute; z-index: 20; display: none;
-      background: rgba(0, 0, 0, 0.75);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 6px;
-      padding: 8px 12px;
-      pointer-events: none;
-      font-size: 12px; line-height: 1.5;
-      max-width: 320px; overflow-wrap: anywhere;
-    }
-"""
-
-# The page draws only from the embedded OrbitsScene (spec docs/features/live-renderer-v2/spec.md).
-# Every frame is a pure function of the scene and the animation time; all randomness comes from
-# one mulberry32 generator seeded with the effective seed modulo 2^32.
-_ORBITS_JS = """
-(function () {
-  'use strict';
-  var stateText = document.getElementById('gitgeist-state').textContent;
-  var scene = JSON.parse(stateText);
-  var spec = scene.spec;
-  var canvas = document.getElementById('gitgeist-canvas');
-  var ctx = canvas.getContext('2d');
-  var hoverBox = document.getElementById('hover');
-
-  var TAU = Math.PI * 2;
+_ORBITS_CONSTANTS = """  var TAU = Math.PI * 2;
   var GROUND = '#121218';
   var BODY_LIGHTNESS = 45;
   var RING_WIDTH_MIN = 0.5;
@@ -338,32 +295,9 @@ _ORBITS_JS = """
   var OUTLINE_POINTS = 36;
   var HUD_STRIP = 120;
 
-  /* The effective seed has up to 64 bits: read it from the raw text, not from the parsed double. */
-  var seedMatch = /"effective_seed":\\s*(\\d+)/.exec(stateText);
-  var seed32 = Number(BigInt(seedMatch[1]) & BigInt(4294967295));
-  function mulberry32(a) {
-    return function () {
-      a = (a + 0x6D2B79F5) | 0;
-      var t = Math.imul(a ^ (a >>> 15), 1 | a);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-  var rand = mulberry32(seed32);
+"""
 
-  var masses = spec.masses;
-  var saturation = Math.round(spec.palette.saturation * 100);
-  var speed = spec.motion.speed_hz;
-  var loopSeconds = spec.motion.loop_seconds;
-  var pulse = spec.motion.pulse;
-
-  function hsl(hue, sat, light, alpha) {
-    var h = hue === null ? 0 : hue;
-    var s = hue === null ? 0 : sat;
-    return 'hsla(' + h.toFixed(1) + ',' + s + '%,' + light.toFixed(1) + '%,' + alpha + ')';
-  }
-
-  /* Seeded, frame-stable parts of the drawing. */
+_ORBITS_PARTS = """  /* Seeded, frame-stable parts of the drawing. */
   var bodies = masses.map(function (mass, index) {
     var noise = [];
     for (var k = 0; k < OUTLINE_POINTS; k++) { noise.push(rand() * 2 - 1); }
@@ -394,36 +328,9 @@ _ORBITS_JS = """
     return { path: path, rate: rate * (path.curvature < 0 ? -1 : 1) };
   });
 
-  var width = 0;
-  var height = 0;
-  var dpr = 1;
-  function resize() {
-    dpr = window.devicePixelRatio || 1;
-    width = Math.max(1, window.innerWidth);
-    height = Math.max(1, window.innerHeight);
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-  window.addEventListener('resize', resize);
-  resize();
+"""
 
-  function pulseAmplitude(loopTime) {
-    var n = pulse.length;
-    if (n === 0) { return 0; }
-    var u = loopTime / loopSeconds;
-    var index;
-    if (n <= RECENT_MONTHS) {
-      index = Math.floor(u * n);
-    } else if (u < 1 - RECENT_LOOP_SHARE) {
-      index = Math.floor(u / (1 - RECENT_LOOP_SHARE) * (n - RECENT_MONTHS));
-    } else {
-      index = n - RECENT_MONTHS + Math.floor((u - (1 - RECENT_LOOP_SHARE)) / RECENT_LOOP_SHARE * RECENT_MONTHS);
-    }
-    return pulse[Math.max(0, Math.min(n - 1, index))];
-  }
-
-  function outline(body, x, y, r) {
+_ORBITS_DRAW = """  function outline(body, x, y, r) {
     var jitter = spec.edge.jitter;
     ctx.beginPath();
     if (jitter === 0) {
@@ -599,36 +506,23 @@ _ORBITS_JS = """
     });
   }
 
-  var startTime = null;
-  function frame(timestamp) {
-    if (startTime === null) { startTime = timestamp; }
-    draw((timestamp - startTime) / 1000);
-    requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
+"""
 
-  if (hoverBox && scene.caption) {
-    window.addEventListener('mousemove', function (event) {
-      var hit = -1;
+_ORBITS_HIT = """      var hit = -1;
       var best = Infinity;
       layout.forEach(function (place, index) {
         var dist = Math.hypot(event.clientX - place.x, event.clientY - place.y);
         if (dist <= place.r && dist < best) { best = dist; hit = index; }
       });
-      var detail = null;
-      scene.hover.forEach(function (item) { if (item.mass_index === hit) { detail = item; } });
-      if (detail === null) { hoverBox.style.display = 'none'; return; }
-      var lines = [detail.label, detail.file_count + ' files (' + detail.file_share_percent + '%)'];
-      if (detail.top_hotspot !== null) { lines.push('hotspot: ' + detail.top_hotspot); }
-      hoverBox.textContent = lines.join('\\n');
-      hoverBox.style.whiteSpace = 'pre-line';
-      hoverBox.style.display = 'block';
-      hoverBox.style.left = Math.min(event.clientX + 14, Math.max(0, window.innerWidth - 340)) + 'px';
-      hoverBox.style.top = (event.clientY + 14) + 'px';
-    });
-  }
-})();
 """
+
+# The page draws only from the embedded OrbitsScene (spec docs/features/live-renderer-v2/spec.md).
+# Every frame is a pure function of the scene and the animation time; all randomness comes from
+# one mulberry32 generator seeded with the effective seed modulo 2^32.
+_ORBITS_JS = (
+    JS_HEAD + _ORBITS_CONSTANTS + JS_SEED + JS_SCENE_VARS + _ORBITS_PARTS + JS_RESIZE + JS_PULSE
+    + _ORBITS_DRAW + JS_FRAME + JS_HOVER_OPEN + _ORBITS_HIT + JS_HOVER_TAIL
+)
 
 
 def generate_orbits_html(scene: OrbitsScene) -> str:
@@ -642,26 +536,4 @@ def generate_orbits_html(scene: OrbitsScene) -> str:
     """
     if not isinstance(scene, OrbitsScene):
         raise TypeError(f"Expected OrbitsScene, got {type(scene).__name__}")
-    # "<\/" is a valid JSON escape: the payload cannot close its own script tag early.
-    scene_json = scene.model_dump_json(indent=2).replace("</", "<\\/")
-    repo_title = html.escape(scene.repository_name or "Repository")
-    hud = ""
-    hover = ""
-    if scene.caption:
-        items = "\n".join(f"      <li>{html.escape(text)}</li>" for text in scene.conclusions)
-        hud = f'  <div id="hud">\n    <h1>{repo_title}</h1>\n    <ul>\n{items}\n    </ul>\n  </div>\n'
-        hover = '  <div id="hover"></div>\n'
-    return (
-        "<!DOCTYPE html>\n"
-        '<html lang="en">\n<head>\n'
-        '  <meta charset="UTF-8">\n'
-        '  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
-        f"  <title>Gitgeist Live Portrait - {repo_title} (Abstract)</title>\n"
-        f"  <style>{_ORBITS_CSS}  </style>\n"
-        "</head>\n<body>\n"
-        f"{hud}{hover}"
-        '  <div id="canvas-container">\n    <canvas id="gitgeist-canvas"></canvas>\n  </div>\n\n'
-        f'  <script id="gitgeist-state" type="application/json">\n{scene_json}\n  </script>\n\n'
-        f"  <script>{_ORBITS_JS}  </script>\n"
-        "</body>\n</html>\n"
-    )
+    return page_html(scene, "Abstract", _ORBITS_JS)
