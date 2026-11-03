@@ -189,6 +189,25 @@ def test_run_writes_traits_specs_and_correlations(minimal_repo: Path, legacy_cha
     capsys.readouterr()
 
 
+def test_run_draws_abstract_live_through_the_orbits_scene(minimal_repo: Path, legacy_chaotic_repo: Path,
+                                                         tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    from gitgeist.schemas.live_state import OrbitsScene
+
+    out = tmp_path / "orbits-report"
+    assert report.main(["run", "--no-images", "--out", str(out), "--reference-time", "2026-04-16T00:00:00Z",
+                        f"minimal={minimal_repo}", f"legacy={legacy_chaotic_repo}"]) == 0
+    layers = json.loads((out / "layers.json").read_text(encoding="utf-8"))
+    for name in ("minimal", "legacy"):
+        assert layers[name]["live_abstract"]["spec"]["style"] == "orbits"
+        assert "geometry" not in layers[name]["live_abstract"]
+        assert layers[name]["live_character"]["geometry"]["symmetry_order"] >= 1
+        scene = OrbitsScene.model_validate_json(
+            (out / "live" / f"{name}-abstract" / "live-state.json").read_text(encoding="utf-8"))
+        assert scene.spec.traits.reference_time.isoformat() == "2026-04-16T00:00:00+00:00"
+        assert scene.caption is True
+    capsys.readouterr()
+
+
 def test_constant_spread_is_reported_without_division_by_zero() -> None:
     result = report.spread({"a": {"size": 0.0}, "b": {"size": 0.0}})
     assert result["constant"] == ["size"]

@@ -255,18 +255,31 @@ def contact_sheet(images: dict[str, Path], out: Path, tile: int = 260, columns: 
 # ---------------------------------------------------------------- pipeline
 
 
-def _render_live(profile: Any, mode: str, name: str, repo: Path, output_dir: Path) -> Any:
+def _render_live(
+    profile: Any, mode: str, name: str, repo: Path, output_dir: Path,
+    features: Any = None, reference_time: datetime | None = None,
+) -> Any:
     """Call render_live with or without the identity seed (added in plan stage 1).
 
-    Keeps the tool usable on commits before stage 1 for baseline runs.
+    Keeps the tool usable on commits before stage 1 for baseline runs. From plan
+    stage 4 (0.10.0) the abstract render needs an OrbitsScene, built here from the
+    stage 3 absolute traits at ``reference_time`` with the default caption.
     """
     from gitgeist.render.facade import render_live
 
     kwargs: dict[str, Any] = {"mode": mode, "repository_name": name, "output_dir": output_dir}
-    if "identity" in inspect.signature(render_live).parameters:
+    parameters = inspect.signature(render_live).parameters
+    if "identity" in parameters:
         from gitgeist.ingest.identity import compute_identity_seed
 
         kwargs["identity"] = compute_identity_seed(repo)
+    if "scene" in parameters and mode == "abstract":
+        from gitgeist.render.orbits import build_orbits_scene
+        from gitgeist.visual import build_visual_spec, compute_traits
+
+        traits = compute_traits(features, reference_time=reference_time)
+        spec = build_visual_spec(features, traits, kwargs["identity"], "abstract")
+        kwargs["scene"] = build_orbits_scene(features, spec, repository_name=name)
     return render_live(profile, **kwargs)
 
 
@@ -355,7 +368,7 @@ def analyse(name: str, repo: Path, live_dir: Path, source_commit: str, reference
     profile = map_emotional_to_latent(state)
     live = {}
     for mode in REPRESENTATIONS:
-        artifacts = _render_live(profile, mode, name, repo, live_dir / f"{name}-{mode}")
+        artifacts = _render_live(profile, mode, name, repo, live_dir / f"{name}-{mode}", features, reference_time)
         live[mode] = json.loads(
             artifacts.state.model_dump_json(exclude={"engine_version", "repository_name"})
         )
@@ -408,7 +421,8 @@ SATURATION_RULES: list[tuple[str, Callable[[dict[str, Any]], bool]]] = [
     ("contrast qualifier 'high'", lambda r: _qualifier(r["axes"]["contrast"]) == "high"),
     ("materiality mechanical or crystalline", lambda r: r["materiality"]["dominant"] in ("mechanical", "crystalline")),
     ("character symmetry_order == 2", lambda r: r["live_character"]["geometry"]["symmetry_order"] == 2),
-    ("abstract symmetry_order >= 6", lambda r: r["live_abstract"]["geometry"]["symmetry_order"] >= 6),
+    ("abstract symmetry_order >= 6 (always 0 from 0.10.0: the abstract state has no geometry)",
+     lambda r: r["live_abstract"].get("geometry", {}).get("symmetry_order", 0) >= 6),
     ("temperament proud", lambda r: r["choices"]["temperament"] == "proud"),
 ]
 

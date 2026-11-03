@@ -15,6 +15,7 @@ from gitgeist.cli import main
 from gitgeist.render.image_backend import FakeImageBackend, GeneratedImage
 from gitgeist.schemas.emotional import EmotionalState
 from gitgeist.schemas.features import RepositoryFeatures
+from gitgeist.schemas.live_state import OrbitsScene
 from gitgeist.schemas.visual_latent import VisualLatentProfile
 from gitgeist.schemas.traits import TRAIT_NAMES, Traits
 
@@ -139,7 +140,72 @@ def test_render_live_writes_mode_and_required_artifacts(
     for name in LIVE_ARTIFACTS:
         assert (out_dir / name).is_file(), f"missing artifact: {name}"
     state = json.loads((out_dir / "live-state.json").read_text(encoding="utf-8"))
-    assert state["representation_mode"] == representation
+    if representation == "abstract":
+        scene = OrbitsScene.model_validate(state)
+        assert scene.repository_name == "clean-modular-repo" and scene.caption is True
+        assert scene.spec.style == "orbits" and len(scene.conclusions) == 3
+        assert len(scene.hover) == len(scene.spec.masses) > 0
+        page = (out_dir / "live-preview.html").read_text(encoding="utf-8")
+        assert 'id="hud"' in page and "rotate(" not in page
+    else:
+        assert state["representation_mode"] == "character"
+
+
+def test_render_abstract_live_caption_off_has_no_hud(clean_modular_repo: Path, tmp_path: Path) -> None:
+    on, off = tmp_path / "on", tmp_path / "off"
+    base = ["render", str(clean_modular_repo), "--representation", "abstract", "--mode", "live"]
+    assert main([*base, "--caption", "on", "-o", str(on)]) == 0
+    assert main([*base, "--caption", "off", "-o", str(off)]) == 0
+
+    scene_on = OrbitsScene.model_validate_json((on / "live-state.json").read_text(encoding="utf-8"))
+    scene_off = OrbitsScene.model_validate_json((off / "live-state.json").read_text(encoding="utf-8"))
+    assert scene_on.caption and not scene_off.caption
+    assert scene_off.conclusions == [] and scene_off.hover == []
+    assert scene_on.spec == scene_off.spec
+    page_off = (off / "live-preview.html").read_text(encoding="utf-8")
+    assert 'id="hud"' not in page_off and 'id="hover"' not in page_off
+    assert 'id="hud"' in (on / "live-preview.html").read_text(encoding="utf-8")
+
+
+def test_render_abstract_live_is_deterministic(clean_modular_repo: Path, tmp_path: Path,
+                                               monkeypatch: pytest.MonkeyPatch) -> None:
+    from gitgeist import cli
+    from gitgeist.features.extractor import extract_features
+
+    fixed = extract_features(clean_modular_repo).model_copy(update={
+        "extracted_at": datetime(2026, 4, 16, 12, tzinfo=timezone.utc)})
+    monkeypatch.setattr(cli, "extract_features", lambda path: fixed)
+    args = ["render", str(clean_modular_repo), "--representation", "abstract", "--mode", "live"]
+    assert main([*args, "-o", str(tmp_path / "a")]) == 0
+    assert main([*args, "-o", str(tmp_path / "b")]) == 0
+    for name in ("live-preview.html", "live-state.json"):
+        assert (tmp_path / "a" / name).read_bytes() == (tmp_path / "b" / name).read_bytes()
+
+
+@pytest.mark.parametrize("backend_args", [[], ["--backend", "fake"]])
+def test_render_caption_with_prompt_to_image_exits_2(
+    clean_modular_repo: Path, backend_args: list[str], tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    out_dir = tmp_path / "prompt-with-caption"
+    code = main(["render", str(clean_modular_repo), "--representation", "abstract", "--mode", "prompt-to-image",
+                 "--caption", "on", *backend_args, "-o", str(out_dir)])
+    assert code == 2
+    assert "--caption applies only to --mode live" in capsys.readouterr().err
+    assert not out_dir.exists()
+
+
+def test_render_caption_rejects_unknown_value(clean_modular_repo: Path, tmp_path: Path) -> None:
+    with pytest.raises(SystemExit) as raised:
+        main(["render", str(clean_modular_repo), "--representation", "abstract", "--mode", "live",
+              "--caption", "maybe", "-o", str(tmp_path / "x")])
+    assert raised.value.code == 2
+
+
+def test_render_character_live_ignores_caption(clean_modular_repo: Path, tmp_path: Path) -> None:
+    out_dir = tmp_path / "character"
+    assert main(["render", str(clean_modular_repo), "--representation", "character", "--mode", "live",
+                 "--caption", "off", "-o", str(out_dir)]) == 0
+    assert json.loads((out_dir / "live-state.json").read_text(encoding="utf-8"))["representation_mode"] == "character"
 
 
 def _render_live_seed(repo: Path, out_dir: Path, representation: str = "abstract") -> int:
@@ -147,7 +213,8 @@ def _render_live_seed(repo: Path, out_dir: Path, representation: str = "abstract
         ["render", str(repo), "--representation", representation, "--mode", "live", "-o", str(out_dir)]
     )
     assert code == 0
-    return json.loads((out_dir / "live-state.json").read_text(encoding="utf-8"))["seed"]
+    state = json.loads((out_dir / "live-state.json").read_text(encoding="utf-8"))
+    return state["spec"]["seeds"]["effective_seed"] if representation == "abstract" else state["seed"]
 
 
 def _git_output(repo: Path, *args: str) -> str:

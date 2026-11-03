@@ -18,8 +18,10 @@ from gitgeist.schemas.identity import IdentitySeed
 from gitgeist.schemas.live_state import (
     ColorPalette,
     GeometryParameters,
+    HoverDetail,
     LiveSimulationState,
     MotionDynamics,
+    OrbitsScene,
 )
 from gitgeist.schemas.visual_latent import (
     MaterialityDistribution,
@@ -38,10 +40,12 @@ __all__ = [
     "GeometryParameters",
     "GitHistoryFeatures",
     "Hotspot",
+    "HoverDetail",
     "IdentitySeed",
     "LiveSimulationState",
     "MaterialityDistribution",
     "MotionDynamics",
+    "OrbitsScene",
     "RepositoryFeatures",
     "StaticFeatures",
     "VisualLatentAxes",

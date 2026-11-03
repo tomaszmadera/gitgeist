@@ -19,8 +19,10 @@ from gitgeist import (
     render_prompt,
 )
 from gitgeist.ingest.identity import compute_identity_seed
+from gitgeist.render.orbits import build_orbits_scene
 from gitgeist.schemas.emotional import EmotionalState
 from gitgeist.schemas.visual_latent import VisualLatentProfile
+from gitgeist.visual import build_visual_spec, compute_traits
 
 LOW_MEDIUM_BOUNDARY = 0.33
 MEDIUM_HIGH_BOUNDARY = 0.66
@@ -144,17 +146,20 @@ def test_test2_same_snapshot_produces_stable_profile(clean_modular_repo: Path) -
 def test_test5_representation_modes_share_semantic_identity(
     clean_modular_repo: Path,
 ) -> None:
-    _, state, profile = _run_pipeline(clean_modular_repo)
+    features, state, profile = _run_pipeline(clean_modular_repo)
 
     identity = compute_identity_seed(clean_modular_repo)
     live_character = render_live(
         profile, mode="character", repository_name="identity-repo", identity=identity
     )
+    spec = build_visual_spec(features, compute_traits(features), identity, "abstract")
     live_abstract = render_live(
-        profile, mode="abstract", repository_name="identity-repo", identity=identity
+        profile, mode="abstract", repository_name="identity-repo", identity=identity,
+        scene=build_orbits_scene(features, spec, repository_name="identity-repo"),
     )
-    assert isinstance(live_character.state, type(live_abstract.state))
-    assert live_character.state.dominant_material == live_abstract.state.dominant_material
+    # The abstract scene is drawn from the same repository identity as the character state.
+    assert live_abstract.state.spec.seeds.identity_seed == identity.identity_seed
+    assert live_character.state.dominant_material == profile.materiality.dominant
     assert live_character.state_json != live_abstract.state_json
 
     prompt_character = render_prompt(state, profile, mode="character").prompt_text

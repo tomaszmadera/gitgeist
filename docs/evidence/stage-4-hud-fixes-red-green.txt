@@ -1,0 +1,177 @@
+# Stage 4 HUD fixes (GITGEIST-17), commit 229d529: red run and green run of the new tests (review rule R2)
+#
+# What was run (the exact command is in the header of each raw log below; both were run on the box, 2026-11-03):
+#   RED:   a clean worktree at b92cae1 (= 229d529^, the parent of the fix; `git worktree add --detach <dir> 229d529^`), then
+#          `git checkout 229d529 -- tests/test_orbits_html.py tests/test_orbits_scene.py` copied the two test files of the fix in
+#          (the only files changed in the worktree, staged, no source file of the fix present), then
+#            python tools/run_min_env.py --cwd <worktree> --out <log> --title <title> -- -m pytest -q -p no:cacheprovider \
+#              tests/test_orbits_scene.py::test_flat_repository_reads_as_flat_not_deep \
+#              tests/test_orbits_scene.py::test_one_directory_still_reads_by_the_trait \
+#              tests/test_orbits_html.py::test_hud_is_a_fixed_height_box_inside_the_reserved_strip \
+#              tests/test_orbits_html.py::test_composition_stays_below_the_hud_strip \
+#              tests/test_orbits_html.py::test_caption_does_not_change_the_composition_rule
+#          Result: exit code 1, 6 failed, 3 passed (the "Commit:" line of the raw log shows b92cae1 because the test files are staged, not committed).
+#   GREEN: a clean worktree at 229d529, the same command. Result: exit code 0, 9 passed.
+#
+# Reading the red run:
+#   - test_flat_repository_reads_as_flat_not_deep[0.0] and [1.0] FAIL: the old phrase is "deep, narrow tree (0 top-level directories, depth 0)"
+#     / "wide, shallow tree (0 ...)" instead of "flat tree, all files at the root" (defect 1).
+#   - test_hud_is_a_fixed_height_box_inside_the_reserved_strip and test_caption_does_not_change_the_composition_rule FAIL: no reserved
+#     HUD strip (`HUD_STRIP`) in the page code (defect 2).
+#   - test_composition_stays_below_the_hud_strip[size0] (520x520) and [size3] (400x300) FAIL: the drawing reaches y = 70.3 and y = 40.6,
+#     above the 120 px / 90 px strip, i.e. under the HUD (defect 2). The sizes 1280x720 and 800x1200 pass on the old layout for this
+#     fixture; they are kept as regression guards.
+#   - test_one_directory_still_reads_by_the_trait passes on the old code on purpose: it pins that a repository with one directory keeps the
+#     "deep, narrow tree" phrase, so the flat-tree fix must not change it.
+#   - The Node harness of tests/test_orbits_html.py that measures the top of the drawing was fixed in 229d529 itself (it first counted the
+#     full-canvas ground fill as geometry); the red run above already uses the final harness.
+# Mutation check (not a log): with `var strip = 0;` in place of the strip rule, test_composition_stays_below_the_hud_strip[size0] and [size3] fail.
+#
+# The two raw logs follow unedited (the "Wrapper:" lines name temporary output paths, /tmp/red.txt and /tmp/green.txt).
+#
+################################################################################ RED RUN
+# Stage 4 HUD fixes: red run of the new tests at b92cae1 (the parent of 229d529) with the test files of 229d529
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_orbits_scene.py::test_flat_repository_reads_as_flat_not_deep tests/test_orbits_scene.py::test_one_directory_still_reads_by_the_trait tests/test_orbits_html.py::test_hud_is_a_fixed_height_box_inside_the_reserved_strip tests/test_orbits_html.py::test_composition_stays_below_the_hud_strip tests/test_orbits_html.py::test_caption_does_not_change_the_composition_rule
+# Wrapper:   python tools/run_min_env.py --cwd /workspace/gg-red-hud --out /tmp/red.txt --title 'Stage 4 HUD fixes: red run of the new tests at b92cae1 (the parent of 229d529) with the test files of 229d529' -- -m pytest -q -p no:cacheprovider tests/test_orbits_scene.py::test_flat_repository_reads_as_flat_not_deep tests/test_orbits_scene.py::test_one_directory_still_reads_by_the_trait tests/test_orbits_html.py::test_hud_is_a_fixed_height_box_inside_the_reserved_strip tests/test_orbits_html.py::test_composition_stays_below_the_hud_strip tests/test_orbits_html.py::test_caption_does_not_change_the_composition_rule
+#            (python = /workspace/gg-cm2-venv/bin/python)
+# Directory: /workspace/gg-red-hud
+# Commit:    b92cae12e47a5eb2c8b6077f183086938eac0ed5
+# Date:      2026-11-03T17:59:58+01:00
+# Exit code: 1
+# gitgeist imported from: /workspace/gg-red-hud/src/gitgeist/__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+FF.FF..FF                                                                [100%]
+=================================== FAILURES ===================================
+_______________ test_flat_repository_reads_as_flat_not_deep[0.0] _______________
+
+value = 0.0
+
+    @pytest.mark.parametrize("value", [0.0, 1.0])
+    def test_flat_repository_reads_as_flat_not_deep(value: float) -> None:
+        features = make_features()
+        features = features.model_copy(update={"static": features.static.model_copy(
+            update={"top_level_directory_count": 0, "max_directory_depth": 0})})
+        spec = with_traits(make_spec(features), **{**NEUTRAL, "sprawl": value})
+>       assert build_orbits_scene(features, spec).conclusions[0] == "flat tree, all files at the root"
+E       AssertionError: assert 'deep, narrow...ies, depth 0)' == 'flat tree, a...s at the root'
+E         
+E         - flat tree, all files at the root
+E         + deep, narrow tree (0 top-level directories, depth 0)
+
+tests/test_orbits_scene.py:120: AssertionError
+_______________ test_flat_repository_reads_as_flat_not_deep[1.0] _______________
+
+value = 1.0
+
+    @pytest.mark.parametrize("value", [0.0, 1.0])
+    def test_flat_repository_reads_as_flat_not_deep(value: float) -> None:
+        features = make_features()
+        features = features.model_copy(update={"static": features.static.model_copy(
+            update={"top_level_directory_count": 0, "max_directory_depth": 0})})
+        spec = with_traits(make_spec(features), **{**NEUTRAL, "sprawl": value})
+>       assert build_orbits_scene(features, spec).conclusions[0] == "flat tree, all files at the root"
+E       AssertionError: assert 'wide, shallo...ies, depth 0)' == 'flat tree, a...s at the root'
+E         
+E         - flat tree, all files at the root
+E         + wide, shallow tree (0 top-level directories, depth 0)
+
+tests/test_orbits_scene.py:120: AssertionError
+___________ test_hud_is_a_fixed_height_box_inside_the_reserved_strip ___________
+
+    def test_hud_is_a_fixed_height_box_inside_the_reserved_strip() -> None:
+        page = generate_orbits_html(make_scene())
+        code = _code(page)
+>       assert "var HUD_STRIP = 120;" in code
+E       assert 'var HUD_STRIP = 120;' in "\n(function () {\n  'use strict';\n  var stateText = document.getElementById('gitgeist-state').textContent;\n  var sc...0, window.innerWidth - 340)) + 'px';\n      hoverBox.style.top = (event.clientY + 14) + 'px';\n    });\n  }\n})();\n  "
+
+tests/test_orbits_html.py:199: AssertionError
+______________ test_composition_stays_below_the_hud_strip[size0] _______________
+
+tmp_path = PosixPath('/tmp/gitgeist-min-env-aajf5vks/tmp/pytest-of-box/pytest-0/test_composition_stays_below_t0')
+size = (520, 520)
+
+    @pytest.mark.skipif(shutil.which("node") is None, reason="node is not installed")
+    @pytest.mark.parametrize("size", [(520, 520), (1280, 720), (800, 1200), (400, 300)])
+    def test_composition_stays_below_the_hud_strip(tmp_path: Path, size: tuple[int, int]) -> None:
+        # Crisp edges (no jitter, no blur): every body is an exact circle, so the check is exact.
+        scene = make_scene()
+        crisp = scene.spec.model_copy(update={"edge": scene.spec.edge.model_copy(update={"blur_px": 0.0, "jitter": 0.0})})
+        for coverage in (0.25, 0.85):  # the footprint range: the largest portrait is the one that could reach the HUD
+            spec = crisp.model_copy(update={"footprint": crisp.footprint.model_copy(update={"coverage": coverage})})
+            top, _ = _min_top(tmp_path, scene.model_copy(update={"spec": spec}), size)
+            radius = 0.5 * min(coverage * min(size), size[1] - min(120, size[1] * 0.3))
+            # Breathing (4% of a body radius) and dust drift (up to 0.07 of the footprint radius) may pass the circle slightly.
+>           assert top >= min(120, size[1] * 0.3) - 0.12 * radius
+E           assert 70.34936618377003 >= (120 - (0.12 * 200.0))
+E            +  where 120 = min(120, (520 * 0.3))
+
+tests/test_orbits_html.py:218: AssertionError
+______________ test_composition_stays_below_the_hud_strip[size3] _______________
+
+tmp_path = PosixPath('/tmp/gitgeist-min-env-aajf5vks/tmp/pytest-of-box/pytest-0/test_composition_stays_below_t3')
+size = (400, 300)
+
+    @pytest.mark.skipif(shutil.which("node") is None, reason="node is not installed")
+    @pytest.mark.parametrize("size", [(520, 520), (1280, 720), (800, 1200), (400, 300)])
+    def test_composition_stays_below_the_hud_strip(tmp_path: Path, size: tuple[int, int]) -> None:
+        # Crisp edges (no jitter, no blur): every body is an exact circle, so the check is exact.
+        scene = make_scene()
+        crisp = scene.spec.model_copy(update={"edge": scene.spec.edge.model_copy(update={"blur_px": 0.0, "jitter": 0.0})})
+        for coverage in (0.25, 0.85):  # the footprint range: the largest portrait is the one that could reach the HUD
+            spec = crisp.model_copy(update={"footprint": crisp.footprint.model_copy(update={"coverage": coverage})})
+            top, _ = _min_top(tmp_path, scene.model_copy(update={"spec": spec}), size)
+            radius = 0.5 * min(coverage * min(size), size[1] - min(120, size[1] * 0.3))
+            # Breathing (4% of a body radius) and dust drift (up to 0.07 of the footprint radius) may pass the circle slightly.
+>           assert top >= min(120, size[1] * 0.3) - 0.12 * radius
+E           assert 40.58617279832886 >= (90.0 - (0.12 * 105.0))
+E            +  where 90.0 = min(120, (300 * 0.3))
+
+tests/test_orbits_html.py:218: AssertionError
+______________ test_caption_does_not_change_the_composition_rule _______________
+
+tmp_path = PosixPath('/tmp/gitgeist-min-env-aajf5vks/tmp/pytest-of-box/pytest-0/test_caption_does_not_change_t0')
+
+    def test_caption_does_not_change_the_composition_rule(tmp_path: Path) -> None:
+        # The strip is reserved with and without a caption, so the drawing code is identical (see also
+        # test_caption_off_has_no_hud_or_hover_and_draws_the_same).
+>       assert "HUD_STRIP" in _code(generate_orbits_html(make_scene(caption=False)))
+E       assert 'HUD_STRIP' in "\n(function () {\n  'use strict';\n  var stateText = document.getElementById('gitgeist-state').textContent;\n  var sc...0, window.innerWidth - 340)) + 'px';\n      hoverBox.style.top = (event.clientY + 14) + 'px';\n    });\n  }\n})();\n  "
+E        +  where "\n(function () {\n  'use strict';\n  var stateText = document.getElementById('gitgeist-state').textContent;\n  var sc...0, window.innerWidth - 340)) + 'px';\n      hoverBox.style.top = (event.clientY + 14) + 'px';\n    });\n  }\n})();\n  " = _code('<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-wi...px\';\n      hoverBox.style.top = (event.clientY + 14) + \'px\';\n    });\n  }\n})();\n  </script>\n</body>\n</html>\n')
+E        +    where '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-wi...px\';\n      hoverBox.style.top = (event.clientY + 14) + \'px\';\n    });\n  }\n})();\n  </script>\n</body>\n</html>\n' = generate_orbits_html(OrbitsScene(schema_version='1', representation='abstract', repository_name='orbits-demo', engine_version='0.10.0', cap...111111111111111, 0.0, 0.0, 0.5555555555555556, 1.0, 0.2222222222222222, 0.0, 0.4444444444444444, 0.6666666666666666]))))
+E        +      where OrbitsScene(schema_version='1', representation='abstract', repository_name='orbits-demo', engine_version='0.10.0', cap...111111111111111, 0.0, 0.0, 0.5555555555555556, 1.0, 0.2222222222222222, 0.0, 0.4444444444444444, 0.6666666666666666]))) = make_scene(caption=False)
+
+tests/test_orbits_html.py:224: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_orbits_scene.py::test_flat_repository_reads_as_flat_not_deep[0.0]
+FAILED tests/test_orbits_scene.py::test_flat_repository_reads_as_flat_not_deep[1.0]
+FAILED tests/test_orbits_html.py::test_hud_is_a_fixed_height_box_inside_the_reserved_strip
+FAILED tests/test_orbits_html.py::test_composition_stays_below_the_hud_strip[size0]
+FAILED tests/test_orbits_html.py::test_composition_stays_below_the_hud_strip[size3]
+FAILED tests/test_orbits_html.py::test_caption_does_not_change_the_composition_rule
+6 failed, 3 passed in 0.93s
+#
+################################################################################ GREEN RUN
+# Stage 4 HUD fixes: green run of the same tests at 229d529
+#
+# Command:   python -m pytest -q -p no:cacheprovider tests/test_orbits_scene.py::test_flat_repository_reads_as_flat_not_deep tests/test_orbits_scene.py::test_one_directory_still_reads_by_the_trait tests/test_orbits_html.py::test_hud_is_a_fixed_height_box_inside_the_reserved_strip tests/test_orbits_html.py::test_composition_stays_below_the_hud_strip tests/test_orbits_html.py::test_caption_does_not_change_the_composition_rule
+# Wrapper:   python tools/run_min_env.py --cwd /workspace/gg-green-hud --out /tmp/green.txt --title 'Stage 4 HUD fixes: green run of the same tests at 229d529' -- -m pytest -q -p no:cacheprovider tests/test_orbits_scene.py::test_flat_repository_reads_as_flat_not_deep tests/test_orbits_scene.py::test_one_directory_still_reads_by_the_trait tests/test_orbits_html.py::test_hud_is_a_fixed_height_box_inside_the_reserved_strip tests/test_orbits_html.py::test_composition_stays_below_the_hud_strip tests/test_orbits_html.py::test_caption_does_not_change_the_composition_rule
+#            (python = /workspace/gg-cm2-venv/bin/python)
+# Directory: /workspace/gg-green-hud
+# Commit:    229d5291c00f4d1c3202aabbb1351f41bba60fa8
+# Date:      2026-11-03T18:00:00+01:00
+# Exit code: 0
+# gitgeist imported from: /workspace/gg-green-hud/src/gitgeist/__init__.py
+#
+# The environment was deliberately minimal to prevent secret leaks: the
+# child process got only PATH, TEMP, TMP, TMPDIR, HOME, USERPROFILE, PYTHONPATH, GITGEIST_ENV_FILE.
+# HOME and USERPROFILE point to an empty temp directory. The output below
+# is the unedited stdout+stderr of the command (line endings normalized to LF).
+#
+.........                                                                [100%]
+9 passed in 0.92s

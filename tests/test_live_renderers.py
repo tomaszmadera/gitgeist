@@ -13,13 +13,13 @@ from gitgeist.schemas.visual_latent import (
     VisualLatentProfile,
 )
 from gitgeist.schemas.identity import IdentitySeed
-from gitgeist.schemas.live_state import LiveSimulationState
+from gitgeist.schemas.live_state import LiveSimulationState, OrbitsScene
 from gitgeist.render.palette import generate_palette
 from gitgeist.render.dynamics import generate_dynamics
-from gitgeist.render.abstract_renderer import generate_abstract_simulation
 from gitgeist.render.character_renderer import generate_character_simulation
 from gitgeist.render.html_template import generate_live_html
 from gitgeist.render.facade import LiveRenderArtifacts, render_live
+from tests.orbits_helpers import make_scene
 
 # Fixed identity: sha256("sample-root").
 SAMPLE_IDENTITY = IdentitySeed(
@@ -100,16 +100,6 @@ def test_generate_dynamics_rhythm_impact(sample_profile: VisualLatentProfile):
     assert intense_dyn.pulse_frequency > calm_dyn.pulse_frequency
 
 
-def test_generate_abstract_simulation(sample_profile: VisualLatentProfile):
-    state = generate_abstract_simulation(
-        sample_profile, repository_name="repo1", identity_seed=SAMPLE_IDENTITY.identity_seed
-    )
-    assert state.representation_mode == "abstract"
-    assert state.repository_name == "repo1"
-    assert isinstance(state, LiveSimulationState)
-    assert state.geometry.fragmentation == pytest.approx(sample_profile.axes.fragmentation)
-
-
 def test_generate_character_simulation(sample_profile: VisualLatentProfile):
     state = generate_character_simulation(
         sample_profile, repository_name="repo2", identity_seed=SAMPLE_IDENTITY.identity_seed
@@ -121,7 +111,7 @@ def test_generate_character_simulation(sample_profile: VisualLatentProfile):
 
 
 def test_generate_live_html(sample_profile: VisualLatentProfile):
-    state = generate_abstract_simulation(
+    state = generate_character_simulation(
         sample_profile, repository_name="gitgeist-test", identity_seed=SAMPLE_IDENTITY.identity_seed
     )
     html = generate_live_html(state)
@@ -131,17 +121,56 @@ def test_generate_live_html(sample_profile: VisualLatentProfile):
     assert "requestAnimationFrame" in html
     assert "http://" not in html
     assert "https://" not in html  # zero-external dependencies
+    assert "drawAbstract" not in html and "symStep" not in html  # the rotated-copy abstract path is gone
+
+
+def test_generate_live_html_rejects_abstract_state(sample_profile: VisualLatentProfile):
+    state = generate_character_simulation(
+        sample_profile, repository_name="x", identity_seed=SAMPLE_IDENTITY.identity_seed
+    ).model_copy(update={"representation_mode": "abstract"})
+    with pytest.raises(ValueError, match="orbits"):
+        generate_live_html(state)
+    with pytest.raises(TypeError, match="LiveSimulationState"):
+        generate_live_html("state")  # type: ignore[arg-type]
 
 
 def test_render_live_facade_abstract(sample_profile: VisualLatentProfile):
-    artifacts = render_live(
-        sample_profile, mode="abstract", repository_name="gitgeist-abstract", identity=SAMPLE_IDENTITY
-    )
+    scene = make_scene()
+    artifacts = render_live(sample_profile, mode="abstract", identity=SAMPLE_IDENTITY, scene=scene)
     assert isinstance(artifacts, LiveRenderArtifacts)
-    assert artifacts.state.representation_mode == "abstract"
+    assert artifacts.state == scene
     assert "<!DOCTYPE html>" in artifacts.html_content
-    parsed_json = json.loads(artifacts.state_json)
-    assert parsed_json["representation_mode"] == "abstract"
+    assert OrbitsScene.model_validate_json(artifacts.state_json) == scene
+
+
+def test_render_live_abstract_without_scene_raises(sample_profile: VisualLatentProfile):
+    with pytest.raises(TypeError, match="OrbitsScene"):
+        render_live(sample_profile, mode="abstract", identity=SAMPLE_IDENTITY)
+    with pytest.raises(TypeError, match="OrbitsScene"):
+        render_live(sample_profile, identity=SAMPLE_IDENTITY, scene="scene")  # type: ignore[arg-type]
+
+
+def test_render_live_character_with_scene_raises(sample_profile: VisualLatentProfile):
+    with pytest.raises(ValueError, match="scene"):
+        render_live(sample_profile, mode="character", identity=SAMPLE_IDENTITY, scene=make_scene())
+
+
+def test_render_live_abstract_is_byte_identical_on_two_runs(sample_profile: VisualLatentProfile, tmp_path: Path):
+    first = render_live(sample_profile, identity=SAMPLE_IDENTITY, scene=make_scene(), output_dir=tmp_path / "a")
+    second = render_live(sample_profile, identity=SAMPLE_IDENTITY, scene=make_scene(), output_dir=tmp_path / "b")
+    for name in ("live-preview.html", "live-state.json", "identity-seed.json"):
+        assert (tmp_path / "a" / name).read_bytes() == (tmp_path / "b" / name).read_bytes()
+    assert first.html_content == second.html_content and first.state_json == second.state_json
+
+
+def test_old_abstract_renderer_is_removed():
+    import importlib
+
+    import gitgeist.render
+
+    assert not hasattr(gitgeist.render, "generate_abstract_simulation")
+    with pytest.raises(ModuleNotFoundError):
+        importlib.import_module("gitgeist.render.abstract_renderer")
 
 
 def test_render_live_facade_character(sample_profile: VisualLatentProfile):
@@ -157,7 +186,9 @@ def test_render_live_facade_character(sample_profile: VisualLatentProfile):
 
 def test_render_live_save_to_disk(sample_profile: VisualLatentProfile, tmp_path: Path):
     out_dir = tmp_path / "renders" / "run_1"
-    artifacts = render_live(sample_profile, mode="abstract", output_dir=out_dir, identity=SAMPLE_IDENTITY)
+    artifacts = render_live(
+        sample_profile, mode="abstract", output_dir=out_dir, identity=SAMPLE_IDENTITY, scene=make_scene()
+    )
 
     assert artifacts.html_path is not None
     assert artifacts.json_path is not None
@@ -246,10 +277,9 @@ def test_seed_ignores_calculated_at(sample_profile: VisualLatentProfile):
     shifted = sample_profile.model_copy(
         update={"calculated_at": sample_profile.calculated_at.replace(hour=1, minute=2)}
     )
-    for generator in (generate_abstract_simulation, generate_character_simulation):
-        state_a = generator(sample_profile, identity_seed=SAMPLE_IDENTITY.identity_seed)
-        state_b = generator(shifted, identity_seed=SAMPLE_IDENTITY.identity_seed)
-        assert state_a.seed == state_b.seed
+    state_a = generate_character_simulation(sample_profile, identity_seed=SAMPLE_IDENTITY.identity_seed)
+    state_b = generate_character_simulation(shifted, identity_seed=SAMPLE_IDENTITY.identity_seed)
+    assert state_a.seed == state_b.seed
 
 
 @pytest.mark.parametrize("extreme", [0.0, 1.0])
@@ -263,15 +293,14 @@ def test_render_live_extreme_axis_values(extreme: float):
         ),
         dominant_features=["sharpness"],
     )
-    for mode in ("abstract", "character"):
-        artifacts = render_live(profile, mode=mode, repository_name="extreme", identity=SAMPLE_IDENTITY)
-        assert "<!DOCTYPE html>" in artifacts.html_content
-        assert "NaN" not in artifacts.html_content
-        assert artifacts.state.palette.aura.startswith("rgba(")
+    artifacts = render_live(profile, mode="character", repository_name="extreme", identity=SAMPLE_IDENTITY)
+    assert "<!DOCTYPE html>" in artifacts.html_content
+    assert "NaN" not in artifacts.html_content
+    assert artifacts.state.palette.aura.startswith("rgba(")
 
 
 def test_generate_live_html_escapes_repository_name(sample_profile: VisualLatentProfile):
-    state = generate_abstract_simulation(
+    state = generate_character_simulation(
         sample_profile,
         repository_name='"><script>alert(1)</script>',
         identity_seed=SAMPLE_IDENTITY.identity_seed,
@@ -297,8 +326,40 @@ def test_render_live_requires_identity_seed_model(sample_profile: VisualLatentPr
 
 
 def test_render_live_writes_identity_seed_json(sample_profile: VisualLatentProfile, tmp_path: Path):
-    artifacts = render_live(sample_profile, output_dir=tmp_path, identity=SAMPLE_IDENTITY)
+    artifacts = render_live(sample_profile, output_dir=tmp_path, identity=SAMPLE_IDENTITY, scene=make_scene())
 
     assert artifacts.identity_seed_path == tmp_path / "identity-seed.json"
     written = IdentitySeed.model_validate_json(artifacts.identity_seed_path.read_text(encoding="utf-8"))
     assert written == SAMPLE_IDENTITY
+
+
+GOLDEN_LIVE = Path(__file__).parent / "golden" / "live"
+
+
+def _without_abstract_code(page: str) -> str:
+    """The 0.9.0 character page minus the abstract code path that 0.10.0 removed (and nothing else)."""
+    start = page.index("      function drawAbstract(t) {")
+    end = page.index("      function drawCharacter(t) {")
+    page = page[:start] + page[end:]
+    dispatch = (
+        "        if (mode === 'character') {\n          drawCharacter(elapsed);\n"
+        "        } else {\n          drawAbstract(elapsed);\n        }\n"
+    )
+    assert dispatch in page
+    return page.replace(dispatch, "        drawCharacter(elapsed);\n")
+
+
+def test_character_live_output_matches_the_0_9_0_snapshot(sample_profile: VisualLatentProfile):
+    """Business rule 5: the character state is byte-identical to 0.9.0 and the page differs only
+    by the removed abstract code path (engine version masked in both)."""
+    from gitgeist._version import current_engine_version
+
+    artifacts = render_live(
+        sample_profile, mode="character", repository_name="golden-character", identity=SAMPLE_IDENTITY
+    )
+    version = current_engine_version()
+    snapshot_page = (GOLDEN_LIVE / "character-0.9.0-live-preview.html").read_text(encoding="utf-8")
+    assert artifacts.html_content.replace(version, "<ENGINE_VERSION>") == _without_abstract_code(snapshot_page)
+    assert artifacts.state_json.replace(version, "<ENGINE_VERSION>") == (
+        GOLDEN_LIVE / "character-0.9.0-live-state.json"
+    ).read_text(encoding="utf-8")

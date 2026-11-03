@@ -5,9 +5,8 @@ from pathlib import Path
 from typing import Literal
 from pydantic import BaseModel, ConfigDict
 
-from gitgeist.render.abstract_renderer import generate_abstract_simulation
 from gitgeist.render.character_renderer import generate_character_simulation
-from gitgeist.render.html_template import generate_live_html
+from gitgeist.render.html_template import generate_live_html, generate_orbits_html
 from gitgeist.render.image_backend import (
     FakeImageBackend,
     ImageGenerationBackend,
@@ -16,7 +15,7 @@ from gitgeist.render.image_backend import (
 )
 from gitgeist.render.prompt_composer import RepresentationMode, compose_prompt
 from gitgeist.schemas.identity import IdentitySeed
-from gitgeist.schemas.live_state import LiveSimulationState
+from gitgeist.schemas.live_state import LiveSimulationState, OrbitsScene
 from gitgeist.schemas.visual_latent import VisualLatentProfile
 from gitgeist.schemas.emotional import EmotionalState
 
@@ -29,7 +28,7 @@ class LiveRenderArtifacts(BaseModel):
 
     model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
 
-    state: LiveSimulationState
+    state: LiveSimulationState | OrbitsScene
     html_content: str
     state_json: str
     html_path: Path | None = None
@@ -44,6 +43,7 @@ def render_live(
     output_dir: Path | str | None = None,
     *,
     identity: IdentitySeed,
+    scene: OrbitsScene | None = None,
 ) -> LiveRenderArtifacts:
     """Render a live interactive preview and simulation state from a VisualLatentProfile.
 
@@ -54,32 +54,41 @@ def render_live(
         output_dir: Optional directory path to write 'live-preview.html', 'live-state.json'
             and 'identity-seed.json'.
         identity: Repository identity seed (``gitgeist.ingest.identity.compute_identity_seed``);
-            the generator seed is derived from it and the mode only.
+            the character generator seed is derived from it and the mode only.
+        scene: Abstract scene built with ``gitgeist.render.orbits.build_orbits_scene``; required
+            for 'abstract' (which then takes the repository name from the scene) and must be
+            None for 'character'.
 
     Returns:
         LiveRenderArtifacts bundle with HTML, JSON and optional written file paths.
 
     Raises:
-        TypeError: If profile is not a VisualLatentProfile or identity is not an IdentitySeed.
-        ValueError: If mode is not 'abstract' or 'character'.
+        TypeError: If profile is not a VisualLatentProfile, identity is not an IdentitySeed,
+            or mode is 'abstract' and scene is missing or not an OrbitsScene.
+        ValueError: If mode is not 'abstract' or 'character', or mode is 'character' and a
+            scene is given.
     """
     if not isinstance(profile, VisualLatentProfile):
         raise TypeError(f"Expected VisualLatentProfile, got {type(profile).__name__}")
     if not isinstance(identity, IdentitySeed):
         raise TypeError(f"Expected IdentitySeed, got {type(identity).__name__}")
 
+    state: LiveSimulationState | OrbitsScene
     if mode == "abstract":
-        state = generate_abstract_simulation(
-            profile, repository_name=repository_name, identity_seed=identity.identity_seed
-        )
+        if not isinstance(scene, OrbitsScene):
+            raise TypeError(f"Expected OrbitsScene for the abstract representation, got {type(scene).__name__}")
+        state = scene
+        html_content = generate_orbits_html(scene)
     elif mode == "character":
+        if scene is not None:
+            raise ValueError("The character representation does not take a scene; pass scene=None.")
         state = generate_character_simulation(
             profile, repository_name=repository_name, identity_seed=identity.identity_seed
         )
+        html_content = generate_live_html(state)
     else:
         raise ValueError(f"Unsupported representation mode: {mode!r}. Must be 'abstract' or 'character'.")
 
-    html_content = generate_live_html(state)
     state_json = state.model_dump_json(indent=2)
 
     html_path: Path | None = None

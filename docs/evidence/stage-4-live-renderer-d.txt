@@ -1,0 +1,77 @@
+# Stage 4 criterion 2 (GITGEIST-17): nearest-neighbour median D v1 of the abstract live portraits, before and after
+#
+# Command (run once per tree from the tree root; PYTHONPATH=src selects the code under test; the tree's own tools/diversity_report.py is used):
+#   PYTHONPATH=src python tools/diversity_report.py run --out <out> --chrome <chrome-wrapper> --reference-time 2026-10-23T13:00:00Z is-odd=<clone of is-odd> click=<clone of click> flask=<clone of flask> requests=<clone of requests> gitgeist=<clone of gitgeist> z=<clone of z> lua=<clone of lua> awesome=<clone of awesome> alpine=<clone of alpine> zlib=<clone of zlib> NeKode=<clone of NeKode> fresh=<clone of fresh>
+# Trees:     before = 4fa14c99960efc9beee25631b22e26eeb823403e (main, the branch point; gitgeist 0.9.0; a2ab807 only adds the stage 4 spec)
+#            after  = ec469a6 (branch gitgeist-17-stage-4-spec, gitgeist 0.10.0; clean tree, after the HUD fixes of 229d529; the first measurement, 0.405 at 08989a5, was taken before them)
+# Machine:   Linux (the Grok Bot box), Python 3.13.5, pydantic 2.14.2, Pillow 13.0.0, Google Chrome 156.0.8078.47
+# Date:      2026-11-03 (Europe/Warsaw), run by Code Manager #2 on the box (decision O6 (a): not on the PC)
+# Corpus:    the 11 repositories pinned in tools/quantile-corpus.toml (clean clones at their pinned commits) plus the synthetic `fresh`
+#            repository of analysis.md, as in stage-4-corpus-report.txt (fresh = 0e5567896141c87710198dacb131c2eaf1b88deb):
+#              is-odd    a80ee0d831a8ee69f1fad5b4673491847975eb26
+#              click     2247b35ea1c47c727d7a06e51fa280e12a863ff6
+#              flask     d086db856be187255b8ec61ef409357393020f32
+#              requests  611c6162cbc4ac2020a2f91c7cfa4f3abf9bbb60
+#              gitgeist  3d3a7fedc56f0af30fe758d66d47636b8ce7c16e
+#              z         d37a763a6a30e1b32766fecc3b8ffd6127f8a0fd
+#              lua       8cb93bada561977eb370819e39d7d644e5fd0a3f
+#              awesome   bc98e517ddca672f55f9857d714fc3ea3c3540b2
+#              alpine    8d3d9a2f98385d4c879f4b5be080a0221279ed4d
+#              zlib      767c4c947852e143f582c85f14cf573411df1b35
+#              NeKode    997f752224363a20d7242c4f0d1cbff742ac50f8
+#              fresh     0e5567896141c87710198dacb131c2eaf1b88deb
+# Chrome:    headless Chrome on the box hangs on every brand-new --user-data-dir (a plain `google-chrome --headless=new --screenshot=...` timed out
+#            after 120 s; it was not blocked by Auto-review). The tool creates a new temp profile per screenshot, so --chrome points to the
+#            wrapper tools/chrome_warm_profile.sh (committed in this repository; run with CHROME_WARM_PROFILE=<profile that Chrome started
+#            once before>, CHROME_BIN=/usr/bin/google-chrome). It gives each call a copy of that profile and adds --no-sandbox; flags and
+#            the page are unchanged. The measured runs used an earlier, box-local copy of the same logic with the paths fixed in the script.
+# Screenshots: 520x520, frozen 1.5 s animation clock (tools/diversity_report.py), HUD of the page included (caption on, the default).
+#
+# Criterion 3 (visual review of the portraits): ACCEPTED by Tomasz, 2026-11-03 17:42 (Europe/Warsaw), on the contact sheets of the tree 08989a5.
+#   The two HUD defects (the 'deep, narrow tree' phrase for a repository without directories; the HUD box over large
+#   portraits) were found and reported by Code Manager #2 in the visual review handoff; Tomasz accepted the look at 17:42 and asked to
+#   fix them. They are fixed in 229d529 (red and green runs of the new tests: docs/evidence/stage-4-hud-fixes-red-green.txt) and the
+#   measurement below was repeated on the fixed tree.
+#
+RESULT: PASS. Criterion 2 (nearest-neighbour median D v1 of abstract live >= 0.40): 0.186 -> 0.409 (target 0.40). No drawing constant of the spec was tuned (the HUD fix changes the layout rule only, see Notes).
+
+## Nearest-neighbour median and closest pair (report.json, `distance`)
+
+| render | before (0.9.0) median | before closest pair | after (0.10.0) median | after closest pair |
+|---|---|---|---|---|
+| live abstract | 0.186 | 0.076 (gitgeist, NeKode) | 0.409 | 0.019 (is-odd, fresh) |
+| live character | 0.091 | 0.039 (gitgeist, NeKode) | 0.091 | 0.039 (gitgeist, NeKode) |
+
+Pair mean D, abstract: before 0.979, after 0.923. The character render is unchanged (stage 5).
+
+## Abstract: nearest neighbour of every repository
+
+| repo | before: closest, D | after: closest, D |
+|---|---|---|
+| is-odd | requests, 0.935 | fresh, 0.019 |
+| click | flask, 0.364 | requests, 0.389 |
+| flask | alpine, 0.082 | NeKode, 0.429 |
+| requests | lua, 0.449 | gitgeist, 0.355 |
+| gitgeist | NeKode, 0.076 | requests, 0.355 |
+| z | awesome, 0.186 | NeKode, 0.861 |
+| lua | z, 0.242 | zlib, 0.82 |
+| awesome | z, 0.186 | zlib, 0.477 |
+| alpine | flask, 0.082 | fresh, 0.221 |
+| zlib | NeKode, 0.148 | awesome, 0.477 |
+| NeKode | gitgeist, 0.076 | flask, 0.429 |
+| fresh | zlib, 1.071 | is-odd, 0.019 |
+
+Median of the `after` column: 0.409 (`before`: 0.186).
+
+## Repeatability
+
+A second run of the `after` command on the same tree gives identical medians and identical pair distances for both renders: yes.
+The 12 abstract screenshots of the two runs are byte-identical (cmp).
+
+## Notes
+
+- The remeasured baseline 0.186 differs from the 0.192 recorded at 03741e1 (plan.md): the 0.9.0 code and the rebuilt `fresh` repository differ from that run. Criterion 2 compares against the baseline remeasured here, as the plan requires.
+- The closest abstract pair is now is-odd and fresh (0.019): two small, frayed single-mass forms of similar size and layout (is-odd faded, fresh orange). The plan does not set a closest-pair target for the abstract render.
+- The saturation row "abstract symmetry_order >= 6" of report.md reads 0/12 after the change because the abstract state has no geometry; the label says so.
+- Files kept for Tomasz's visual review (criterion 3), outside the repository: /workspace/stage4-review/ on the box (contact sheets before and after, two live pages).
+- HUD fix and D: the first fix attempt (a strip reserved at the top, footprint radius 0.5*coverage*min(width, height-strip)) shrank every large portrait and gave 0.378, below the target; a lightness trial of the bodies (45 -> 55) did not help (0.378) and was reverted. The adopted rule caps the radius at the free area, 0.5*min(coverage*min(width, height), height-strip), which only changes portraits with a coverage above about 0.77: 0.409. Tomasz's accepted contact sheets are therefore not identical to the final ones for those portraits (alpine, click, NeKode are drawn smaller), and the top-end size channel saturates a little at the cap. The sheets were regenerated in /workspace/stage4-review/.
