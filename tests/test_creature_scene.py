@@ -15,6 +15,7 @@ from gitgeist.visual import build_visual_spec, compute_traits
 from tests.creature_helpers import BUILDERS, make_character_spec, make_creature_scene, make_features
 from tests.fixtures import builder
 from tests.orbits_helpers import IDENTITY, REFERENCE_TIME, make_spec
+from tests.snapshot_helpers import assert_matches_snapshot
 
 SNAPSHOT = Path(__file__).parent / "golden" / "live" / "creature-0.11.0-live-state.json"
 
@@ -82,8 +83,12 @@ def test_builder_errors() -> None:
 
 
 def test_creature_scene_matches_the_0_11_0_snapshot() -> None:
-    """Regression anchor: the scene of ``make_creature_scene()`` at 0.11.0, engine version masked."""
+    """Regression anchor: the scene of ``make_creature_scene()`` at 0.11.0, engine version masked.
+
+    Exact text except float literals, which match within a relative 1e-9: the layout floats of the spec come
+    from ``math`` functions that may differ in the last bit between platforms (the Windows CI of stage 5).
+    """
     from gitgeist._version import current_engine_version
 
     state = make_creature_scene().model_dump_json(indent=2).replace(current_engine_version(), "<ENGINE_VERSION>")
-    assert state == SNAPSHOT.read_text(encoding="utf-8")
+    assert_matches_snapshot(state, SNAPSHOT.read_text(encoding="utf-8"))
