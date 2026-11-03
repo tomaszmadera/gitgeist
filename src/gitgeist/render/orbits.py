@@ -56,6 +56,8 @@ def _phrase(trait: str, high: bool, features: RepositoryFeatures, spec: VisualSp
         label = "well tested" if high else "few tests"
         return f"{label} ({round(static.test_ratio * 100)}% test files)"
     if trait == "sprawl":
+        if static.top_level_directory_count == 0:
+            return "flat tree, all files at the root"
         label = "wide, shallow tree" if high else "deep, narrow tree"
         return f"{label} ({static.top_level_directory_count} top-level directories, depth {static.max_directory_depth})"
     if trait == "prose":

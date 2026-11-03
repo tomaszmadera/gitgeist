@@ -111,6 +111,23 @@ def test_one_phrase_per_trait_end(trait: str, value: float, expected: str) -> No
     assert _conclusions(**{trait: value})[0] == expected
 
 
+@pytest.mark.parametrize("value", [0.0, 1.0])
+def test_flat_repository_reads_as_flat_not_deep(value: float) -> None:
+    features = make_features()
+    features = features.model_copy(update={"static": features.static.model_copy(
+        update={"top_level_directory_count": 0, "max_directory_depth": 0})})
+    spec = with_traits(make_spec(features), **{**NEUTRAL, "sprawl": value})
+    assert build_orbits_scene(features, spec).conclusions[0] == "flat tree, all files at the root"
+
+
+def test_one_directory_still_reads_by_the_trait() -> None:
+    features = make_features()
+    features = features.model_copy(update={"static": features.static.model_copy(
+        update={"top_level_directory_count": 1, "max_directory_depth": 1})})
+    spec = with_traits(make_spec(features), **{**NEUTRAL, "sprawl": 0.0})
+    assert build_orbits_scene(features, spec).conclusions[0] == "deep, narrow tree (1 top-level directories, depth 1)"
+
+
 def test_value_exactly_half_reads_as_the_high_end() -> None:
     assert _conclusions(prose=0.5, size=0.5, alive=0.9)[0] == "active: last commit 10 days ago"
     spec = with_traits(make_spec(make_features()), **NEUTRAL)

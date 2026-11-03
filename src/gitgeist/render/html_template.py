@@ -280,19 +280,23 @@ _ORBITS_CSS = """
     }
     #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
     canvas { display: block; width: 100%; height: 100%; }
+    /* The HUD has a fixed height (HUD_STRIP in the script reserves the strip above the composition). */
     #hud {
-      position: absolute; top: 24px; left: 24px; z-index: 10;
+      position: absolute; top: 12px; left: 12px; z-index: 10;
+      height: 104px;
+      width: 340px; max-width: calc(100vw - 24px);
       background: rgba(0, 0, 0, 0.45);
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 8px;
-      padding: 16px 20px;
+      padding: 8px 14px;
+      overflow: hidden;
       pointer-events: none;
       user-select: none;
-      max-width: 340px;
     }
-    #hud h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; }
+    #hud h1 { font-size: 15px; line-height: 20px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 6px; }
+    #hud h1, #hud li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     #hud ul { list-style: none; }
-    #hud li { font-size: 13px; line-height: 1.6; opacity: 0.9; }
+    #hud li { font-size: 13px; line-height: 20px; opacity: 0.9; }
     #hover {
       position: absolute; z-index: 20; display: none;
       background: rgba(0, 0, 0, 0.75);
@@ -332,6 +336,7 @@ _ORBITS_JS = """
   var RECENT_LOOP_SHARE = 0.1;
   var RECENT_MONTHS = 3;
   var OUTLINE_POINTS = 36;
+  var HUD_STRIP = 120;
 
   /* The effective seed has up to 64 bits: read it from the raw text, not from the parsed double. */
   var seedMatch = /"effective_seed":\\s*(\\d+)/.exec(stateText);
@@ -445,9 +450,12 @@ _ORBITS_JS = """
   function draw(t) {
     var loopTime = ((t % loopSeconds) + loopSeconds) % loopSeconds;
     var amp = pulseAmplitude(loopTime);
-    var R = Math.max(1, 0.5 * spec.footprint.coverage * Math.min(width, height));
+    /* The top strip is reserved for the HUD in both caption modes, so the picture is the same. */
+    var strip = Math.min(HUD_STRIP, height * 0.3);
+    var area = Math.max(1, height - strip);
+    var R = Math.max(1, 0.5 * Math.min(spec.footprint.coverage * Math.min(width, height), area));
     var cx = width / 2;
-    var cy = height / 2;
+    var cy = strip + area / 2;
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.shadowBlur = 0;

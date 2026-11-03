@@ -109,12 +109,19 @@ const stateStart = html.indexOf('>', html.indexOf('gitgeist-state')) + 1;
 const stateText = html.slice(stateStart, html.indexOf('</script>', stateStart));
 const bad = [];
 let calls = 0;
+let minTop = Infinity;
+const note = (name, args) => {
+  if (name === 'arc') minTop = Math.min(minTop, args[1] - args[2]);
+  else if (name === 'ellipse') minTop = Math.min(minTop, args[1] - Math.max(args[2], args[3]));
+  else if (name === 'fillRect' && !(args[0] === 0 && args[1] === 0)) minTop = Math.min(minTop, args[1]);
+};
 const ctx = new Proxy({}, {
   get(target, name) {
     if (name in target) return target[name];
     return (...args) => {
       calls += 1;
       for (const a of args) if (typeof a === 'number' && !Number.isFinite(a)) bad.push(name + ':' + a);
+      note(name, args);
       return {addColorStop() {}};
     };
   },
@@ -137,7 +144,7 @@ if (listeners.mousemove) {
   listeners.mousemove({clientX: window.innerWidth / 2, clientY: window.innerHeight / 2});
   listeners.mousemove({clientX: -5, clientY: -5});
 }
-console.log(JSON.stringify({bad, calls}));
+console.log(JSON.stringify({bad, calls, minTop}));
 """
 
 
@@ -173,3 +180,45 @@ def test_script_draws_a_scene_without_masses_or_history(tmp_path: Path) -> None:
                             timeout=60, check=False)
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout)["bad"] == []
+
+
+def _min_top(tmp_path: Path, scene: OrbitsScene, size: tuple[int, int]) -> tuple[float, str]:
+    page = tmp_path / "page.html"
+    page.write_text(generate_orbits_html(scene), encoding="utf-8")
+    harness = tmp_path / "harness.js"
+    harness.write_text(NODE_HARNESS, encoding="utf-8")
+    result = subprocess.run(["node", str(harness), str(page), str(size[0]), str(size[1])],
+                            capture_output=True, text=True, timeout=60, check=False)
+    assert result.returncode == 0, result.stderr
+    return json.loads(result.stdout)["minTop"], page.read_text(encoding="utf-8")
+
+
+def test_hud_is_a_fixed_height_box_inside_the_reserved_strip() -> None:
+    page = generate_orbits_html(make_scene())
+    code = _code(page)
+    assert "var HUD_STRIP = 120;" in code
+    hud_css = page[page.index("#hud {") : page.index("#hud h1 {")]
+    top = int(re.search(r"top: (\d+)px", hud_css).group(1))
+    height = int(re.search(r"height: (\d+)px", hud_css).group(1))
+    assert top + height + 2 * 1 <= 120  # box plus its 1 px borders end inside the strip
+    assert "white-space: nowrap" in page[page.index("#hud h1, #hud li") :]  # no wrapping: the height never grows
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node is not installed")
+@pytest.mark.parametrize("size", [(520, 520), (1280, 720), (800, 1200), (400, 300)])
+def test_composition_stays_below_the_hud_strip(tmp_path: Path, size: tuple[int, int]) -> None:
+    # Crisp edges (no jitter, no blur): every body is an exact circle, so the check is exact.
+    scene = make_scene()
+    crisp = scene.spec.model_copy(update={"edge": scene.spec.edge.model_copy(update={"blur_px": 0.0, "jitter": 0.0})})
+    for coverage in (0.25, 0.85):  # the footprint range: the largest portrait is the one that could reach the HUD
+        spec = crisp.model_copy(update={"footprint": crisp.footprint.model_copy(update={"coverage": coverage})})
+        top, _ = _min_top(tmp_path, scene.model_copy(update={"spec": spec}), size)
+        radius = 0.5 * min(coverage * min(size), size[1] - min(120, size[1] * 0.3))
+        # Breathing (4% of a body radius) and dust drift (up to 0.07 of the footprint radius) may pass the circle slightly.
+        assert top >= min(120, size[1] * 0.3) - 0.12 * radius
+
+
+def test_caption_does_not_change_the_composition_rule(tmp_path: Path) -> None:
+    # The strip is reserved with and without a caption, so the drawing code is identical (see also
+    # test_caption_off_has_no_hud_or_hover_and_draws_the_same).
+    assert "HUD_STRIP" in _code(generate_orbits_html(make_scene(caption=False)))
