@@ -16,11 +16,12 @@ from gitgeist.schemas.features import (
 )
 from gitgeist.schemas.identity import IdentitySeed
 from gitgeist.schemas.live_state import (
-    ColorPalette,
-    GeometryParameters,
+    CreatureBody,
+    CreatureLimb,
+    CreatureScene,
+    CreatureSegment,
+    CreatureTorso,
     HoverDetail,
-    LiveSimulationState,
-    MotionDynamics,
     OrbitsScene,
 )
 from gitgeist.schemas.visual_latent import (
@@ -31,20 +32,21 @@ from gitgeist.schemas.visual_latent import (
 
 __all__ = [
     "ChoiceDistribution",
-    "ColorPalette",
+    "CreatureBody",
+    "CreatureLimb",
+    "CreatureScene",
+    "CreatureSegment",
+    "CreatureTorso",
     "DocsSummaryFeatures",
     "EmotionalChoices",
     "EmotionalNouls",
     "EmotionalScores",
     "EmotionalState",
-    "GeometryParameters",
     "GitHistoryFeatures",
     "Hotspot",
     "HoverDetail",
     "IdentitySeed",
-    "LiveSimulationState",
     "MaterialityDistribution",
-    "MotionDynamics",
     "OrbitsScene",
     "RepositoryFeatures",
     "StaticFeatures",

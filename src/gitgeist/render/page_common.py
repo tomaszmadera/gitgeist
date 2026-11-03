@@ -9,7 +9,7 @@ drawing, hit test) belongs to the style.
 
 import html
 
-from gitgeist.schemas.live_state import OrbitsScene
+from gitgeist.schemas.live_state import CreatureScene, OrbitsScene
 
 PAGE_CSS = """
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -164,7 +164,7 @@ JS_HOVER_TAIL = """      var detail = null;
 """
 
 
-def hud_markup(scene: OrbitsScene) -> tuple[str, str]:
+def hud_markup(scene: OrbitsScene | CreatureScene) -> tuple[str, str]:
     """HUD and hover box markup of a scene; both are empty when the scene has no caption."""
     if not scene.caption:
         return "", ""
@@ -174,7 +174,7 @@ def hud_markup(scene: OrbitsScene) -> tuple[str, str]:
     return hud, '  <div id="hover"></div>\n'
 
 
-def page_html(scene: OrbitsScene, representation_title: str, script: str) -> str:
+def page_html(scene: OrbitsScene | CreatureScene, representation_title: str, script: str) -> str:
     """Assemble the self-contained page around a style's script (``script`` starts with a newline)."""
     # "<\/" is a valid JSON escape: the payload cannot close its own script tag early.
     scene_json = scene.model_dump_json(indent=2).replace("</", "<\\/")

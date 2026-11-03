@@ -1,11 +1,15 @@
-# Character live snapshot (0.9.0)
+# Live snapshots
 
-`character-0.9.0-live-preview.html` and `character-0.9.0-live-state.json` are the output of
-`render_live(profile, mode="character", repository_name="golden-character", identity=...)` at
-gitgeist 0.9.0 (commit `4fa14c9`) for the profile and identity of `tests/test_live_renderers.py`
-(`sample_profile`, `SAMPLE_IDENTITY`). The engine version is masked as `<ENGINE_VERSION>`.
+## Abstract (0.10.0)
 
-`tests/test_live_renderers.py::test_character_live_output_matches_the_0_9_0_snapshot` compares the
-current character output with them (spec `docs/features/live-renderer-v2/spec.md`, business rule 5).
-The state JSON must match exactly. The page must match after removing the abstract code path that
-0.10.0 deleted (`drawAbstract` and the mode dispatch); nothing else may change.
+`orbits-0.10.0-live-preview.html` and `orbits-0.10.0-live-state.json` are the abstract `orbits` page and scene
+JSON of `tests.orbits_helpers.make_scene()` at gitgeist 0.10.0 (the engine version is masked as
+`<ENGINE_VERSION>`). `tests/test_orbits_snapshot.py` compares the current output with them byte for byte:
+stage 5 shares page code with the creature page and must not change the abstract output.
+
+## Character (0.11.0)
+
+`creature-0.11.0-live-state.json` is the `CreatureScene` of `tests.creature_helpers.make_creature_scene()`
+at gitgeist 0.11.0, the regression anchor of the body plan and the scene JSON.
+`tests/test_creature_scene.py::test_creature_scene_matches_the_0_11_0_snapshot` compares it. If the body
+plan changes on purpose, regenerate it with `python -m tests.regen_creature_snapshot` and review the diff.

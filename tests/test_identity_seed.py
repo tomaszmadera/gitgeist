@@ -7,15 +7,10 @@ import os
 import subprocess
 from pathlib import Path
 
+import pytest
 
 from gitgeist.ingest.identity import compute_identity_seed
-from gitgeist.render.character_renderer import generate_character_simulation
 from gitgeist.schemas.identity import IdentitySeed
-from gitgeist.schemas.visual_latent import (
-    MaterialityDistribution,
-    VisualLatentAxes,
-    VisualLatentProfile,
-)
 
 
 def _git(repo: Path, *args: str) -> str:
@@ -35,17 +30,6 @@ def _git(repo: Path, *args: str) -> str:
 
 def _sha256(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
-
-
-def _profile(axis_value: float) -> VisualLatentProfile:
-    return VisualLatentProfile(
-        axes=VisualLatentAxes(**{name: axis_value for name in VisualLatentAxes.model_fields}),
-        materiality=MaterialityDistribution(
-            weights={"organic": 0.25, "mechanical": 0.25, "crystalline": 0.25, "ethereal": 0.25},
-            dominant="organic",
-        ),
-        dominant_features=["sharpness"],
-    )
 
 
 def test_identity_seed_hashes_the_root_commit(clean_modular_repo: Path) -> None:
@@ -125,22 +109,12 @@ def test_identity_seed_for_subdirectory_of_repository_uses_directory_name(
     )
 
 
-def test_live_seed_depends_on_identity_not_profile() -> None:
-    identity = _sha256("root")
-
-    seed_a = generate_character_simulation(_profile(0.2), identity_seed=identity).seed
-    seed_b = generate_character_simulation(_profile(0.9), identity_seed=identity).seed
-    seed_other = generate_character_simulation(_profile(0.2), identity_seed=_sha256("other-root")).seed
-
-    assert seed_a == seed_b
-    assert seed_a != seed_other
-
-
-def test_abstract_scene_seed_depends_on_identity_not_features() -> None:
+@pytest.mark.parametrize("representation", ["abstract", "character"])
+def test_scene_seed_depends_on_identity_not_features(representation: str) -> None:
     from gitgeist.visual import build_visual_spec, compute_traits
     from tests.orbits_helpers import IDENTITY, REFERENCE_TIME, make_features
 
-    def seed(features, identity, representation="abstract") -> int:
+    def seed(features, identity) -> int:
         traits = compute_traits(features, reference_time=REFERENCE_TIME)
         return build_visual_spec(features, traits, identity, representation).seeds.effective_seed
 

@@ -189,9 +189,9 @@ def test_run_writes_traits_specs_and_correlations(minimal_repo: Path, legacy_cha
     capsys.readouterr()
 
 
-def test_run_draws_abstract_live_through_the_orbits_scene(minimal_repo: Path, legacy_chaotic_repo: Path,
+def test_run_draws_both_live_pages_through_their_scenes(minimal_repo: Path, legacy_chaotic_repo: Path,
                                                          tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    from gitgeist.schemas.live_state import OrbitsScene
+    from gitgeist.schemas.live_state import CreatureScene, OrbitsScene
 
     out = tmp_path / "orbits-report"
     assert report.main(["run", "--no-images", "--out", str(out), "--reference-time", "2026-04-16T00:00:00Z",
@@ -200,11 +200,17 @@ def test_run_draws_abstract_live_through_the_orbits_scene(minimal_repo: Path, le
     for name in ("minimal", "legacy"):
         assert layers[name]["live_abstract"]["spec"]["style"] == "orbits"
         assert "geometry" not in layers[name]["live_abstract"]
-        assert layers[name]["live_character"]["geometry"]["symmetry_order"] >= 1
+        assert layers[name]["live_character"]["spec"]["style"] == "creature"
+        assert "geometry" not in layers[name]["live_character"]
+        assert "body" in layers[name]["live_character"]
         scene = OrbitsScene.model_validate_json(
             (out / "live" / f"{name}-abstract" / "live-state.json").read_text(encoding="utf-8"))
         assert scene.spec.traits.reference_time.isoformat() == "2026-04-16T00:00:00+00:00"
         assert scene.caption is True
+        creature = CreatureScene.model_validate_json(
+            (out / "live" / f"{name}-character" / "live-state.json").read_text(encoding="utf-8"))
+        assert creature.spec.traits.reference_time.isoformat() == "2026-04-16T00:00:00+00:00"
+        assert creature.caption is True
     capsys.readouterr()
 
 

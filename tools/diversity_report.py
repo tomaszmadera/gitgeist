@@ -259,28 +259,23 @@ def _render_live(
     profile: Any, mode: str, name: str, repo: Path, output_dir: Path,
     features: Any = None, reference_time: datetime | None = None,
 ) -> Any:
-    """Call render_live with or without the identity seed (added in plan stage 1).
+    """Render the live page of one representation from the stage 3 absolute traits at ``reference_time``.
 
-    Keeps the tool usable on commits before stage 1 for baseline runs. From plan
-    stage 4 (0.10.0) the abstract render needs an OrbitsScene, built here from the
-    stage 3 absolute traits at ``reference_time`` with the default caption.
+    From plan stage 5 (0.11.0) both representations draw a scene (abstract: ``OrbitsScene``, character:
+    ``CreatureScene``) built with the default caption, and ``render_live`` takes only the scene. The
+    ``profile`` argument is kept for the callers of ``analyse`` (it is not used by the live pages).
     """
+    from gitgeist.ingest.identity import compute_identity_seed
+    from gitgeist.render.creature import build_creature_scene
     from gitgeist.render.facade import render_live
+    from gitgeist.render.orbits import build_orbits_scene
+    from gitgeist.visual import build_visual_spec, compute_traits
 
-    kwargs: dict[str, Any] = {"mode": mode, "repository_name": name, "output_dir": output_dir}
-    parameters = inspect.signature(render_live).parameters
-    if "identity" in parameters:
-        from gitgeist.ingest.identity import compute_identity_seed
-
-        kwargs["identity"] = compute_identity_seed(repo)
-    if "scene" in parameters and mode == "abstract":
-        from gitgeist.render.orbits import build_orbits_scene
-        from gitgeist.visual import build_visual_spec, compute_traits
-
-        traits = compute_traits(features, reference_time=reference_time)
-        spec = build_visual_spec(features, traits, kwargs["identity"], "abstract")
-        kwargs["scene"] = build_orbits_scene(features, spec, repository_name=name)
-    return render_live(profile, **kwargs)
+    identity = compute_identity_seed(repo)
+    traits = compute_traits(features, reference_time=reference_time)
+    spec = build_visual_spec(features, traits, identity, mode)
+    build = build_orbits_scene if mode == "abstract" else build_creature_scene
+    return render_live(build(features, spec, repository_name=name), output_dir, identity=identity)
 
 
 SCALE_MODES = ("absolute", "corpus")
@@ -420,7 +415,8 @@ SATURATION_RULES: list[tuple[str, Callable[[dict[str, Any]], bool]]] = [
     ("luminosity qualifier 'medium'", lambda r: _qualifier(r["axes"]["luminosity"]) == "medium"),
     ("contrast qualifier 'high'", lambda r: _qualifier(r["axes"]["contrast"]) == "high"),
     ("materiality mechanical or crystalline", lambda r: r["materiality"]["dominant"] in ("mechanical", "crystalline")),
-    ("character symmetry_order == 2", lambda r: r["live_character"]["geometry"]["symmetry_order"] == 2),
+    ("character symmetry_order == 2 (always 0 from 0.11.0: the character state has no geometry)",
+     lambda r: r["live_character"].get("geometry", {}).get("symmetry_order", 0) == 2),
     ("abstract symmetry_order >= 6 (always 0 from 0.10.0: the abstract state has no geometry)",
      lambda r: r["live_abstract"].get("geometry", {}).get("symmetry_order", 0) >= 6),
     ("temperament proud", lambda r: r["choices"]["temperament"] == "proud"),

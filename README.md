@@ -51,7 +51,9 @@ The abstract live portrait draws the repository's `VisualSpec` in the `orbits` s
 .venv/bin/gitgeist render /path/to/repo --representation abstract --mode live --caption off
 ```
 
-For the abstract representation `live-state.json` holds the scene (the `VisualSpec` plus the conclusions and hover text); the character representation keeps its previous format. `--caption` applies only to `--mode live`.
+The character live portrait draws the same `VisualSpec` as a creature (style `creature`): the largest directory is the upright torso with its growth rings, every other directory is a limb in a left/right pair along the body (the pad at its end is the directory, thickness from its file share, reach from its churn share, `1 + nesting_levels` segments), strands as tendrils growing from the torso, the focal knot on the limb of the top hotspot, and the posture follows `alive`: a dormant repository has curled, barely moving limbs, an active one has extended, swaying limbs. The HUD, hover details and `--caption` work as for the abstract portrait.
+
+`live-state.json` holds the scene for both representations: an `OrbitsScene` (abstract) or a `CreatureScene` (character: the `VisualSpec`, the computed body plan, the conclusions and the hover text). `--caption` applies only to `--mode live`. From the library: `render_live(scene, output_dir=None, *, identity)` takes either scene (`build_orbits_scene` or `build_creature_scene`).
 
 ### Portrait from an image generator
 
@@ -115,7 +117,7 @@ The same repository state gives a byte-identical `summary.md`. `profile.json` di
 
 The `normalized` layer holds every normalized input in the `absolute` and `corpus` scale modes (corpus with the quantile table shipped in the package), and `report.md` has a "Normalized inputs" section with the number of repositories at exactly 0 or 1 and with a clipped value per input. `--reference-time` (ISO 8601 with a zone, default: now) is the time recency is measured against; it is stored in `report.json`. `extract-time` prints the median time of `extract_features` over `--runs` runs (default 5) after one warm-up run.
 
-The `traits` layer records all nine portrait traits in both scale modes, using `--reference-time`. The `visual_spec` layer records one renderer-neutral scene per representation with the default `absolute` traits. The "Traits" report section includes correlation matrices, maximum |r| and participation ratios for both scales, plus nearest-neighbour spec distances for both representations. Stage 3 added these scene descriptions to the library and report; since 0.10.0 the abstract live renderer draws them, while the character live renderer and the prompt composer keep their existing inputs. See the [VisualSpec schema](docs/features/traits-visualspec-seeds/visual-spec.md).
+The `traits` layer records all nine portrait traits in both scale modes, using `--reference-time`. The `visual_spec` layer records one renderer-neutral scene per representation with the default `absolute` traits. The "Traits" report section includes correlation matrices, maximum |r| and participation ratios for both scales, plus nearest-neighbour spec distances for both representations. Stage 3 added these scene descriptions to the library and report; since 0.10.0 the abstract live renderer draws them and since 0.11.0 the character live renderer does too, while the prompt composer keeps its existing inputs. See the [VisualSpec schema](docs/features/traits-visualspec-seeds/visual-spec.md).
 
 ```bash
 .venv/bin/python tools/diversity_report.py run --out tmp/diversity /path/to/repo-a /path/to/repo-b /path/to/repo-c

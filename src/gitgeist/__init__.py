@@ -46,12 +46,7 @@ from gitgeist.schemas.features import (
     StaticFeatures,
 )
 from gitgeist.schemas.identity import IdentitySeed
-from gitgeist.schemas.live_state import (
-    ColorPalette,
-    GeometryParameters,
-    LiveSimulationState,
-    MotionDynamics,
-)
+from gitgeist.schemas.live_state import CreatureScene, OrbitsScene
 from gitgeist.schemas.visual_latent import (
     MaterialityDistribution,
     VisualLatentAxes,
@@ -60,7 +55,7 @@ from gitgeist.schemas.visual_latent import (
 
 __all__ = [
     "ChoiceDistribution",
-    "ColorPalette",
+    "CreatureScene",
     "DocsSummaryFeatures",
     "EmotionalChoices",
     "EmotionalNouls",
@@ -69,16 +64,14 @@ __all__ = [
     "ExplanationArtifacts",
     "FakeImageBackend",
     "GeneratedImage",
-    "GeometryParameters",
     "GitHistoryFeatures",
     "Hotspot",
     "IdentitySeed",
     "ImageGenerationBackend",
     "LiveRenderArtifacts",
-    "LiveSimulationState",
     "MaterialityDistribution",
-    "MotionDynamics",
     "OpenRouterImageBackend",
+    "OrbitsScene",
     "PromptRenderArtifacts",
     "RepositoryFeatures",
     "StaticFeatures",
