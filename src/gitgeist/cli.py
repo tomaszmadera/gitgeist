@@ -21,6 +21,7 @@ from gitgeist.ingest.identity import compute_identity_seed
 from gitgeist.interpretation.emotional_model import evaluate_emotional_state
 from gitgeist.mapping.latent_mapper import map_emotional_to_latent
 from gitgeist.render.facade import render_live, render_prompt
+from gitgeist.render.orbits import build_orbits_scene
 from gitgeist.render.image_backend import (
     API_KEY_ENV,
     FakeImageBackend,
@@ -28,13 +29,16 @@ from gitgeist.render.image_backend import (
     OpenRouterImageBackend,
 )
 from gitgeist.schemas.emotional import EmotionalState
+from gitgeist.schemas.features import RepositoryFeatures
+from gitgeist.schemas.traits import Traits
 from gitgeist.schemas.visual_latent import VisualLatentProfile
-from gitgeist.visual import compute_traits
+from gitgeist.visual import build_visual_spec, compute_traits
 
 REPRESENTATION_MODES = ("character", "abstract")
 GENERATION_MODES = ("live", "prompt-to-image")
 BACKEND_CHOICES = ("fake", "openrouter")
 IMAGE_FORMAT_CHOICES = ("native", "png")
+CAPTION_CHOICES = ("on", "off")
 DEFAULT_OUTPUT_ROOT = "gitgeist-output"
 GIT_TIMEOUT_SECONDS = 30
 
@@ -81,24 +85,25 @@ def _resolve_repo_path(raw_path: str) -> Path | None:
 
 def _analyze(
     repo_path: Path, repository_name: str, output_dir: Path
-) -> tuple[list[Path], EmotionalState, VisualLatentProfile]:
+) -> tuple[list[Path], EmotionalState, VisualLatentProfile, RepositoryFeatures, Traits]:
     features = extract_features(repo_path)
     state = evaluate_emotional_state(features, source_commit=_head_commit(repo_path))
     profile = map_emotional_to_latent(state)
+    traits = compute_traits(features)
     explanation = explain(
         features,
         state,
         profile,
         repository_name=repository_name,
         output_dir=output_dir,
-        traits=compute_traits(features),
+        traits=traits,
     )
     written = [
         path
         for path in (explanation.profile_path, explanation.summary_path)
         if path is not None
     ]
-    return written, state, profile
+    return written, state, profile, features, traits
 
 
 def _report_written(paths: list[Path]) -> None:
@@ -115,7 +120,7 @@ def command_analyze(args: argparse.Namespace) -> int:
     output_dir = (
         Path(args.output) if args.output else Path.cwd() / DEFAULT_OUTPUT_ROOT / repository_name
     )
-    written, _state, _profile = _analyze(repo_path, repository_name, output_dir)
+    written, *_ = _analyze(repo_path, repository_name, output_dir)
     _report_written(written)
     return 0
 
@@ -128,6 +133,10 @@ def command_render(args: argparse.Namespace) -> int:
     output_dir = (
         Path(args.output) if args.output else Path.cwd() / DEFAULT_OUTPUT_ROOT / repository_name
     )
+
+    if args.mode != "live" and args.caption is not None:
+        print("error: --caption applies only to --mode live", file=sys.stderr)
+        return 2
 
     backend: ImageGenerationBackend | None = None
     if args.mode == "prompt-to-image":
@@ -142,15 +151,23 @@ def command_render(args: argparse.Namespace) -> int:
     elif args.image_format != "native":
         return _error("--image-format applies only to --mode prompt-to-image")
 
-    written, state, profile = _analyze(repo_path, repository_name, output_dir)
+    written, state, profile, features, traits = _analyze(repo_path, repository_name, output_dir)
 
     if args.mode == "live":
+        identity = compute_identity_seed(repo_path)
+        scene = None
+        if args.representation == "abstract":
+            spec = build_visual_spec(features, traits, identity, "abstract")
+            scene = build_orbits_scene(
+                features, spec, repository_name=repository_name, caption=args.caption != "off"
+            )
         artifacts = render_live(
             profile,
             mode=args.representation,
             repository_name=repository_name,
             output_dir=output_dir,
-            identity=compute_identity_seed(repo_path),
+            identity=identity,
+            scene=scene,
         )
         written.extend(
             path
@@ -230,6 +247,15 @@ def _build_parser() -> argparse.ArgumentParser:
         help=(
             "portrait format handling for --mode prompt-to-image: 'native' keeps the "
             "detected format, 'png' converts non-PNG output through Pillow (default: native)"
+        ),
+    )
+    render.add_argument(
+        "--caption",
+        default=None,
+        choices=CAPTION_CHOICES,
+        help=(
+            "HUD with three plain conclusions and hover details for --mode live "
+            "(abstract representation; default: on)"
         ),
     )
     render.set_defaults(func=command_render)

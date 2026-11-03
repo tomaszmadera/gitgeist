@@ -7,10 +7,8 @@ import os
 import subprocess
 from pathlib import Path
 
-import pytest
 
 from gitgeist.ingest.identity import compute_identity_seed
-from gitgeist.render.abstract_renderer import generate_abstract_simulation
 from gitgeist.render.character_renderer import generate_character_simulation
 from gitgeist.schemas.identity import IdentitySeed
 from gitgeist.schemas.visual_latent import (
@@ -127,24 +125,37 @@ def test_identity_seed_for_subdirectory_of_repository_uses_directory_name(
     )
 
 
-@pytest.mark.parametrize(
-    "generator", [generate_abstract_simulation, generate_character_simulation]
-)
-def test_live_seed_depends_on_identity_not_profile(generator) -> None:
+def test_live_seed_depends_on_identity_not_profile() -> None:
     identity = _sha256("root")
 
-    seed_a = generator(_profile(0.2), identity_seed=identity).seed
-    seed_b = generator(_profile(0.9), identity_seed=identity).seed
-    seed_other = generator(_profile(0.2), identity_seed=_sha256("other-root")).seed
+    seed_a = generate_character_simulation(_profile(0.2), identity_seed=identity).seed
+    seed_b = generate_character_simulation(_profile(0.9), identity_seed=identity).seed
+    seed_other = generate_character_simulation(_profile(0.2), identity_seed=_sha256("other-root")).seed
 
     assert seed_a == seed_b
     assert seed_a != seed_other
 
 
+def test_abstract_scene_seed_depends_on_identity_not_features() -> None:
+    from gitgeist.visual import build_visual_spec, compute_traits
+    from tests.orbits_helpers import IDENTITY, REFERENCE_TIME, make_features
+
+    def seed(features, identity, representation="abstract") -> int:
+        traits = compute_traits(features, reference_time=REFERENCE_TIME)
+        return build_visual_spec(features, traits, identity, representation).seeds.effective_seed
+
+    other = IdentitySeed(identity_seed=_sha256("other-root"), source="root-commits", root_commits=["other-root"])
+    assert seed(make_features(), IDENTITY) == seed(make_features(commit_count=500, unique_authors_count=9), IDENTITY)
+    assert seed(make_features(), IDENTITY) != seed(make_features(), other)
+
+
 def test_live_seed_differs_between_representation_modes() -> None:
-    identity = _sha256("root")
+    from gitgeist.visual import build_visual_spec, compute_traits
+    from tests.orbits_helpers import IDENTITY, REFERENCE_TIME, make_features
 
-    abstract = generate_abstract_simulation(_profile(0.5), identity_seed=identity)
-    character = generate_character_simulation(_profile(0.5), identity_seed=identity)
+    features = make_features()
+    traits = compute_traits(features, reference_time=REFERENCE_TIME)
+    abstract = build_visual_spec(features, traits, IDENTITY, "abstract").seeds.effective_seed
+    character = build_visual_spec(features, traits, IDENTITY, "character").seeds.effective_seed
 
-    assert abstract.seed != character.seed
+    assert abstract != character

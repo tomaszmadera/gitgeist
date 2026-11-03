@@ -1,0 +1,30 @@
+{
+  "representation_mode": "character",
+  "seed": 3664845374,
+  "palette": {
+    "background": "#e1e6ea",
+    "foreground": "#0f1012",
+    "primary": "#336894",
+    "secondary": "#5449b1",
+    "accent": "#1a4b63",
+    "aura": "rgba(32, 73, 93, 0.23)"
+  },
+  "dynamics": {
+    "pulse_frequency": 1.7,
+    "flow_speed": 1.4,
+    "turbulence": 0.37,
+    "breathing_amplitude": 0.12
+  },
+  "geometry": {
+    "density": 0.45,
+    "symmetry_order": 2,
+    "fragmentation": 0.3,
+    "sharpness": 0.8,
+    "layer_count": 6,
+    "curvature": 0.6,
+    "organic_ratio": 0.3
+  },
+  "dominant_material": "mechanical",
+  "engine_version": "<ENGINE_VERSION>",
+  "repository_name": "golden-character"
+}
