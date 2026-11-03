@@ -6,6 +6,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 This file starts at 0.6.0. Earlier versions (tags `0.0.1` to `0.5.1`) have no changelog entries.
 
+## [0.10.0] - 2026-11-03
+
+Live renderer v2 for the abstract representation (plan stage 4, GITGEIST-17; spec `docs/features/live-renderer-v2/spec.md`).
+
+### Changed
+
+- The abstract live portrait (`render --representation abstract --mode live`) is drawn from `VisualSpec` in the `orbits` style instead of the rotated particle kaleidoscope: masses with growth rings, strands as orbits, a focal knot, edge quality, hatching, cracks and nested sub-shapes, one trait per channel. The animation replays the commit timeline in a 12 s loop. The HUD shows the repository name and three plain conclusions (the three traits farthest from 0.5) instead of material, seed and engine version, and hovering a body shows its directory, file count, share and top hotspot.
+- Breaking: for the abstract representation `live-state.json` holds an `OrbitsScene` (schema version "1": the full `VisualSpec`, the HUD conclusions and the hover details) instead of a `LiveSimulationState`. Readers of the old shape break. The character file does not change.
+- Breaking: `render_live` takes a keyword-only `scene: OrbitsScene | None = None`. It is required for `mode="abstract"` (`TypeError` when missing) and must be `None` for `mode="character"` (`ValueError` otherwise). Before: `render_live(profile, "abstract", identity=identity)`. After:
+
+  ```python
+  spec = build_visual_spec(features, compute_traits(features), identity, "abstract")
+  scene = build_orbits_scene(features, spec, repository_name="repo")
+  render_live(profile, "abstract", identity=identity, scene=scene)
+  ```
+
+- `LiveRenderArtifacts.state` is `LiveSimulationState | OrbitsScene`.
+- `generate_live_html` draws only the character representation; it raises `ValueError` for an abstract state. The character page and `live-state.json` are unchanged apart from the engine version: the page no longer contains the unused abstract drawing code (checked against a committed 0.9.0 snapshot).
+- The `engine_version` string in `profile.json` and `live-state.json` follows the package version, so it changes to `0.10.0`.
+
+### Added
+
+- `gitgeist render --caption on|off` (default `on`, only with `--mode live`; `--mode prompt-to-image` exits with code 2). It switches the HUD and hover details of the abstract live page; the picture is the same.
+- `gitgeist.render.orbits.build_orbits_scene`, `gitgeist.render.generate_orbits_html` and the schemas `gitgeist.schemas.OrbitsScene` and `HoverDetail`.
+- Snapshot of the 0.9.0 character live output (`tests/golden/live/`) and tests for the scene, the page (offline, no browser; a Node.js check of the drawing code runs when `node` is installed).
+
+### Removed
+
+- Breaking: `gitgeist.render.abstract_renderer` and `generate_abstract_simulation` (also exported from `gitgeist.render`). Use `build_orbits_scene` with `render_live(..., scene=...)`.
+
+### Development tools
+
+- `tools/diversity_report.py` draws the abstract live render through the new path (scene built from the absolute traits at `--reference-time`). D v1 is unchanged. On the 12-repository corpus the nearest-neighbour median `D` of the abstract live portraits is 0.405 (0.186 before; `docs/evidence/stage-4-live-renderer-d.txt`).
+
 ## [0.9.0] - 2026-10-30
 
 ### Changed
