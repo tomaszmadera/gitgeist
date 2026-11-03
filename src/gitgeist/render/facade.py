@@ -5,8 +5,7 @@ from pathlib import Path
 from typing import Literal
 from pydantic import BaseModel, ConfigDict
 
-from gitgeist.render.character_renderer import generate_character_simulation
-from gitgeist.render.html_template import generate_live_html, generate_orbits_html
+from gitgeist.render.html_template import generate_creature_html, generate_orbits_html
 from gitgeist.render.image_backend import (
     FakeImageBackend,
     ImageGenerationBackend,
@@ -15,7 +14,7 @@ from gitgeist.render.image_backend import (
 )
 from gitgeist.render.prompt_composer import RepresentationMode, compose_prompt
 from gitgeist.schemas.identity import IdentitySeed
-from gitgeist.schemas.live_state import LiveSimulationState, OrbitsScene
+from gitgeist.schemas.live_state import CreatureScene, OrbitsScene
 from gitgeist.schemas.visual_latent import VisualLatentProfile
 from gitgeist.schemas.emotional import EmotionalState
 
@@ -28,7 +27,7 @@ class LiveRenderArtifacts(BaseModel):
 
     model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
 
-    state: LiveSimulationState | OrbitsScene
+    state: OrbitsScene | CreatureScene
     html_content: str
     state_json: str
     html_path: Path | None = None
@@ -37,59 +36,38 @@ class LiveRenderArtifacts(BaseModel):
 
 
 def render_live(
-    profile: VisualLatentProfile,
-    mode: Literal["abstract", "character"] = "abstract",
-    repository_name: str | None = None,
+    scene: OrbitsScene | CreatureScene,
     output_dir: Path | str | None = None,
     *,
     identity: IdentitySeed,
-    scene: OrbitsScene | None = None,
 ) -> LiveRenderArtifacts:
-    """Render a live interactive preview and simulation state from a VisualLatentProfile.
+    """Render a live interactive preview and its scene JSON from an ``OrbitsScene`` or a ``CreatureScene``.
 
     Args:
-        profile: VisualLatentProfile instance to render.
-        mode: Representation mode, either 'abstract' or 'character' (default 'abstract').
-        repository_name: Optional display name for the repository.
+        scene: Abstract scene built with ``gitgeist.render.orbits.build_orbits_scene`` or character
+            scene built with ``gitgeist.render.creature.build_creature_scene``. The representation
+            is the one of the scene; the repository name is the scene's.
         output_dir: Optional directory path to write 'live-preview.html', 'live-state.json'
             and 'identity-seed.json'.
-        identity: Repository identity seed (``gitgeist.ingest.identity.compute_identity_seed``);
-            the character generator seed is derived from it and the mode only.
-        scene: Abstract scene built with ``gitgeist.render.orbits.build_orbits_scene``; required
-            for 'abstract' (which then takes the repository name from the scene) and must be
-            None for 'character'.
+        identity: Repository identity seed (``gitgeist.ingest.identity.compute_identity_seed``),
+            written to 'identity-seed.json'.
 
     Returns:
         LiveRenderArtifacts bundle with HTML, JSON and optional written file paths.
 
     Raises:
-        TypeError: If profile is not a VisualLatentProfile, identity is not an IdentitySeed,
-            or mode is 'abstract' and scene is missing or not an OrbitsScene.
-        ValueError: If mode is not 'abstract' or 'character', or mode is 'character' and a
-            scene is given.
+        TypeError: If scene is not an OrbitsScene or a CreatureScene, or identity is not an IdentitySeed.
     """
-    if not isinstance(profile, VisualLatentProfile):
-        raise TypeError(f"Expected VisualLatentProfile, got {type(profile).__name__}")
     if not isinstance(identity, IdentitySeed):
         raise TypeError(f"Expected IdentitySeed, got {type(identity).__name__}")
-
-    state: LiveSimulationState | OrbitsScene
-    if mode == "abstract":
-        if not isinstance(scene, OrbitsScene):
-            raise TypeError(f"Expected OrbitsScene for the abstract representation, got {type(scene).__name__}")
-        state = scene
+    if isinstance(scene, OrbitsScene):
         html_content = generate_orbits_html(scene)
-    elif mode == "character":
-        if scene is not None:
-            raise ValueError("The character representation does not take a scene; pass scene=None.")
-        state = generate_character_simulation(
-            profile, repository_name=repository_name, identity_seed=identity.identity_seed
-        )
-        html_content = generate_live_html(state)
+    elif isinstance(scene, CreatureScene):
+        html_content = generate_creature_html(scene)
     else:
-        raise ValueError(f"Unsupported representation mode: {mode!r}. Must be 'abstract' or 'character'.")
+        raise TypeError(f"Expected OrbitsScene or CreatureScene, got {type(scene).__name__}")
 
-    state_json = state.model_dump_json(indent=2)
+    state_json = scene.model_dump_json(indent=2)
 
     html_path: Path | None = None
     json_path: Path | None = None
@@ -106,7 +84,7 @@ def render_live(
         identity_seed_path.write_text(identity.model_dump_json(indent=2), encoding="utf-8")
 
     return LiveRenderArtifacts(
-        state=state,
+        state=scene,
         html_content=html_content,
         state_json=state_json,
         html_path=html_path,

@@ -2,7 +2,7 @@
 
 Path: `docs/features/live-renderer-v2/spec.md`
 
-Status: decisions approved by Tomasz 2026-11-03 (stage 4 of `docs/features/visual-diversity/plan.md`, Plane GITGEIST-17). O1-O9 option (a), O10 option (b): spec and implementation in one PR. Implemented in 0.10.0 on branch `gitgeist-17-stage-4-spec`; implementation in review.
+Status: decisions approved by Tomasz 2026-11-03 (stage 4 of `docs/features/visual-diversity/plan.md`, Plane GITGEIST-17). O1-O9 option (a), O10 option (b): spec and implementation in one PR. Implemented in 0.10.0 on branch `gitgeist-17-stage-4-spec`; implementation in review. Amended on 2026-11-03 for stage 5 (0.11.0): `render_live` takes only a scene for both representations, `LiveSimulationState` and the 0.9.0 character output are gone, and the character picture is specified in `character-spec.md`; the statements below about the character mode and about `render_live(profile, mode, ..., scene=)` describe 0.10.0.
 
 ## Goal
 

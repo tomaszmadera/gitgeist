@@ -1,0 +1,70 @@
+# Stage 5 body plan tuning (GITGEIST-18): pad overlap at alive 1 with the spec's first constants (red) and with the tuned constants (green)
+#
+# SHA note: this branch history was rewritten on 2026-11-03 for review rule R12 (the version bump and its CHANGELOG entry in one commit). The measured tree was the commit then named c7ca3fd; its rewritten
+#           equivalent is 589829f (the code, tests and tools are identical; only CHANGELOG.md differs). Backup of the old history: ref backup/gitgeist-18-pre-r12 and /workspace/gitgeist-18-pre-r12.bundle on the box.
+#
+# Test:      tests/test_creature_body.py::test_pads_do_not_overlap_by_more_than_a_quarter_at_full_alive (spec "Required tests": no two pads of corpus-like fixtures overlap by more than a quarter of the smaller radius at alive 1)
+# Commit:    589829fdbaf16f1bb0ea962b31f5585a0f59b244 (clean tree for the green run; the red run edits only the three constants of src/gitgeist/render/creature.py named below, then the file is restored with git checkout)
+# Machine:   Linux (the Grok Bot box), Python 3.13.5, date 2026-11-03T23:14:14+01:00
+# Fixtures:  tests/creature_helpers.py CORPUS_LIKE (flask, click, zlib mass tables of the stage 5 baseline), alive 1.0
+# Constants: RED   PAIR_POSITION_RANGE = 0.7,  PAIR_SWEEP_DEG = 35.0, CURL_TOTAL_CAP_DEG = 140.0 (the values first written in the spec)
+#            GREEN PAIR_POSITION_RANGE = 0.85, PAIR_SWEEP_DEG = 55.0, CURL_TOTAL_CAP_DEG = 100.0 (committed)
+
+# Note: the total-turn test also fails in the red run because it asserts the committed 100 degree cap (with cap 140 it is red by design). The two pad-overlap failures are the finding:
+# flask and click overlap by more than a quarter of the smaller pad radius at alive 1 with the first constants (0.05 of 0.14 and 0.03 of 0.11 footprint units); with the tuned constants no pair of pads overlaps by more than a quarter, in the tests and on all 12 corpus repositories.
+
+## RED
+ src/gitgeist/render/creature.py | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+$ python -m pytest -q -p no:cacheprovider tests/test_creature_body.py -k "pads_do_not_overlap or total_turn"
+_____ test_pads_do_not_overlap_by_more_than_a_quarter_at_full_alive[flask] _____
+
+name = 'flask'
+
+    @pytest.mark.parametrize("name", list(CORPUS_LIKE))
+    def test_pads_do_not_overlap_by_more_than_a_quarter_at_full_alive(name: str) -> None:
+        body = _body(CORPUS_LIKE[name], alive=1.0)
+        pads = [(*_tip(limb), limb.pad_radius) for limb in body.limbs]
+        assert len(pads) == 7
+        for i, (x1, y1, r1) in enumerate(pads):
+            for x2, y2, r2 in pads[i + 1 :]:
+                overlap = r1 + r2 - math.hypot(x1 - x2, y1 - y2)
+>               assert overlap <= 0.25 * min(r1, r2) + 1e-9
+E               assert 0.05066260098226549 <= ((0.25 * 0.144849) + 1e-09)
+E                +  where 0.144849 = min(0.222692, 0.144849)
+
+tests/test_creature_body.py:215: AssertionError
+_____ test_pads_do_not_overlap_by_more_than_a_quarter_at_full_alive[click] _____
+
+name = 'click'
+
+    @pytest.mark.parametrize("name", list(CORPUS_LIKE))
+    def test_pads_do_not_overlap_by_more_than_a_quarter_at_full_alive(name: str) -> None:
+        body = _body(CORPUS_LIKE[name], alive=1.0)
+        pads = [(*_tip(limb), limb.pad_radius) for limb in body.limbs]
+        assert len(pads) == 7
+        for i, (x1, y1, r1) in enumerate(pads):
+            for x2, y2, r2 in pads[i + 1 :]:
+                overlap = r1 + r2 - math.hypot(x1 - x2, y1 - y2)
+>               assert overlap <= 0.25 * min(r1, r2) + 1e-9
+E               assert 0.03230545377045835 <= ((0.25 * 0.11387) + 1e-09)
+E                +  where 0.11387 = min(0.218045, 0.11387)
+
+tests/test_creature_body.py:215: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_creature_body.py::test_posture_is_monotone_in_alive_and_the_total_turn_is_capped[1]
+FAILED tests/test_creature_body.py::test_posture_is_monotone_in_alive_and_the_total_turn_is_capped[3]
+FAILED tests/test_creature_body.py::test_pads_do_not_overlap_by_more_than_a_quarter_at_full_alive[flask]
+FAILED tests/test_creature_body.py::test_pads_do_not_overlap_by_more_than_a_quarter_at_full_alive[click]
+4 failed, 2 passed, 32 deselected in 0.16s
+exit code: 1
+Updated 1 path from the index
+
+## GREEN
+?? docs/evidence/stage-5-body-tuning-red-green.txt
+?? docs/evidence/stage-5-tests-py311.txt
+?? docs/evidence/stage-5-tests-py312.txt
+$ python -m pytest -q -p no:cacheprovider tests/test_creature_body.py -k "pads_do_not_overlap or total_turn"
+......                                                                   [100%]
+6 passed, 32 deselected in 0.18s
+exit code: 0

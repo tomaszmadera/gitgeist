@@ -15,7 +15,7 @@ from gitgeist.cli import main
 from gitgeist.render.image_backend import FakeImageBackend, GeneratedImage
 from gitgeist.schemas.emotional import EmotionalState
 from gitgeist.schemas.features import RepositoryFeatures
-from gitgeist.schemas.live_state import OrbitsScene
+from gitgeist.schemas.live_state import CreatureScene, OrbitsScene
 from gitgeist.schemas.visual_latent import VisualLatentProfile
 from gitgeist.schemas.traits import TRAIT_NAMES, Traits
 
@@ -148,7 +148,12 @@ def test_render_live_writes_mode_and_required_artifacts(
         page = (out_dir / "live-preview.html").read_text(encoding="utf-8")
         assert 'id="hud"' in page and "rotate(" not in page
     else:
-        assert state["representation_mode"] == "character"
+        scene = CreatureScene.model_validate(state)
+        assert scene.repository_name == "clean-modular-repo" and scene.caption is True
+        assert scene.spec.style == "creature" and len(scene.conclusions) == 3
+        assert len(scene.hover) == len(scene.spec.masses) > 0
+        page = (out_dir / "live-preview.html").read_text(encoding="utf-8")
+        assert 'id="hud"' in page and "spine" not in page and "symmetry_order" not in page
 
 
 def test_render_abstract_live_caption_off_has_no_hud(clean_modular_repo: Path, tmp_path: Path) -> None:
@@ -201,11 +206,18 @@ def test_render_caption_rejects_unknown_value(clean_modular_repo: Path, tmp_path
     assert raised.value.code == 2
 
 
-def test_render_character_live_ignores_caption(clean_modular_repo: Path, tmp_path: Path) -> None:
-    out_dir = tmp_path / "character"
-    assert main(["render", str(clean_modular_repo), "--representation", "character", "--mode", "live",
-                 "--caption", "off", "-o", str(out_dir)]) == 0
-    assert json.loads((out_dir / "live-state.json").read_text(encoding="utf-8"))["representation_mode"] == "character"
+def test_render_character_live_caption_off_has_no_hud(clean_modular_repo: Path, tmp_path: Path) -> None:
+    on, off = tmp_path / "on", tmp_path / "off"
+    base = ["render", str(clean_modular_repo), "--representation", "character", "--mode", "live"]
+    assert main([*base, "--caption", "on", "-o", str(on)]) == 0
+    assert main([*base, "--caption", "off", "-o", str(off)]) == 0
+    scene_on = CreatureScene.model_validate_json((on / "live-state.json").read_text(encoding="utf-8"))
+    scene_off = CreatureScene.model_validate_json((off / "live-state.json").read_text(encoding="utf-8"))
+    assert scene_on.caption and scene_on.conclusions and scene_on.hover
+    assert not scene_off.caption and scene_off.conclusions == [] and scene_off.hover == []
+    assert scene_on.body == scene_off.body and scene_on.spec == scene_off.spec
+    assert 'id="hud"' in (on / "live-preview.html").read_text(encoding="utf-8")
+    assert 'id="hud"' not in (off / "live-preview.html").read_text(encoding="utf-8")
 
 
 def _render_live_seed(repo: Path, out_dir: Path, representation: str = "abstract") -> int:
@@ -214,7 +226,7 @@ def _render_live_seed(repo: Path, out_dir: Path, representation: str = "abstract
     )
     assert code == 0
     state = json.loads((out_dir / "live-state.json").read_text(encoding="utf-8"))
-    return state["spec"]["seeds"]["effective_seed"] if representation == "abstract" else state["seed"]
+    return state["spec"]["seeds"]["effective_seed"]
 
 
 def _git_output(repo: Path, *args: str) -> str:

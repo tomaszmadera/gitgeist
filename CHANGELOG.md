@@ -6,6 +6,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 This file starts at 0.6.0. Earlier versions (tags `0.0.1` to `0.5.1`) have no changelog entries.
 
+## [0.11.0] - 2026-11-03
+
+Live renderer v2 for the character representation (plan stage 5, GITGEIST-18; spec `docs/features/live-renderer-v2/character-spec.md`).
+
+### Changed
+
+- The character live portrait (`render --representation character --mode live`) is drawn from `VisualSpec` in the `creature` style instead of the fixed spine with ribs, core nodes and an ornament ring: the largest directory is an upright torso with growth rings, every other directory is a limb in a left/right pair along the body (the pad at its end is the directory; thickness from its file share, reach from its churn share, `1 + nesting_levels` segments), strands are tendrils growing from the torso, the focal knot sits on the limb of the top hotspot, and posture and speed follow `alive` (a dormant repository has curled, barely swaying limbs, an active one has extended, swaying limbs). The HUD, hover details and `--caption` work as for the abstract portrait, and both pages share the same page code (HUD strip, seeded noise, timeline replay).
+- Breaking: for the character representation `live-state.json` holds a `CreatureScene` (schema version "1": the full `VisualSpec`, the computed body plan, the HUD conclusions and the hover details) instead of a `LiveSimulationState`. Readers of the old shape break. The abstract file does not change.
+- Breaking: `render_live(scene, output_dir=None, *, identity)` takes the scene of either representation (`OrbitsScene` or `CreatureScene`); the representation comes from the scene. The `profile`, `mode`, `repository_name` and `scene=` parameters are removed (the scene carries the repository name); a scene of another type raises `TypeError`. Before and after:
+
+  ```python
+  # 0.10.0
+  render_live(profile, "character", repository_name="repo", identity=identity)
+  render_live(profile, "abstract", identity=identity, scene=orbits_scene)
+  # 0.11.0
+  spec = build_visual_spec(features, compute_traits(features), identity, "character")
+  scene = build_creature_scene(features, spec, repository_name="repo")
+  render_live(scene, identity=identity)
+  render_live(orbits_scene, identity=identity)
+  ```
+
+- `LiveRenderArtifacts.state` is `OrbitsScene | CreatureScene`.
+- The abstract live page and `live-state.json` are byte-identical to 0.10.0 apart from the engine version (checked against a committed 0.10.0 snapshot; on Linux byte for byte, across platforms exact text except float literals, which match within a relative 1e-9, because the last bit of a `math` result can differ on Windows): the HUD text and page code moved to modules shared with the creature page (`gitgeist.render.captions`, `gitgeist.render.page_common`).
+- The `engine_version` string in `profile.json` and `live-state.json` follows the package version, so it changes to `0.11.0`.
+
+### Added
+
+- `gitgeist.render.creature.build_creature_scene` (and `build_creature_body`, the body plan as a pure function of the `VisualSpec`, computed from a new independent seed stream `"body"`; the `VisualSpec` and its golden snapshots do not change), `gitgeist.render.generate_creature_html` and the schemas `gitgeist.schemas.CreatureScene`, `CreatureBody`, `CreatureTorso`, `CreatureLimb` and `CreatureSegment`.
+- Tests of the body plan, the scene and the page (offline, no browser; a Node.js check of the drawing code runs when `node` is installed) and a committed `CreatureScene` snapshot (`tests/golden/live/`).
+
+### Removed
+
+- Breaking: `gitgeist.render.character_renderer`, `dynamics` and `palette` and the functions `generate_character_simulation`, `generate_palette`, `generate_dynamics` and `generate_live_html` (also exported from `gitgeist.render`); the models `LiveSimulationState`, `ColorPalette`, `MotionDynamics` and `GeometryParameters` (also exported from `gitgeist.schemas`). Use `build_creature_scene` with `render_live(scene, ...)`.
+- The 0.9.0 character snapshot of `tests/golden/live/` (its subject no longer exists); the abstract 0.10.0 snapshot stays.
+
+### Development tools
+
+- `tools/diversity_report.py` draws the character live render through the new path. D v1 is unchanged. On the 12-repository corpus the nearest-neighbour median `D` of the character live portraits is 0.442 (0.091 before; the closest pair is click and NeKode at 0.167, no longer gitgeist and NeKode at 0.039); the abstract median stays 0.409 (`docs/evidence/stage-5-live-renderer-d.txt`).
+
 ## [0.10.0] - 2026-11-03
 
 Live renderer v2 for the abstract representation (plan stage 4, GITGEIST-17; spec `docs/features/live-renderer-v2/spec.md`).
@@ -100,6 +139,8 @@ Live renderer v2 for the abstract representation (plan stage 4, GITGEIST-17; spe
 - The default `gitgeist-output` directory is skipped when scanning, so a rerun inside the repository does not analyse its own artifacts.
 - Empty values in a local `.env` no longer shadow the user-level `~/.config/gitgeist/.env`.
 
+[0.11.0]: https://github.com/tomaszmadera/gitgeist/compare/0.10.0...0.11.0
+[0.10.0]: https://github.com/tomaszmadera/gitgeist/compare/0.9.0...0.10.0
 [0.9.0]: https://github.com/tomaszmadera/gitgeist/compare/0.8.0...0.9.0
 [0.8.0]: https://github.com/tomaszmadera/gitgeist/compare/0.7.0...0.8.0
 [0.7.0]: https://github.com/tomaszmadera/gitgeist/compare/0.6.0...0.7.0

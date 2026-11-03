@@ -1,6 +1,6 @@
 """Regression tests: engine_version defaults resolve to the real package version.
 
-Defect: LiveSimulationState, EmotionalState and VisualLatentProfile carried
+Defect: the live state models, EmotionalState and VisualLatentProfile carried
 hardcoded defaults ("0.1.0-beta.1/2/3"), so the live HTML preview rendered
 "Engine: Gitgeist v0.1.0-beta.3" regardless of the installed version.
 """
@@ -17,15 +17,15 @@ from gitgeist._version import current_engine_version
 from gitgeist.features.extractor import extract_features
 from gitgeist.interpretation.emotional_model import evaluate_emotional_state
 from gitgeist.schemas.emotional import EmotionalState
-from gitgeist.schemas.live_state import LiveSimulationState
+from gitgeist.schemas.live_state import CreatureScene, OrbitsScene
 from gitgeist.schemas.visual_latent import VisualLatentProfile
 
-_MODELS_WITH_ENGINE_VERSION = (EmotionalState, VisualLatentProfile, LiveSimulationState)
+_MODELS_WITH_ENGINE_VERSION = (EmotionalState, VisualLatentProfile, OrbitsScene, CreatureScene)
 
 
 @pytest.mark.parametrize("model", _MODELS_WITH_ENGINE_VERSION)
 def test_schema_engine_version_default_follows_installed_version(
-    model: type[EmotionalState] | type[VisualLatentProfile] | type[LiveSimulationState],
+    model: type[EmotionalState] | type[VisualLatentProfile] | type[OrbitsScene] | type[CreatureScene],
 ) -> None:
     factory = model.model_fields["engine_version"].default_factory
     assert factory is not None, f"{model.__name__} must define a default_factory"

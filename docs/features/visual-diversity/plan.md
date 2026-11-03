@@ -90,8 +90,10 @@ Acceptance:
 
 Size: standard. Same spec family as stage 4.
 
+Status: spec approved (Tomasz, 2026-11-03, `docs/features/live-renderer-v2/character-spec.md`, decisions C1-C13); implemented in 0.11.0 on branch `gitgeist-18-stage-5-spec` (GITGEIST-18, spec and implementation in one PR). Result for criterion 2: nearest-neighbour median `D` v1 0.442 against the baseline 0.091 (closest pair click / NeKode 0.167; evidence in `docs/evidence/stage-5-live-renderer-d.txt`). The abstract median stays 0.409. Criterion 3 passed: Tomasz accepted the look of the creature portraits on 2026-11-03 23:17 (Europe/Warsaw), on the contact sheets. Criteria 1-3 are met.
+
 - `creature` style: body plan from masses (largest mass as torso, others as limbs, depth as segments), rings on the torso, knot on the hotspot limb, posture and speed by `alive`.
-- The fixed spine template (`html_template.py:217-295`) is removed.
+- The fixed spine template is removed (it was `drawCharacter` in `generate_live_html`, `html_template.py:174-252` at `b2a99b2`; the earlier line numbers were out of date).
 
 Acceptance: as stage 4, with nearest-neighbour median `D` v1 at least 0.25 for character. Decided 2026-10-22: about 3x the D v1 baseline 0.083 at `03741e1`, keeping the larger relative step for character that the pre-v1 targets had (0.164 to 0.40). In addition, `gitgeist` and `NeKode` are no longer the closest pair.
 

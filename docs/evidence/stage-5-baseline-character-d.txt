@@ -1,0 +1,49 @@
+# Stage 5 baseline (GITGEIST-18): nearest-neighbour median D v1 of the character live portraits at 0.10.0, and the mass structure the creature body plan will draw
+#
+# Tree:      b2a99b228f3c873c65bbe3782d98be66e00be596 (main = merge of PR #22, tag 0.10.0), clean tree
+# Command:   CHROME_WARM_PROFILE=<warm profile> CHROME_BIN=/usr/bin/google-chrome PYTHONPATH=src python tools/diversity_report.py run --out <out> --chrome tools/chrome_warm_profile.sh --reference-time 2026-10-23T13:00:00Z is-odd=<clone> click=<clone> flask=<clone> requests=<clone> gitgeist=<clone> z=<clone> lua=<clone> awesome=<clone> alpine=<clone> zlib=<clone> NeKode=<clone> fresh=<clone>
+#            (the same 12 clones at the same pinned commits as docs/evidence/stage-4-live-renderer-d.txt; <out> and the clones are outside the repository)
+# Machine:   Linux (the Grok Bot box), Python 3.13.5, pydantic 2.14.2, Pillow 13.0.0, Google Chrome 156.0.8078.47; 520x520 screenshots, frozen 1.5 s clock, HUD included
+# Date:      2026-11-03 (Europe/Warsaw), run by Code Manager #2 on the box
+
+RESULT: the 0.10.0 character baseline is reproduced. Median 0.091, closest pair gitgeist / NeKode at 0.039 (pair mean 1.143). Abstract, for reference: 0.409, closest pair is-odd / fresh 0.019. Both match docs/evidence/stage-4-live-renderer-d.txt.
+
+## live character: nearest neighbour of every repository (report.json, `distance`)
+
+| repo | closest | D |
+|---|---|---|
+| is-odd | requests | 0.896 |
+| click | flask | 0.402 |
+| flask | alpine | 0.103 |
+| requests | z | 0.525 |
+| gitgeist | NeKode | 0.039 |
+| z | lua | 0.155 |
+| lua | awesome | 0.060 |
+| awesome | lua | 0.060 |
+| alpine | zlib | 0.080 |
+| zlib | gitgeist | 0.068 |
+| NeKode | gitgeist | 0.039 |
+| fresh | NeKode | 1.053 |
+
+Median: 0.091. Stage 5 target: at least 0.25, and the closest pair is not gitgeist / NeKode.
+
+## What the creature body plan has to draw: the character VisualSpec of the same 12 repositories (layers.json, `visual_spec.character`)
+
+masses are in file-share order, the merged mass last; `nest` = topology.nesting_levels; knot = index of the mass that owns the knot.
+
+| repo | masses | file shares | nest | alive | size | strands | rings | cracks | knot mass |
+|---|---|---|---|---|---|---|---|---|---|
+| is-odd | 1 | 1.00 | 0 | 0.07 | 0.00 | 3 | 4 | 56 | 0 |
+| click | 8 | .33 .23 .22 .10 .06 .05 .01 .00 | 1 | 0.86 | 0.65 | 10 | 13 | 0 | 5 |
+| flask | 8 | .37 .26 .18 .11 .04 .04 .01 .00 | 1 | 0.87 | 0.58 | 10 | 17 | 0 | 7 |
+| requests | 7 | .31 .20 .16 .15 .12 .05 .00 | 1 | 0.80 | 0.53 | 9 | 16 | 51 | 6 |
+| gitgeist | 7 | .43 .27 .19 .07 .02 .01 .01 | 1 | 1.00 | 0.50 | 1 | 1 | 60 | 3 |
+| z | 1 | 1.00 | 0 | 0.17 | 0.10 | 4 | 15 | 0 | 0 |
+| lua | 3 | .60 .38 .02 | 0 | 0.92 | 0.65 | 2 | 34 | 0 | 0 |
+| awesome | 3 | .52 .39 .09 | 1 | 0.73 | 0.00 | 10 | 13 | 0 | 1 |
+| alpine | 8 | .62 .25 .05 .03 .03 .02 .01 .00 | 1 | 0.85 | 0.81 | 9 | 8 | 0 | 2 |
+| zlib | 8 | .60 .18 .05 .03 .03 .03 .02 .06 (merged) | 2 | 0.62 | 0.72 | 7 | 17 | 21 | 1 |
+| NeKode | 8 | .68 .22 .04 .03 .01 .01 .00 .00 | 1 | 1.00 | 0.78 | 1 | 1 | 39 | 2 |
+| fresh | 1 | 1.00 | 0 | 1.00 | 0.00 | 1 | 1 | 60 | 0 |
+
+Reading: 3 of 12 repositories have one mass (a creature with a torso and no limbs), 7 have 7 or 8 masses, and the number of limb segments (1 + nesting_levels) is 1 to 3. gitgeist and NeKode are both fully alive (alive 1.00, saturation 0.85) with one strand and one ring, so they differ only in mass shares (.43/.27/.19 against .68/.22/.04), size, cracks and hues. is-odd and fresh (one mass, size 0.00, JSON) are the closest abstract pair today and are the likely closest pair of a creature render too.

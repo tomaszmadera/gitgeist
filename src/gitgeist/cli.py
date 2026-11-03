@@ -21,6 +21,7 @@ from gitgeist.ingest.identity import compute_identity_seed
 from gitgeist.interpretation.emotional_model import evaluate_emotional_state
 from gitgeist.mapping.latent_mapper import map_emotional_to_latent
 from gitgeist.render.facade import render_live, render_prompt
+from gitgeist.render.creature import build_creature_scene
 from gitgeist.render.orbits import build_orbits_scene
 from gitgeist.render.image_backend import (
     API_KEY_ENV,
@@ -155,20 +156,10 @@ def command_render(args: argparse.Namespace) -> int:
 
     if args.mode == "live":
         identity = compute_identity_seed(repo_path)
-        scene = None
-        if args.representation == "abstract":
-            spec = build_visual_spec(features, traits, identity, "abstract")
-            scene = build_orbits_scene(
-                features, spec, repository_name=repository_name, caption=args.caption != "off"
-            )
-        artifacts = render_live(
-            profile,
-            mode=args.representation,
-            repository_name=repository_name,
-            output_dir=output_dir,
-            identity=identity,
-            scene=scene,
-        )
+        spec = build_visual_spec(features, traits, identity, args.representation)
+        build_scene = build_orbits_scene if args.representation == "abstract" else build_creature_scene
+        scene = build_scene(features, spec, repository_name=repository_name, caption=args.caption != "off")
+        artifacts = render_live(scene, output_dir, identity=identity)
         written.extend(
             path
             for path in (artifacts.json_path, artifacts.html_path, artifacts.identity_seed_path)
@@ -255,7 +246,7 @@ def _build_parser() -> argparse.ArgumentParser:
         choices=CAPTION_CHOICES,
         help=(
             "HUD with three plain conclusions and hover details for --mode live "
-            "(abstract representation; default: on)"
+            "(both representations; default: on)"
         ),
     )
     render.set_defaults(func=command_render)

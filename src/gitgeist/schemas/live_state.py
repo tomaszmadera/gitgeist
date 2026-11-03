@@ -1,80 +1,13 @@
-"""Pydantic v2 schemas for live simulation state and render artifacts."""
+"""Pydantic v2 schemas of the live scenes: the abstract ``orbits`` and the character ``creature``."""
 
-import re
-from typing import Literal
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from typing import Annotated, Literal
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from gitgeist._version import current_engine_version
 from gitgeist.schemas.visual_spec import VisualSpec
 
-COLOR_REGEX = re.compile(
-    r"^(?:#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*(?:0(?:\.\d+)?|1(?:\.0+)?|\.\d+)\s*)?\))$"
-)
-
-
-class ColorPalette(BaseModel):
-    """Harmonized color palette for live rendering."""
-
-    model_config = ConfigDict(frozen=True)
-
-    background: str = Field(description="Background canvas color")
-    foreground: str = Field(description="Main foreground/stroke color")
-    primary: str = Field(description="Primary element color")
-    secondary: str = Field(description="Secondary element color")
-    accent: str = Field(description="High-contrast accent color")
-    aura: str = Field(description="Ambient glow or aura color")
-
-    @field_validator("background", "foreground", "primary", "secondary", "accent", "aura")
-    @classmethod
-    def validate_color(cls, value: str) -> str:
-        if not COLOR_REGEX.match(value.strip()):
-            raise ValueError(f"Invalid CSS color format: {value}")
-        return value.strip()
-
-
-class MotionDynamics(BaseModel):
-    """Physical and time-based dynamics for live simulation animation."""
-
-    model_config = ConfigDict(frozen=True)
-
-    pulse_frequency: float = Field(ge=0.0, description="Base rhythm and pulse cycles per second")
-    flow_speed: float = Field(ge=0.0, description="Rate of particle flow or movement drift")
-    turbulence: float = Field(ge=0.0, description="Chaos and perturbation factor")
-    breathing_amplitude: float = Field(ge=0.0, description="Scale amplitude of expansion/contraction")
-
-
-class GeometryParameters(BaseModel):
-    """Geometric structure and segmentation parameters."""
-
-    model_config = ConfigDict(frozen=True)
-
-    density: float = Field(ge=0.0, le=1.0, description="Element density or particle count factor")
-    symmetry_order: int = Field(ge=1, description="Order of radial or rotational symmetry")
-    fragmentation: float = Field(ge=0.0, le=1.0, description="Degree of dispersion and particle breakdown")
-    sharpness: float = Field(ge=0.0, le=1.0, description="Edge sharpness vs blur/softness")
-    layer_count: int = Field(ge=1, description="Number of visual or structural layers")
-    curvature: float = Field(ge=0.0, le=1.0, description="Line curvature vs angular segments")
-    organic_ratio: float = Field(ge=0.0, le=1.0, description="Organic curved forms (1.0) vs mechanical polygons (0.0)")
-
-
-class LiveSimulationState(BaseModel):
-    """Top-level immutable state specification for live rendering."""
-
-    model_config = ConfigDict(frozen=True)
-
-    representation_mode: Literal["abstract", "character"] = Field(
-        description="Active representation mode"
-    )
-    seed: int = Field(description="Deterministic integer seed for pseudo-random visual features")
-    palette: ColorPalette = Field(description="Color palette")
-    dynamics: MotionDynamics = Field(description="Motion and rhythm parameters")
-    geometry: GeometryParameters = Field(description="Geometric distribution parameters")
-    dominant_material: str = Field(description="Dominant materiality identifier")
-    engine_version: str = Field(
-        default_factory=current_engine_version,
-        description="Gitgeist engine version",
-    )
-    repository_name: str | None = Field(default=None, description="Analyzed repository name")
+Finite = Annotated[float, Field(allow_inf_nan=False)]
 
 
 class HoverDetail(BaseModel):
@@ -102,3 +35,87 @@ class OrbitsScene(BaseModel):
     conclusions: list[str] = Field(max_length=3, description="Plain HUD phrases; empty when caption is False")
     hover: list[HoverDetail] = Field(description="One entry per mass; empty when caption is False")
     spec: VisualSpec
+
+
+class CreatureTorso(BaseModel):
+    """The torso: the largest mass, an upright ellipse (footprint units, rest pose)."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    mass_index: int = Field(ge=0, description="Index into scene.spec.masses")
+    x: Finite
+    y: Finite
+    rx: float = Field(gt=0, allow_inf_nan=False, description="Major semi-axis")
+    ry: float = Field(gt=0, allow_inf_nan=False, description="Minor semi-axis")
+    rotation_deg: Finite = Field(description="Direction of the major axis; 270 is upright, head up")
+
+    @model_validator(mode="after")
+    def major_axis_first(self) -> "CreatureTorso":
+        if self.rx < self.ry:
+            raise ValueError("rx is the major semi-axis and must be at least ry")
+        return self
+
+
+class CreatureSegment(BaseModel):
+    """One limb segment, drawn from the end of the previous one."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    length: float = Field(gt=0, allow_inf_nan=False)
+    half_width: float = Field(gt=0, allow_inf_nan=False)
+    bend_deg: Finite = Field(description="Joint bend at the start of the segment, at rest")
+
+
+class CreatureLimb(BaseModel):
+    """A limb: a chain of segments ending in a round pad, which is the mass's body."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    mass_index: int = Field(ge=0)
+    root_x: Finite
+    root_y: Finite
+    root_angle_deg: Finite = Field(description="Direction of the first segment before its bend, world frame")
+    segments: list[CreatureSegment] = Field(min_length=1, max_length=4)
+    pad_radius: float = Field(gt=0, allow_inf_nan=False)
+    sway_phase: float = Field(ge=0, lt=1)
+    sway_amplitude_deg: float = Field(ge=0, allow_inf_nan=False)
+
+
+class CreatureBody(BaseModel):
+    """Body plan of the creature in footprint units: the torso and one limb per other mass."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    torso: CreatureTorso | None = Field(description="None when the repository has no masses")
+    limbs: list[CreatureLimb]
+
+
+class CreatureScene(BaseModel):
+    """Character live portrait in the ``creature`` style: the VisualSpec, the body plan, HUD and hover text."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    schema_version: Literal["1"]
+    representation: Literal["character"]
+    repository_name: str | None
+    engine_version: str = Field(default_factory=current_engine_version)
+    caption: bool
+    conclusions: list[str] = Field(max_length=3, description="Plain HUD phrases; empty when caption is False")
+    hover: list[HoverDetail] = Field(description="One entry per mass; empty when caption is False")
+    body: CreatureBody
+    spec: VisualSpec
+
+    @model_validator(mode="after")
+    def body_matches_spec(self) -> "CreatureScene":
+        if self.spec.style != "creature":
+            raise ValueError("a creature scene needs a spec in the creature style")
+        masses = len(self.spec.masses)
+        parts = ([self.body.torso.mass_index] if self.body.torso is not None else []) + [
+            limb.mass_index for limb in self.body.limbs
+        ]
+        if sorted(parts) != list(range(masses)):
+            raise ValueError("every mass of the spec must appear exactly once in the body (torso or one limb)")
+        segments = 1 + self.spec.topology.nesting_levels
+        if any(len(limb.segments) != segments for limb in self.body.limbs):
+            raise ValueError("every limb must have 1 + spec.topology.nesting_levels segments")
+        return self

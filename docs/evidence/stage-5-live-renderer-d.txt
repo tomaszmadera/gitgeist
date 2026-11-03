@@ -1,0 +1,56 @@
+# Stage 5 criterion 2 (GITGEIST-18): nearest-neighbour median D v1 of the character live portraits, before and after
+#
+# Command (run once per tree from the tree root; PYTHONPATH=src selects the code under test; the tree's own tools/diversity_report.py is used):
+#   CHROME_WARM_PROFILE=<warm profile> CHROME_BIN=/usr/bin/google-chrome PYTHONPATH=src python tools/diversity_report.py run --out <out> --chrome tools/chrome_warm_profile.sh --reference-time 2026-10-23T13:00:00Z is-odd=<clone of is-odd> click=<clone of click> flask=<clone of flask> requests=<clone of requests> gitgeist=<clone of gitgeist> z=<clone of z> lua=<clone of lua> awesome=<clone of awesome> alpine=<clone of alpine> zlib=<clone of zlib> NeKode=<clone of NeKode> fresh=<clone of fresh>
+# Trees:     before = b2a99b228f3c873c65bbe3782d98be66e00be596 (main, gitgeist 0.10.0; docs/evidence/stage-5-baseline-character-d.txt)
+#            after  = 589829fdbaf16f1bb0ea962b31f5585a0f59b244 (branch gitgeist-18-stage-5-spec, gitgeist 0.11.0, clean tree; later commits change only documents)
+# Machine:   Linux (the Grok Bot box), Python 3.13.5, pydantic 2.14.2, Pillow 13.0.0, Google Chrome 156.0.8078.47
+# Date:      2026-11-03 (Europe/Warsaw), run by Code Manager #2 on the box (not on the PC)
+# Corpus:    the same 12 clones at the same pinned commits as docs/evidence/stage-4-live-renderer-d.txt (11 repositories of tools/quantile-corpus.toml plus the synthetic fresh).
+# Chrome:    through tools/chrome_warm_profile.sh as in stage 4 (CHROME_WARM_PROFILE=<profile that Chrome started once before>).
+# Screenshots: 520x520, frozen 1.5 s animation clock (tools/diversity_report.py), HUD of the page included (caption on, the default).
+# SHA note: this branch history was rewritten on 2026-11-03 for review rule R12 (the version bump and its CHANGELOG entry in one commit). The measured tree was the commit then named c7ca3fd; its rewritten
+#           equivalent is 589829f (the code, tests and tools are identical; only CHANGELOG.md differs). Backup of the old history: ref backup/gitgeist-18-pre-r12 and /workspace/gitgeist-18-pre-r12.bundle on the box.
+#
+# Criterion 3 (visual review of the character portraits): ACCEPTED by Tomasz, 2026-11-03 23:17 (Europe/Warsaw), on the contact sheets in /workspace/stage5-review/ (see Notes).
+#
+RESULT: PASS for criterion 2, and criterion 3 accepted by Tomasz on 2026-11-03 23:17 (Europe/Warsaw). Nearest-neighbour median D v1 of the character live portraits 0.091 -> 0.442 (target 0.25). The closest pair is click / NeKode (0.167), no longer gitgeist / NeKode (0.039; gitgeist's nearest is now requests at 0.401). The abstract median is unchanged at 0.409 (closest pair is-odd / fresh 0.019, as in stage 4).
+
+## Median and closest pair (report.json, `distance`)
+
+| render | before (0.10.0) median | before closest pair | after (0.11.0) median | after closest pair |
+|---|---|---|---|---|
+| live character | 0.091 | 0.039 (gitgeist, NeKode) | 0.442 | 0.167 (click, NeKode) |
+| live abstract | 0.409 | 0.019 (is-odd, fresh) | 0.409 | 0.019 (is-odd, fresh) |
+
+Pair mean D, character: before 1.143, after 0.898. Abstract pair mean 0.923, as in stage 4.
+
+## Character: nearest neighbour of every repository
+
+| repo | before: closest, D | after: closest, D |
+|---|---|---|
+| is-odd | requests, 0.896 | z, 1.009 |
+| click | flask, 0.402 | NeKode, 0.167 |
+| flask | alpine, 0.103 | requests, 0.249 |
+| requests | z, 0.525 | flask, 0.249 |
+| gitgeist | NeKode, 0.039 | requests, 0.401 |
+| z | lua, 0.155 | awesome, 0.934 |
+| lua | awesome, 0.06 | click, 0.397 |
+| awesome | lua, 0.06 | zlib, 0.483 |
+| alpine | zlib, 0.08 | flask, 0.921 |
+| zlib | gitgeist, 0.068 | awesome, 0.483 |
+| NeKode | gitgeist, 0.039 | click, 0.167 |
+| fresh | NeKode, 1.053 | NeKode, 0.943 |
+
+Median of the `after` column: 0.442 (`before`: 0.091).
+
+## Repeatability
+
+A second run of the `after` command on the same tree gives identical distances (the whole `distance` object of report.json is equal) and byte-identical screenshots for all 12 character and all 12 abstract pages (cmp): yes.
+
+## Notes
+
+- No target was changed. The body plan constants of the spec were tuned once, before this measurement, for readability and not for D: the first drawn results (contact sheets of the 12 repositories and of four repositories with forced low alive) showed limbs bunching up on the 7-8 mass repositories and overlapping pads at `alive` 1 (red run: docs/evidence/stage-5-body-tuning-red-green.txt). See "Tuning during implementation" in docs/features/live-renderer-v2/character-spec.md. The measured numbers above are the first D measurement of the tuned code.
+- The throwaway prototype of the decision round (outside the repository) measured 0.417 for the same decision set (bilateral pairs, C4 (a), C6 (a), C7 (a)); the product's 0.442 is of the same order.
+- The saturation row "character symmetry_order == 2" of report.md reads 0/12 because the character state has no geometry any more; the label says so.
+- Files kept for Tomasz's visual review (criterion 3, accepted 2026-11-03 23:17), outside the repository: /workspace/stage5-review/ on the box (contact sheets of the 12 repositories, a 4-repository sheet with forced low alive, the run output of this measurement).
