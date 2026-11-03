@@ -21,31 +21,17 @@
 #              NeKode    997f752224363a20d7242c4f0d1cbff742ac50f8
 #              fresh     0e5567896141c87710198dacb131c2eaf1b88deb
 # Chrome:    headless Chrome on the box hangs on every brand-new --user-data-dir (a plain `google-chrome --headless=new --screenshot=...` timed out
-#            after 120 s; it was not blocked by Auto-review). The tool creates a new temp profile per screenshot, so --chrome points to this wrapper,
-#            which gives each call a copy of a profile that was started once before; flags and the page are unchanged, --no-sandbox is added:
-#              #!/bin/bash
-#              # Wrapper for tools/diversity_report.py --chrome: headless Chrome on the box hangs
-#              # on a brand-new --user-data-dir, so every call gets a copy of a warmed profile.
-#              args=()
-#              tmp=""
-#              for a in "$@"; do
-#                case "$a" in
-#                  --user-data-dir=*)
-#                    tmp=$(mktemp -d /tmp/chrome-warm-XXXXXX)
-#                    cp -r /workspace/gg-chrome/profile/. "$tmp/"
-#                    args+=("--user-data-dir=$tmp") ;;
-#                  *) args+=("$a") ;;
-#                esac
-#              done
-#              /usr/bin/google-chrome --no-sandbox "${args[@]}"
-#              rc=$?
-#              [ -n "$tmp" ] && rm -rf "$tmp"
-#              exit $rc
+#            after 120 s; it was not blocked by Auto-review). The tool creates a new temp profile per screenshot, so --chrome points to the
+#            wrapper tools/chrome_warm_profile.sh (committed in this repository; run with CHROME_WARM_PROFILE=<profile that Chrome started
+#            once before>, CHROME_BIN=/usr/bin/google-chrome). It gives each call a copy of that profile and adds --no-sandbox; flags and
+#            the page are unchanged. The measured runs used an earlier, box-local copy of the same logic with the paths fixed in the script.
 # Screenshots: 520x520, frozen 1.5 s animation clock (tools/diversity_report.py), HUD of the page included (caption on, the default).
 #
 # Criterion 3 (visual review of the portraits): ACCEPTED by Tomasz, 2026-11-03 17:42 (Europe/Warsaw), on the contact sheets of the tree 08989a5.
-#   The two HUD defects he found afterwards (the 'deep, narrow tree' phrase for a repository without directories; the HUD box over large
-#   portraits) are fixed in 229d529 and the measurement below was repeated on the fixed tree.
+#   The two HUD defects (the 'deep, narrow tree' phrase for a repository without directories; the HUD box over large
+#   portraits) were found and reported by Code Manager #2 in the visual review handoff; Tomasz accepted the look at 17:42 and asked to
+#   fix them. They are fixed in 229d529 (red and green runs of the new tests: docs/evidence/stage-4-hud-fixes-red-green.txt) and the
+#   measurement below was repeated on the fixed tree.
 #
 RESULT: PASS. Criterion 2 (nearest-neighbour median D v1 of abstract live >= 0.40): 0.186 -> 0.409 (target 0.40). No drawing constant of the spec was tuned (the HUD fix changes the layout rule only, see Notes).
 
