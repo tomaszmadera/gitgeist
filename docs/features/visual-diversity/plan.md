@@ -74,6 +74,8 @@ Acceptance:
 
 Size: standard. Needs a spec (replaces the abstract business rules in `docs/features/live-renderers/spec.md`).
 
+Status: spec approved (Tomasz, 2026-11-03, `docs/features/live-renderer-v2/spec.md`); implementation in review (GITGEIST-17, version 0.10.0, spec and implementation in one PR). Result for criterion 2: nearest-neighbour median `D` v1 0.405 against the remeasured baseline 0.186 (evidence in `docs/evidence/stage-4-live-renderer-d.txt`). Criterion 3 is open: Tomasz's visual review.
+
 - Canvas code draws `VisualSpec` in the `orbits` style: masses, rings, knot, strands, edges, hatching, cracks.
 - Motion grammar: timeline replay loop, speed by `alive`, no rotated copies.
 - HUD with three plain conclusions and hover details per mass; `--caption`.

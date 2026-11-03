@@ -2,7 +2,7 @@
 
 Path: `docs/features/live-renderer-v2/spec.md`
 
-Status: decisions approved by Tomasz 2026-11-03 (stage 4 of `docs/features/visual-diversity/plan.md`, Plane GITGEIST-17). O1-O9 option (a), O10 option (b): spec and implementation in one PR.
+Status: decisions approved by Tomasz 2026-11-03 (stage 4 of `docs/features/visual-diversity/plan.md`, Plane GITGEIST-17). O1-O9 option (a), O10 option (b): spec and implementation in one PR. Implemented in 0.10.0 on branch `gitgeist-17-stage-4-spec`; implementation in review.
 
 ## Goal
 
@@ -58,7 +58,7 @@ Every field below comes from `VisualSpec`; the browser code computes nothing fro
 | topology | `topology.nesting_levels` | that many concentric inner sub-discs per body at radius `1 - k / (levels + 1)` of the body, `k = 1..levels` |
 | footprint | `footprint.coverage`, `element_count` | scale of the composition (above); `element_count` small dust points spread over the bodies in proportion to `file_share`, seeded positions |
 | rings | `rings.thickness` | one growth ring per entry, oldest innermost, evenly spaced from the centre to the edge of every body; line width `0.5 + 3.5 * thickness` px; an empty list draws no rings |
-| hue | `masses[i].hue`, `palette.hue_offset` | body fill `hsl(hue, saturation, 45%)`; `hue = null` draws the body in neutral grey (saturation 0) |
+| hue | `masses[i].hue`, `palette.hue_offset` | body fill `hsl(hue, saturation, 45%)` (`hue` already contains `palette.hue_offset`, added by `build_visual_spec`; the browser does not add it again); `hue = null` draws the body in neutral grey (saturation 0) |
 | saturation | `palette.saturation` | HSL saturation of every body with a hue, of the rings and of the knot |
 | strands | `strands.count`, `paths[j].phase`, `curvature` | one closed orbit per strand around the footprint centre, radius `0.55 + 0.4 * phase` footprint units, eccentricity `0.35 * abs(curvature)`, tilt `curvature * 90` degrees; each strand moves on its own phase |
 | focal knot | `knot.mass_index`, `offset_x`, `offset_y`, `radius`, `flicker` | a bright disc on the owning body at the offset, radius `knot.radius * body radius`; `knot = null` draws no knot |
@@ -72,7 +72,7 @@ Every field below comes from `VisualSpec`; the browser code computes nothing fro
 
 ### Motion
 
-- One loop of `motion.loop_seconds` (12 s) replays `motion.pulse`, oldest month first: at loop time `t` the global pulse amplitude is the pulse value of month `floor(t / loop_seconds * len(pulse))`; the bodies breathe by up to 4% of their radius times that value. The last 90 days of history take the final 10% of the loop (`design.md:147`). An empty `pulse` gives a constant amplitude of 0.
+- One loop of `motion.loop_seconds` (12 s) replays `motion.pulse`, oldest month first: at loop time `t` the global pulse amplitude is the pulse value of month `floor(t / loop_seconds * len(pulse))`; the bodies breathe by up to 4% of their radius times that value. The last 90 days of history (the last 3 monthly values of `pulse`) take the final 10% of the loop (`design.md:147`), so the formula applies to the earlier months over the first 90% of the loop; with 3 or fewer months it applies to the whole loop. An empty `pulse` gives a constant amplitude of 0.
 - Drift speed of the dust and of the strands follows `motion.speed_hz` (`design.md:148`).
 - The knot's brightness oscillates at `0.5 + 2.5 * knot.flicker` Hz (`design.md:149`).
 - Strands move with their own phases, so more strands give more independent motion (`design.md:150`).
@@ -108,7 +108,7 @@ Numbers are rounded to whole units, except `code_mb` and `age_years`, which have
 2. The page draws only from the embedded scene: no value in the Canvas code depends on the 14 axes, materiality or the emotional state.
 3. Self-contained: the HTML has no external URL, script, stylesheet or font, and works from `file:///` (stage 4 criterion 1).
 4. No silent fallback: a missing or wrong-type scene for the abstract representation is an error, never a switch to the old renderer. New code adds no `except` that hides errors.
-5. Character mode unchanged: `--representation character` output is byte-identical to 0.9.0 apart from the engine version string.
+5. Character mode unchanged: `--representation character` output is byte-identical to 0.9.0 apart from the engine version string. The character page loses only the unused abstract drawing code (`drawAbstract` and the mode dispatch), which Scope item 3 removes; its picture is unchanged.
 6. HTML injection: repository and directory names are escaped in the HUD and hover, and the embedded JSON escapes `</` as today.
 
 ## Authorization
@@ -192,7 +192,7 @@ def render_live(
 
 - `build_orbits_scene`: `spec.representation` not `abstract` or `spec.style` not `orbits`: `ValueError`; `features` not `RepositoryFeatures` or `spec` not `VisualSpec`: `TypeError`.
 - `render_live`: `mode="abstract"` with `scene=None` or not an `OrbitsScene`: `TypeError`; `mode="character"` with a scene: `ValueError`; unknown mode: `ValueError` as today.
-- CLI: `--caption` with `--mode prompt-to-image`: exit 2 with a message, like `--backend` with `--mode live`.
+- CLI: `--caption` with `--mode prompt-to-image`: exit 2 with the message `--caption applies only to --mode live` before anything is analysed or written. (`--backend` with `--mode live` exits 1 through the generic error path; this flag exits 2 as written here.) `--caption` with `--representation character --mode live` is accepted and has no effect until stage 5.
 
 ## Acceptance criteria
 
@@ -200,7 +200,7 @@ def render_live(
 2. Contact sheet on the 12-repository corpus of `analysis.md`: nearest-neighbour median D v1 of the abstract live portraits at least 0.40 (plan criterion 2). The baseline is remeasured on the same corpus at `main` right before the implementation (`4fa14c9` or the branch point) and recorded next to the result in `docs/evidence/` with the command (R6, O6).
 3. Tomasz's visual review of the abstract contact sheet and of two live pages of his choice (plan criterion 3).
 4. Determinism, channel drawing and HUD tests below pass offline (R5) on Python 3.11, 3.12 and 3.13 in CI `verify` and in `verify-windows`.
-5. Character live output is byte-identical to 0.9.0 apart from the engine version (business rule 5), checked by a test against a committed snapshot.
+5. Character live output is byte-identical to 0.9.0 apart from the engine version and the removed, unused abstract drawing code of the page template (business rule 5), checked by a test against a committed snapshot (`tests/golden/live/`). The state JSON is byte-identical.
 
 ## Required tests
 
@@ -211,7 +211,7 @@ def render_live(
 - `tests/golden/live/` (new): snapshot of the character `live-preview.html` and `live-state.json` of one fixture at 0.9.0 with the engine version masked (criterion 5).
 - `tests/test_diversity_report.py` (changed): `run --no-images` on two fixtures still works with the new abstract path.
 
-No test starts a browser; criterion 2 is checked by the development script with the log in the PR.
+No test starts a browser; criterion 2 is checked by the development script with the log in the PR (`docs/evidence/stage-4-live-renderer-d.txt`). One test runs the drawing code in Node.js against a recording stub of the canvas and checks that no drawing call gets NaN or infinity for window sizes from 1 px to 1280x720; it is skipped when `node` is not installed.
 
 ## Risks
 

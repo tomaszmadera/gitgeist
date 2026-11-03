@@ -5,7 +5,10 @@ stage 3. Its contract and formulas are in the [approved spec](spec.md).
 `gitgeist.visual.build_visual_spec` builds it from features v2, `Traits` and
 an `IdentitySeed`. All models use Pydantic v2, are frozen and forbid extra
 fields. JSON roundtrips preserve their values. Stage 3 does not write a
-`visual-spec.json` CLI artifact or draw these scenes.
+`visual-spec.json` CLI artifact or draw these scenes. Stage 4 (0.10.0) draws the
+abstract scene in the `orbits` style and writes it, inside an `OrbitsScene`, to
+`live-state.json` ([live renderer v2 spec](../live-renderer-v2/spec.md)); the
+`VisualSpec` fields and `schema_version` are unchanged.
 
 ## Coordinates and identity
 
