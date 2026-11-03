@@ -2,7 +2,7 @@
 
 Path: `docs/features/live-renderer-v2/spec.md`
 
-Status: proposed 2026-11-03 (stage 4 of `docs/features/visual-diversity/plan.md`, Plane GITGEIST-17). Not approved; the decisions O1-O10 in "Decisions" are open. The spec describes the recommended option (a) of each.
+Status: decisions approved by Tomasz 2026-11-03 (stage 4 of `docs/features/visual-diversity/plan.md`, Plane GITGEIST-17). O1-O9 option (a), O10 option (b): spec and implementation in one PR.
 
 ## Goal
 
@@ -222,7 +222,7 @@ No test starts a browser; criterion 2 is checked by the development script with 
 
 ## Decisions
 
-Open, for Tomasz. The spec text above follows option (a) of each.
+Decided by Tomasz on 2026-11-03: O1 (a), O2 (a), O3 (a), O4 (a), O5 (a), O6 (a, left to the implementer), O7 (a), O8 (a), O9 (a), O10 (b).
 
 O1. Library API for the abstract scene. (a) `render_live` gets a keyword-only `scene: OrbitsScene | None`, required for `abstract`; `generate_abstract_simulation` is removed (breaking, CHANGELOG). (b) A new function `render_live_scene(scene, output_dir)` next to an unchanged `render_live`, which keeps the old abstract renderer for library callers. Recommendation: (a), one path and no dead renderer; (b) keeps code nobody uses.
 
