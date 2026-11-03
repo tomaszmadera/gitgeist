@@ -5,6 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from gitgeist._version import current_engine_version
+from gitgeist.schemas.visual_spec import VisualSpec
 
 COLOR_REGEX = re.compile(
     r"^(?:#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*(?:0(?:\.\d+)?|1(?:\.0+)?|\.\d+)\s*)?\))$"
@@ -74,3 +75,30 @@ class LiveSimulationState(BaseModel):
         description="Gitgeist engine version",
     )
     repository_name: str | None = Field(default=None, description="Analyzed repository name")
+
+
+class HoverDetail(BaseModel):
+    """Text shown when the pointer is over one mass of the abstract portrait."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    mass_index: int = Field(ge=0, description="Index into scene.spec.masses")
+    label: str = Field(description='"." for root files, the directory name, or "other (merged)"')
+    file_count: int = Field(ge=0)
+    file_share_percent: int = Field(ge=0, le=100)
+    top_hotspot: str | None = Field(description="Path of the top hotspot when it belongs to this mass")
+
+
+class OrbitsScene(BaseModel):
+    """Abstract live portrait in the ``orbits`` style: the VisualSpec plus HUD and hover text."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    schema_version: Literal["1"]
+    representation: Literal["abstract"]
+    repository_name: str | None
+    engine_version: str = Field(default_factory=current_engine_version)
+    caption: bool
+    conclusions: list[str] = Field(max_length=3, description="Plain HUD phrases; empty when caption is False")
+    hover: list[HoverDetail] = Field(description="One entry per mass; empty when caption is False")
+    spec: VisualSpec
