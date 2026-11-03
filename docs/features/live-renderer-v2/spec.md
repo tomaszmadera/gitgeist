@@ -45,7 +45,8 @@ Draw `VisualSpec` (stage 3) in the live abstract portrait. `gitgeist render --re
 
 ### Coordinates
 
-- The canvas fills the window. The footprint circle of `VisualSpec` (radius 1 at (0, 0)) is centred in the canvas; its radius in pixels is `0.5 * footprint.coverage * min(width, height)`, so `size` is the share of the frame the form covers (`design.md:124`).
+- The canvas fills the window. A strip of `HUD_STRIP = 120` px at the top of the window is reserved for the HUD, with and without a caption, so the drawing never depends on `caption` and the HUD never covers the composition. In windows lower than 400 px the strip is 30% of the height. The HUD is a box of fixed height (104 px at 12 px from the top and left, one line per conclusion, long text cut with an ellipsis), so it always ends inside the strip.
+- The footprint circle of `VisualSpec` (radius 1 at (0, 0)) is centred horizontally and, vertically, in the free area below the strip (`area = height - strip`). Its radius in pixels is `0.5 * min(footprint.coverage * min(width, height), area)`: `size` is the share of the frame the form covers (`design.md:124`), limited to the free area. On a 520 px square window the limit applies from coverage 0.77 (`size` about 0.87) upwards; in a 1280x720 window from 0.83.
 - All mass positions, radii, knot offsets and crack positions are drawn in footprint units scaled by that radius. Resizing the window rescales the whole composition and changes no proportion.
 
 ### Channels in `orbits`
@@ -95,6 +96,8 @@ Every field below comes from `VisualSpec`; the browser code computes nothing fro
 | `sprawl` | "deep, narrow tree ({dirs} top-level directories, depth {depth})" | "wide, shallow tree ({dirs} top-level directories, depth {depth})" |
 | `prose` | "mostly code" | "text-heavy ({doc_pct}% documents)" |
 | `debt` | "few TODO markers" | "{todo} TODO markers per 1000 files" |
+
+A repository with no top-level directory (`dirs` is 0, so the depth is 0 as well) has the `sprawl` phrase "flat tree, all files at the root" at either end, because the trait value 0.0 of such a tree is not "deep". The trait keeps its place in the ordering (it is not skipped), so the HUD still shows three conclusions.
 
 Numbers are rounded to whole units, except `code_mb` and `age_years`, which have one decimal. A repository without history has no `age`, `alive` or `crowd` phrase; the next traits in the ordering take their place.
 
@@ -187,6 +190,7 @@ def render_live(
 - 40 rings on a small body: line width is capped so rings never overlap (`min(width, body radius / (rings + 1))`).
 - Very small window (below 200 px): drawing still runs without NaN or division by zero.
 - Directory names with HTML or quotes: escaped (business rule 6).
+- Large portraits next to the HUD: the strip is reserved, so a portrait with coverage 0.85 in a 520 px window is drawn smaller (see Coordinates) instead of under the HUD. Edge jitter (up to 25% of a body radius) and breathing (4%) may let a body at the very edge of the footprint pass the circle by a few pixels.
 
 ## Errors
 

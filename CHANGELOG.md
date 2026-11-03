@@ -12,7 +12,7 @@ Live renderer v2 for the abstract representation (plan stage 4, GITGEIST-17; spe
 
 ### Changed
 
-- The abstract live portrait (`render --representation abstract --mode live`) is drawn from `VisualSpec` in the `orbits` style instead of the rotated particle kaleidoscope: masses with growth rings, strands as orbits, a focal knot, edge quality, hatching, cracks and nested sub-shapes, one trait per channel. The animation replays the commit timeline in a 12 s loop. The HUD shows the repository name and three plain conclusions (the three traits farthest from 0.5) instead of material, seed and engine version, and hovering a body shows its directory, file count, share and top hotspot.
+- The abstract live portrait (`render --representation abstract --mode live`) is drawn from `VisualSpec` in the `orbits` style instead of the rotated particle kaleidoscope: masses with growth rings, strands as orbits, a focal knot, edge quality, hatching, cracks and nested sub-shapes, one trait per channel. The animation replays the commit timeline in a 12 s loop. The HUD shows the repository name and three plain conclusions (the three traits farthest from 0.5) instead of material, seed and engine version, and hovering a body shows its directory, file count, share and top hotspot. The HUD is a fixed-size box in a strip reserved at the top of the window (120 px, with and without a caption), and the composition is fitted into the area below it, so the HUD never covers the portrait. A repository with no top-level directory reads "flat tree, all files at the root" instead of "deep, narrow tree".
 - Breaking: for the abstract representation `live-state.json` holds an `OrbitsScene` (schema version "1": the full `VisualSpec`, the HUD conclusions and the hover details) instead of a `LiveSimulationState`. Readers of the old shape break. The character file does not change.
 - Breaking: `render_live` takes a keyword-only `scene: OrbitsScene | None = None`. It is required for `mode="abstract"` (`TypeError` when missing) and must be `None` for `mode="character"` (`ValueError` otherwise). Before: `render_live(profile, "abstract", identity=identity)`. After:
 
@@ -38,7 +38,7 @@ Live renderer v2 for the abstract representation (plan stage 4, GITGEIST-17; spe
 
 ### Development tools
 
-- `tools/diversity_report.py` draws the abstract live render through the new path (scene built from the absolute traits at `--reference-time`). D v1 is unchanged. On the 12-repository corpus the nearest-neighbour median `D` of the abstract live portraits is 0.405 (0.186 before; `docs/evidence/stage-4-live-renderer-d.txt`).
+- `tools/diversity_report.py` draws the abstract live render through the new path (scene built from the absolute traits at `--reference-time`). D v1 is unchanged. On the 12-repository corpus the nearest-neighbour median `D` of the abstract live portraits is 0.409 (0.186 before; `docs/evidence/stage-4-live-renderer-d.txt`).
 
 ## [0.9.0] - 2026-10-30
 
