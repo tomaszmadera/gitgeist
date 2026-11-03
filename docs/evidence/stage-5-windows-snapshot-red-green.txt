@@ -1,0 +1,178 @@
+# Stage 5 (GITGEIST-18): the orbits snapshot test failed on Windows CI; float literals now compare with a tolerance
+#
+# SHA note (history rewritten on 2026-11-03 for review rule R12, the version bump and its CHANGELOG entry in one commit): the commits cited below were renamed as follows.
+#   c7ca3fd -> 589829f (version bump and CHANGELOG entry), 4e526d4 -> 5b6b2a0, 0521d8e -> 0e6973b (the fix; code and tests identical), d3c4570 -> this commit.
+#   4e526d4 is the head the Windows CI run 41729639973 failed on; that run and the old commits stay available through the CI run id, the ref
+#   backup/gitgeist-18-pre-r12 and /workspace/gitgeist-18-pre-r12.bundle on the box. The local red/green runs below were made on 4e526d4 and 0521d8e;
+#   the code and tests of 5b6b2a0 and 0e6973b are identical to them (checked with git diff 4e526d4 5b6b2a0 -- src tests tools).
+#
+# Defect:    tests/test_orbits_snapshot.py::test_orbits_page_and_state_match_the_0_10_0_snapshot compared the page and the scene JSON with the golden as exact text.
+#            Floats in them come from `math` functions of the platform C library; one layout value differs by one unit in the last place on Windows
+#            (golden -0.28930495508250503 on Linux, -0.289304955082505 on Windows, the neighbouring double, relative difference 1.9e-16), so its repr differs.
+# Fix:       tests/snapshot_helpers.py (assert_matches_snapshot): exact text with every float literal masked, then the float literals compared one by one with
+#            math.isclose(rel_tol=1e-9, abs_tol=1e-12). Integers, names, keys, version strings and every other character stay exact. Used by the orbits snapshot
+#            tests and by the CreatureScene snapshot test; tests/test_snapshot_helpers.py tests the helper. No golden file was regenerated.
+#
+# ================================================================
+# RED 1: the Windows CI job (the failure as reported by CI)
+# ================================================================
+# Command (CI):  python -m pytest tests            (job "verify-windows (Python 3.13)", step "Run tests", Python 3.13.17, pytest 9.2.0, win32)
+# Log:           gh run view 41729639973 --job 126243316125 --log-failed
+# Run:           https://github.com/tomaszmadera/gitgeist/actions/runs/41729639973, PR #23, head commit 4e526d4add18b13b5d90624b084c4a0a1341219b
+# Status:        job conclusion failure; step "Run tests" exit code 1; 1 failed, 702 passed in 186.13s (Linux 3.11, 3.12 and 3.13 passed)
+# Log excerpt (timestamps and job prefix removed; unedited otherwise):
+#   ____________ test_orbits_page_and_state_match_the_0_10_0_snapshot _____________
+#   
+#       def test_orbits_page_and_state_match_the_0_10_0_snapshot() -> None:
+#           """Snapshot of ``make_scene()`` taken at 0.10.0 before any page code was shared with the creature page.
+#       
+#           The engine version is masked; nothing else may change in the page or in the scene JSON.
+#           """
+#           version = current_engine_version()
+#           scene = make_scene()
+#           page = generate_orbits_html(scene).replace(version, "<ENGINE_VERSION>")
+#           state = scene.model_dump_json(indent=2).replace(version, "<ENGINE_VERSION>")
+#   >       assert page == (GOLDEN_LIVE / "orbits-0.10.0-live-preview.html").read_text(encoding="utf-8")
+#   E       assert '<!DOCTYPE ht...y>\n</html>\n' == '<!DOCTYPE ht...y>\n</html>\n'
+#   E         
+#   E         Skipping 4955 identical leading characters in diff, use -v to show
+#   E         - 495508250503,
+#   E         ?           --
+#   E         + 4955082505,
+#   E                   "y": -0.4667265889053966,
+#   E                   "radius": 0.17949664011179967...
+#   E         
+#   E         ...Full output truncated, use '-vv' to show
+#   
+#   tests\test_orbits_snapshot.py:23: AssertionError
+#   =========================== short test summary info ===========================
+#   FAILED tests/test_orbits_snapshot.py::test_orbits_page_and_state_match_the_0_10_0_snapshot - assert '<!DOCTYPE ht...y>\n</html>\n' == '<!DOCTYPE ht...y>\n</html>\n'
+#     
+#     Skipping 4955 identical leading characters in diff, use -v to show
+#     - 495508250503,
+#     ?           --
+#     + 4955082505,
+#               "y": -0.4667265889053966,
+#               "radius": 0.17949664011179967...
+#     
+#     ...Full output truncated, use '-vv' to show
+#   ================== 1 failed, 702 passed in 186.13s (0:03:06) ==================
+#
+# ================================================================
+# RED 2 and GREEN: local reproduction by perturbing the golden in the last bit (Python 3.13.5, Linux, the box; date 2026-11-03 Warsaw)
+# ================================================================
+# The golden file of the tree is changed in a throw-away git worktree (the repository is not touched) and the snapshot test is run against it.
+#   "old" worktree = 4e526d4 (the commit CI failed on): exact-text snapshot tests.
+#   "new" worktree = 0521d8e (the fix): assert_matches_snapshot.
+# Perturbations: "next double" = the golden float replaced by the adjacent double (what Windows produced: -0.289304955082505 for the orbits value);
+#                "REAL change" = a float changed by about 1e-7 relative, or an integer changed; these must still fail.
+# Commands: PYTHONPATH=src python -m pytest -q -p no:cacheprovider <test id>, run from each worktree root (the "gitgeist imported from" line shows which tree runs).
+# Expected: old + next double = FAIL (red); new + next double = PASS (green); new + REAL change = FAIL (the test still catches changes); new unperturbed = PASS.
+#
+#
+# ################ TREE old: 4e526d4 docs(evidence): stage 5 measurement and tests, tuning notes, changelog 0.11.0, spe
+#
+# ### old
+# tree: 4e526d4 (/tmp/wt-old); golden change: orbits float -0.28930495508250503 -> -0.289304955082505 (the next double, the Windows CI value)
+# gitgeist imported from: /tmp/wt-old/src/gitgeist/__init__.py
+# $ python -m pytest -q -p no:cacheprovider tests/test_orbits_snapshot.py::test_orbits_page_and_state_match_the_0_10_0_snapshot
+# E       assert '<!DOCTYPE ht...y>\n</html>\n' == '<!DOCTYPE ht...y>\n</html>\n'
+# E         
+# E         Skipping 4955 identical leading characters in diff, use -v to show
+# E         - 4955082505,
+# E         + 495508250503,
+# E         ?           ++
+# E                   "y": -0.4667265889053966,
+# E                   "radius": 0.17949664011179967...
+# exit code: 1
+#
+#
+# ### old
+# tree: 4e526d4 (/tmp/wt-old); golden change: creature float 0.013624433339148201 -> 0.013624433339148203 (the next double)
+# gitgeist imported from: /tmp/wt-old/src/gitgeist/__init__.py
+# $ python -m pytest -q -p no:cacheprovider tests/test_creature_scene.py::test_creature_scene_matches_the_0_11_0_snapshot
+# E       assert '{\n  "schema...    }\n  }\n}' == '{\n  "schema...    }\n  }\n}'
+# E         
+# E         Skipping 3681 identical leading characters in diff, use -v to show
+# E         Skipping 8373 identical trailing characters in diff, use -v to show
+# E         - 33339148203,
+# E         ?           ^
+# E         + 33339148201,
+# E         ?           ^
+# exit code: 1
+#
+#
+# ################ TREE new: 0521d8e test: compare the live snapshots as exact text except float literals (relative 1e-
+#
+# ### new
+# tree: 0521d8e (/tmp/wt-new); golden change: orbits float -0.28930495508250503 -> -0.289304955082505 (the next double, the Windows CI value)
+# gitgeist imported from: /tmp/wt-new/src/gitgeist/__init__.py
+# $ python -m pytest -q -p no:cacheprovider tests/test_orbits_snapshot.py::test_orbits_page_and_state_match_the_0_10_0_snapshot
+# 1 passed in 0.56s
+# exit code: 0
+#
+#
+# ### new
+# tree: 0521d8e (/tmp/wt-new); golden change: creature float 0.013624433339148201 -> 0.013624433339148203 (the next double)
+# gitgeist imported from: /tmp/wt-new/src/gitgeist/__init__.py
+# $ python -m pytest -q -p no:cacheprovider tests/test_creature_scene.py::test_creature_scene_matches_the_0_11_0_snapshot
+# 1 passed in 0.15s
+# exit code: 0
+#
+#
+# ### new
+# tree: 0521d8e (/tmp/wt-new); golden change: REAL change: orbits float -0.28930495508250503 -> -0.2893049 (about 1e-7 relative)
+# gitgeist imported from: /tmp/wt-new/src/gitgeist/__init__.py
+# $ python -m pytest -q -p no:cacheprovider tests/test_orbits_snapshot.py::test_orbits_page_and_state_match_the_0_10_0_snapshot
+# E       AssertionError: snapshot mismatch: float literal #40: -0.28930495508250503 != -0.2893049
+# tests/snapshot_helpers.py:61: AssertionError
+# 1 failed in 0.17s
+# exit code: 1
+#
+#
+# ### new
+# tree: 0521d8e (/tmp/wt-new); golden change: REAL change: creature float 0.013624433339148201 -> 0.0136245
+# gitgeist imported from: /tmp/wt-new/src/gitgeist/__init__.py
+# $ python -m pytest -q -p no:cacheprovider tests/test_creature_scene.py::test_creature_scene_matches_the_0_11_0_snapshot
+# E       AssertionError: snapshot mismatch: float literal #55: 0.013624433339148201 != 0.0136245
+# tests/snapshot_helpers.py:61: AssertionError
+# 1 failed in 0.17s
+# exit code: 1
+#
+#
+# ### new
+# tree: 0521d8e (/tmp/wt-new); golden change: REAL change: creature integer nesting_levels -> 7
+# gitgeist imported from: /tmp/wt-new/src/gitgeist/__init__.py
+# $ python -m pytest -q -p no:cacheprovider tests/test_creature_scene.py::test_creature_scene_matches_the_0_11_0_snapshot
+# E       AssertionError: snapshot mismatch: text differs at line 426 (floats masked): '"nesting_levels": 1' != '"nesting_levels": 7'
+# tests/snapshot_helpers.py:61: AssertionError
+# 1 failed in 0.16s
+# exit code: 1
+#
+#
+# ### new
+# tree: 0521d8e (/tmp/wt-new); golden change: no change (unperturbed goldens)
+# gitgeist imported from: /tmp/wt-new/src/gitgeist/__init__.py
+# $ python -m pytest -q -p no:cacheprovider tests/test_orbits_snapshot.py::test_orbits_page_and_state_match_the_0_10_0_snapshot tests/test_creature_scene.py::test_creature_scene_matches_the_0_11_0_snapshot
+# 2 passed in 0.15s
+# exit code: 0
+#
+#
+# Full suite after the fix (commit 0521d8e, python -m pytest -q -p no:cacheprovider tests, minimal environment wrapper): 716 passed on Python 3.11, 3.12 and 3.13
+# (703 before: +13 tests in tests/test_snapshot_helpers.py); see docs/evidence/stage-5-tests-py311.txt, -py312.txt, -py313.txt (refreshed).
+# The Windows job itself is verified by the CI run of the push that carries this fix (not available locally).
+#
+# ================================================================
+# Other exact-float risks checked (stage 5 code and tests)
+# ================================================================
+# - CreatureScene snapshot (tests/test_creature_scene.py): same risk (the spec inside it carries the same layout floats); hardened with the same helper.
+#   It passed on the Windows job only because none of its layout values hit a last-bit difference.
+# - Creature page tests (tests/test_creature_html.py): no golden text; they compare the embedded JSON with the scene built in the same process, so a last-bit
+#   difference moves both sides. Node checks only look for NaN or infinity and the position of the top edge with a 12% margin. No change needed.
+# - Creature body builder (src/gitgeist/render/creature.py): uses math.sqrt (correctly rounded by IEEE 754, identical everywhere), math.sin, math.cos and
+#   math.hypot (libm; may differ in the last bit between Windows and Linux) and random.Random (Mersenne Twister and random(), exact everywhere). Every body value
+#   is rounded to 6 decimals (_round) before it is stored, so a last-bit difference changes a stored value only if it sits within about 1e-16 of a rounding
+#   boundary (about 1e-10 chance per number). The body tests compare with pytest.approx or compare values computed the same way in one process, and the
+#   thresholds (pad overlap at most a quarter of the smaller radius, extent at most 1 + 1e-5) have margins far above 1e-9. No change needed.
+# - Pre-existing and not touched: tests/test_golden_diversity.py compares the stage 3 VisualSpec goldens with exact float equality of the parsed JSON (dict ==).
+#   It passed on the Windows job, but it has the same exposure for any value that differs in the last bit; if it ever fails on Windows the same helper can be applied.
