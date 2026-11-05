@@ -99,7 +99,7 @@ Acceptance: as stage 4, with nearest-neighbour median `D` v1 at least 0.25 for c
 
 ### Stage 6: prompt composer v2
 
-Size: standard. Needs a spec (amends `docs/features/prompt-to-image/spec.md`, which today fixes three qualifier bins and the block layout).
+Size: standard. Spec approved on 2026-11-05 (`docs/features/prompt-composer-v2/spec.md`). Amends `docs/features/prompt-to-image/spec.md`, which today fixes three qualifier bins and the block layout.
 
 - Prompt from `VisualSpec` as in `design.md` "Prompt-to-image": subject sentence, 5 to 7 concrete directives, hex palette, seeded medium, negative constraints, name off by default.
 - Seed passthrough if the OpenRouter images API accepts one (to verify).

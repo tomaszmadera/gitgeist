@@ -188,15 +188,48 @@ def test_render_abstract_live_is_deterministic(clean_modular_repo: Path, tmp_pat
 
 
 @pytest.mark.parametrize("backend_args", [[], ["--backend", "fake"]])
-def test_render_caption_with_prompt_to_image_exits_2(
-    clean_modular_repo: Path, backend_args: list[str], tmp_path: Path, capsys: pytest.CaptureFixture[str]
+def test_render_prompt_caption_default_draws_a_strip(
+    clean_modular_repo: Path, backend_args: list[str], tmp_path: Path
 ) -> None:
-    out_dir = tmp_path / "prompt-with-caption"
-    code = main(["render", str(clean_modular_repo), "--representation", "abstract", "--mode", "prompt-to-image",
-                 "--caption", "on", *backend_args, "-o", str(out_dir)])
+    from PIL import Image
+
+    base = ["render", str(clean_modular_repo), "--representation", "abstract", "--mode", "prompt-to-image"]
+    on_dir, off_dir = tmp_path / "on", tmp_path / "off"
+    assert main([*base, *backend_args, "-o", str(on_dir)]) == 0
+    assert main([*base, "--caption", "off", *backend_args, "-o", str(off_dir)]) == 0
+    on_image = Image.open(on_dir / "portrait.png")
+    off_image = Image.open(off_dir / "portrait.png")
+    assert off_image.size == (64, 64)
+    assert on_image.size[0] == 64 and on_image.height >= 72
+    assert list(on_image.crop((0, 0, 64, 64)).getdata()) == list(off_image.getdata())
+    prompt = (on_dir / "prompt.txt").read_text(encoding="utf-8")
+    assert clean_modular_repo.resolve().name not in prompt
+
+
+def test_render_prompt_name_on_live_exits_before_writes(
+    clean_modular_repo: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    out_dir = tmp_path / "named-live"
+    code = main([
+        "render", str(clean_modular_repo), "--representation", "abstract", "--mode", "live",
+        "--prompt-name", "-o", str(out_dir),
+    ])
     assert code == 2
-    assert "--caption applies only to --mode live" in capsys.readouterr().err
+    assert "--prompt-name applies only to --mode prompt-to-image" in capsys.readouterr().err
     assert not out_dir.exists()
+
+
+def test_render_prompt_name_inserts_the_directory_name(
+    clean_modular_repo: Path, tmp_path: Path
+) -> None:
+    out_dir = tmp_path / "named"
+    code = main([
+        "render", str(clean_modular_repo), "--representation", "character", "--mode", "prompt-to-image",
+        "--prompt-name", "--caption", "off", "-o", str(out_dir),
+    ])
+    assert code == 0
+    prompt = (out_dir / "prompt.txt").read_text(encoding="utf-8")
+    assert f"Repository: {clean_modular_repo.resolve().name}." in prompt.splitlines()[1]
 
 
 def test_render_caption_rejects_unknown_value(clean_modular_repo: Path, tmp_path: Path) -> None:
@@ -303,7 +336,11 @@ def test_render_prompt_writes_mode_and_required_artifacts(
     for name in PROMPT_ARTIFACTS:
         assert (out_dir / name).is_file(), f"missing artifact: {name}"
     prompt = (out_dir / "prompt.txt").read_text(encoding="utf-8")
-    assert f"Representation mode: {representation}" in prompt
+    if representation == "abstract":
+        assert "An abstract composition of" in prompt
+    else:
+        assert "A creature " in prompt
+    assert clean_modular_repo.resolve().name not in prompt
     assert (out_dir / "portrait.png").stat().st_size > 0
     captured = capsys.readouterr()
     assert str(out_dir / "portrait.png") in captured.out
@@ -379,7 +416,7 @@ def test_render_openrouter_backend_loads_api_key_from_dotenv(
 
 
 class _ExplodingBackend(FakeImageBackend):
-    def generate_image(self, prompt: str) -> "GeneratedImage":
+    def generate_image(self, prompt: str, *, spec=None, seed=None) -> "GeneratedImage":
         raise ValueError("image backend exploded")
 
 

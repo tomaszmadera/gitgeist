@@ -2,6 +2,7 @@
 
 import io
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -13,81 +14,51 @@ from gitgeist.render.image_backend import (
     detect_media_type,
 )
 from gitgeist.render.prompt_composer import compose_prompt
-from gitgeist.schemas.emotional import (
-    ChoiceDistribution,
-    EmotionalChoices,
-    EmotionalNouls,
-    EmotionalScores,
-    EmotionalState,
+from gitgeist.schemas.features import (
+    DocsSummaryFeatures,
+    GitHistoryFeatures,
+    RepositoryFeatures,
+    StaticFeatures,
 )
-from gitgeist.schemas.visual_latent import (
-    MaterialityDistribution,
-    VisualLatentAxes,
-    VisualLatentProfile,
-)
+from gitgeist.schemas.visual_spec import CrackMark, Cracks, VisualSpec
 
+FIXTURE = Path(__file__).parent / "golden" / "visual_spec" / "single-script-abstract.json"
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 JPEG_SAMPLE = b"\xff\xd8\xff\xe0" + b"jpeg-payload"
 WEBP_SAMPLE = b"RIFF\x24\x00\x00\x00WEBPVP8 payload"
 GARBAGE_SAMPLE = b"not-an-image"
+MASKED_SEED = 8904369301646676
 
 
-def make_emotional_state() -> EmotionalState:
-    scores = EmotionalScores(
-        coherence=0.81,
-        maturity=0.72,
-        volatility=0.25,
-        fragility=0.2,
-        novelty=0.5,
-        discipline=0.77,
-        tension=0.3,
-        chaos=0.15,
-        identity_strength=0.69,
-        internal_conflict=0.31,
-    )
-    choices = EmotionalChoices(
-        temperament=ChoiceDistribution(
-            weights={"calm": 0.4, "restless": 0.2, "proud": 0.2, "anxious": 0.2},
-            dominant="calm",
+def load_spec() -> VisualSpec:
+    return VisualSpec.model_validate_json(FIXTURE.read_text(encoding="utf-8"))
+
+
+def make_features() -> RepositoryFeatures:
+    return RepositoryFeatures(
+        repository_path="/tmp/sample-repo",
+        extracted_at=datetime(2026, 4, 16, tzinfo=timezone.utc),
+        static=StaticFeatures(
+            code_bytes=1000,
+            test_ratio=0.1,
+            doc_ratio=0.0,
+            todo_density=0,
+            top_level_directory_count=1,
+            max_directory_depth=1,
         ),
-        visual_tone=ChoiceDistribution(
-            weights={"luminous": 0.5, "austere": 0.3, "dense": 0.2},
-            dominant="luminous",
+        history=GitHistoryFeatures(
+            commit_count=1,
+            unique_authors_count=1,
+            repository_age_days=10,
+            top_author_share=1,
+            last_commit_date=datetime(2026, 4, 1, tzinfo=timezone.utc),
         ),
-        energy_profile=ChoiceDistribution(
-            weights={"focused": 0.6, "static": 0.4},
-            dominant="focused",
-        ),
+        docs=DocsSummaryFeatures(),
     )
-    return EmotionalState(scores=scores, nouls=EmotionalNouls(), choices=choices)
 
 
-def make_profile() -> VisualLatentProfile:
-    axes = VisualLatentAxes(
-        form_complexity=0.7,
-        symmetry=0.6,
-        fragmentation=0.3,
-        tension_curvature=0.4,
-        texture_density=0.5,
-        luminosity=0.6,
-        contrast=0.7,
-        sharpness=0.8,
-        visual_rhythm=0.75,
-        compositional_balance=0.8,
-        biological_vs_mechanical=0.7,
-        ornamental_load=0.2,
-        opacity=0.85,
-        layering=0.6,
-    )
-    materiality = MaterialityDistribution(
-        weights={"organic": 0.1, "mechanical": 0.6, "crystalline": 0.2, "ethereal": 0.1},
-        dominant="mechanical",
-    )
-    return VisualLatentProfile(
-        axes=axes,
-        materiality=materiality,
-        dominant_features=["sharpness", "compositional_balance"],
-    )
+SPEC = load_spec()
+FEATURES = make_features()
 
 
 class StubBackend:
@@ -95,10 +66,17 @@ class StubBackend:
         self.media_type = media_type
         self.payload = payload if payload is not None else PNG_SIGNATURE + b"stub"
         self.seen_prompts: list[str] = []
+        self.seen_seeds: list[int | None] = []
 
-    def generate_image(self, prompt: str) -> GeneratedImage:
+    def generate_image(self, prompt: str, *, spec=None, seed=None) -> GeneratedImage:
         self.seen_prompts.append(prompt)
+        self.seen_seeds.append(seed)
         return GeneratedImage(image_bytes=self.payload, media_type=self.media_type)
+
+
+def _render(**kwargs):
+    kwargs.setdefault("caption", False)
+    return render_prompt(SPEC, features=FEATURES, **kwargs)
 
 
 def make_real_jpeg_bytes() -> bytes:
@@ -118,11 +96,9 @@ def make_real_webp_bytes() -> bytes:
 
 
 def test_render_prompt_default_backend():
-    state = make_emotional_state()
-    profile = make_profile()
-    artifacts = render_prompt(state, profile, mode="character")
+    artifacts = _render()
     assert isinstance(artifacts, PromptRenderArtifacts)
-    assert artifacts.prompt_text == compose_prompt(state, profile, mode="character")
+    assert artifacts.prompt_text == compose_prompt(SPEC)
     assert artifacts.image_bytes is not None
     assert artifacts.image_bytes.startswith(PNG_SIGNATURE)
     assert artifacts.media_type == "png"
@@ -130,21 +106,17 @@ def test_render_prompt_default_backend():
     assert artifacts.image_path is None
 
 
-def test_render_prompt_uses_provided_backend():
-    state = make_emotional_state()
-    profile = make_profile()
+def test_render_prompt_passes_the_masked_seed():
     backend = StubBackend()
-    artifacts = render_prompt(state, profile, backend=backend, repository_name="repo-x")
-    assert artifacts.image_bytes == PNG_SIGNATURE + b"stub"
-    assert artifacts.media_type == "png"
+    artifacts = _render(backend=backend)
     assert backend.seen_prompts == [artifacts.prompt_text]
+    assert backend.seen_seeds == [MASKED_SEED]
+    assert artifacts.image_bytes == PNG_SIGNATURE + b"stub"
 
 
 def test_render_prompt_writes_artifacts(tmp_path: Path):
-    state = make_emotional_state()
-    profile = make_profile()
     output_dir = tmp_path / "nested" / "out"
-    artifacts = render_prompt(state, profile, output_dir=output_dir)
+    artifacts = _render(output_dir=output_dir)
     assert artifacts.prompt_path == output_dir / "prompt.txt"
     assert artifacts.image_path == output_dir / "portrait.png"
     assert artifacts.prompt_path.read_text(encoding="utf-8") == artifacts.prompt_text
@@ -152,12 +124,8 @@ def test_render_prompt_writes_artifacts(tmp_path: Path):
 
 
 def test_render_prompt_writes_jpeg_extension_for_jpeg_backend(tmp_path: Path):
-    state = make_emotional_state()
-    profile = make_profile()
     output_dir = tmp_path / "out"
-    artifacts = render_prompt(
-        state,
-        profile,
+    artifacts = _render(
         backend=StubBackend(media_type="jpeg", payload=JPEG_SAMPLE),
         output_dir=output_dir,
     )
@@ -168,12 +136,8 @@ def test_render_prompt_writes_jpeg_extension_for_jpeg_backend(tmp_path: Path):
 
 
 def test_render_prompt_writes_webp_extension_for_webp_backend(tmp_path: Path):
-    state = make_emotional_state()
-    profile = make_profile()
     output_dir = tmp_path / "out"
-    artifacts = render_prompt(
-        state,
-        profile,
+    artifacts = _render(
         backend=StubBackend(media_type="webp", payload=WEBP_SAMPLE),
         output_dir=output_dir,
     )
@@ -183,13 +147,9 @@ def test_render_prompt_writes_webp_extension_for_webp_backend(tmp_path: Path):
 
 
 def test_render_prompt_unknown_media_type_raises_without_image(tmp_path: Path):
-    state = make_emotional_state()
-    profile = make_profile()
     output_dir = tmp_path / "out"
     with pytest.raises(ValueError, match="PNG, JPEG, or WebP"):
-        render_prompt(
-            state,
-            profile,
+        _render(
             backend=StubBackend(media_type="png", payload=GARBAGE_SAMPLE),
             output_dir=output_dir,
         )
@@ -198,12 +158,8 @@ def test_render_prompt_unknown_media_type_raises_without_image(tmp_path: Path):
 
 def test_render_prompt_png_normalization_converts_jpeg(tmp_path: Path):
     pytest.importorskip("PIL")
-    state = make_emotional_state()
-    profile = make_profile()
     output_dir = tmp_path / "out"
-    artifacts = render_prompt(
-        state,
-        profile,
+    artifacts = _render(
         backend=StubBackend(media_type="jpeg", payload=make_real_jpeg_bytes()),
         output_dir=output_dir,
         image_format="png",
@@ -216,12 +172,8 @@ def test_render_prompt_png_normalization_converts_jpeg(tmp_path: Path):
 
 def test_render_prompt_png_normalization_converts_webp(tmp_path: Path):
     pytest.importorskip("PIL")
-    state = make_emotional_state()
-    profile = make_profile()
     output_dir = tmp_path / "out"
-    artifacts = render_prompt(
-        state,
-        profile,
+    artifacts = _render(
         backend=StubBackend(media_type="webp", payload=make_real_webp_bytes()),
         output_dir=output_dir,
         image_format="png",
@@ -232,11 +184,7 @@ def test_render_prompt_png_normalization_converts_webp(tmp_path: Path):
 
 
 def test_render_prompt_png_normalization_keeps_png_bytes(tmp_path: Path):
-    state = make_emotional_state()
-    profile = make_profile()
-    artifacts = render_prompt(
-        state,
-        profile,
+    artifacts = _render(
         backend=StubBackend(media_type="png", payload=PNG_SIGNATURE + b"kept"),
         image_format="png",
     )
@@ -246,113 +194,130 @@ def test_render_prompt_png_normalization_keeps_png_bytes(tmp_path: Path):
 
 def test_render_prompt_png_normalization_without_pillow_raises(tmp_path: Path, monkeypatch):
     monkeypatch.setitem(sys.modules, "PIL", None)
-    state = make_emotional_state()
-    profile = make_profile()
     with pytest.raises(ValueError, match="gitgeist\\[image\\]"):
-        render_prompt(
-            state,
-            profile,
+        _render(
             backend=StubBackend(media_type="jpeg", payload=JPEG_SAMPLE),
             image_format="png",
         )
 
 
 def test_render_prompt_rejects_unknown_image_format():
-    state = make_emotional_state()
-    profile = make_profile()
     with pytest.raises(ValueError):
-        render_prompt(state, profile, image_format="webp")
+        _render(image_format="webp")
 
 
 def test_render_prompt_without_output_writes_nothing(tmp_path: Path):
-    state = make_emotional_state()
-    profile = make_profile()
-    render_prompt(state, profile)
+    _render()
     assert list(tmp_path.iterdir()) == []
 
 
 def test_render_prompt_leaves_stale_portraits_in_other_formats_untouched(tmp_path: Path):
-    state = make_emotional_state()
-    profile = make_profile()
     output_dir = tmp_path / "out"
     output_dir.mkdir(parents=True)
     stale_path = output_dir / "portrait.webp"
     stale_path.write_bytes(WEBP_SAMPLE)
-    artifacts = render_prompt(state, profile, output_dir=output_dir)
+    artifacts = _render(output_dir=output_dir)
     assert artifacts.image_path == output_dir / "portrait.png"
     assert stale_path.read_bytes() == WEBP_SAMPLE
 
 
 def test_render_prompt_backend_failure_writes_nothing(tmp_path: Path):
     class FailingBackend:
-        def generate_image(self, prompt: str) -> GeneratedImage:
+        def generate_image(self, prompt: str, *, spec=None, seed=None) -> GeneratedImage:
             raise ValueError("backend exploded")
 
-    state = make_emotional_state()
-    profile = make_profile()
     output_dir = tmp_path / "out"
     with pytest.raises(ValueError):
-        render_prompt(state, profile, backend=FailingBackend(), output_dir=output_dir)
+        _render(backend=FailingBackend(), output_dir=output_dir)
     assert not output_dir.exists()
 
 
 def test_render_prompt_write_failure_raises_oserror(tmp_path: Path):
-    state = make_emotional_state()
-    profile = make_profile()
     blocker = tmp_path / "occupied"
     blocker.write_text("not a directory", encoding="utf-8")
     with pytest.raises(OSError):
-        render_prompt(state, profile, output_dir=blocker)
+        _render(output_dir=blocker)
 
 
-def test_render_prompt_long_profile_produces_bounded_prompt():
-    state = make_emotional_state()
-    axes = VisualLatentAxes(
-        form_complexity=1.0,
-        symmetry=1.0,
-        fragmentation=1.0,
-        tension_curvature=1.0,
-        texture_density=1.0,
-        luminosity=1.0,
-        contrast=1.0,
-        sharpness=1.0,
-        visual_rhythm=1.0,
-        compositional_balance=1.0,
-        biological_vs_mechanical=1.0,
-        ornamental_load=1.0,
-        opacity=1.0,
-        layering=1.0,
-    )
-    profile = VisualLatentProfile(
-        axes=axes,
-        materiality=MaterialityDistribution(weights={"organic": 1.0}, dominant="organic"),
-        dominant_features=[f"feature_{i}" for i in range(50)],
-    )
-    artifacts = render_prompt(state, profile)
+def test_render_prompt_is_bounded_to_the_composer():
+    artifacts = _render()
+    assert artifacts.prompt_text == compose_prompt(SPEC)
+    directives = [line for line in artifacts.prompt_text.splitlines() if line.startswith("- ")]
+    assert 5 <= len(directives) <= 7
     assert len(artifacts.prompt_text) < 8000
-    assert artifacts.prompt_text.count("feature_") == 50
 
 
 def test_render_prompt_rejects_wrong_types():
-    state = make_emotional_state()
-    profile = make_profile()
     with pytest.raises(TypeError):
-        render_prompt("not-a-state", profile)
+        render_prompt("not-a-spec", features=FEATURES, caption=False)
     with pytest.raises(TypeError):
-        render_prompt(state, "not-a-profile")
+        render_prompt(SPEC, features=object(), caption=False)
 
 
-def test_render_prompt_rejects_unknown_mode():
-    state = make_emotional_state()
-    profile = make_profile()
-    with pytest.raises(ValueError):
-        render_prompt(state, profile, mode="surreal")
+def test_render_prompt_rejects_unknown_style():
+    bad = SPEC.model_copy(update={"style": "surreal"})
+    with pytest.raises(ValueError, match="surreal"):
+        render_prompt(bad, features=FEATURES, caption=False)
 
 
-def test_render_prompt_deterministic_image(tmp_path: Path):
-    state = make_emotional_state()
-    profile = make_profile()
-    first = render_prompt(state, profile, backend=FakeImageBackend())
-    second = render_prompt(state, profile, backend=FakeImageBackend())
+def test_render_prompt_deterministic_image():
+    first = _render(backend=FakeImageBackend())
+    second = _render(backend=FakeImageBackend())
     assert first.image_bytes == second.image_bytes
     assert first.prompt_text == second.prompt_text
+
+
+def test_caption_off_does_not_need_pillow(monkeypatch):
+    monkeypatch.setitem(sys.modules, "PIL", None)
+    artifacts = _render(backend=FakeImageBackend())
+    assert artifacts.image_bytes.startswith(PNG_SIGNATURE)
+
+
+def test_caption_on_missing_pillow_writes_nothing(tmp_path: Path, monkeypatch):
+    monkeypatch.setitem(sys.modules, "PIL", None)
+    output_dir = tmp_path / "out"
+
+    class CalledBackend:
+        def generate_image(self, prompt: str, *, spec=None, seed=None) -> GeneratedImage:
+            raise AssertionError("backend ran before the Pillow check")
+
+    with pytest.raises(ValueError, match="pip install gitgeist\\[image\\]"):
+        render_prompt(
+            SPEC,
+            features=FEATURES,
+            caption=True,
+            backend=CalledBackend(),
+            output_dir=output_dir,
+        )
+    assert not output_dir.exists()
+
+
+def test_caption_strip_keeps_the_top_rows_and_meets_the_minimum():
+    pytest.importorskip("PIL")
+    from PIL import Image
+
+    raw = FakeImageBackend().generate_image("ignored", spec=SPEC).image_bytes
+    artifacts = render_prompt(SPEC, features=FEATURES, caption=True, backend=FakeImageBackend())
+    raw_image = Image.open(io.BytesIO(raw)).convert("RGB")
+    captioned = Image.open(io.BytesIO(artifacts.image_bytes)).convert("RGB")
+    assert raw_image.size == (64, 64)
+    assert captioned.size[0] == 64
+    assert captioned.size[1] >= 72
+    assert list(captioned.crop((0, 0, 64, 64)).getdata()) == list(raw_image.getdata())
+
+
+def test_crack_pixel_is_painted_last():
+    pytest.importorskip("PIL")
+    from PIL import Image
+
+    spec = SPEC.model_copy(
+        update={"cracks": Cracks(count=1, marks=[CrackMark(mass_index=0, u=0, v=0, angle=0)])}
+    )
+    image = FakeImageBackend().generate_image("ignored", spec=spec)
+    opened = Image.open(io.BytesIO(image.image_bytes))
+    host = spec.masses[0]
+    pixel = (
+        min(63, max(0, int(32 + host.x * 28 + 0.5))),
+        min(63, max(0, int(32 + host.y * 28 + 0.5))),
+    )
+    assert opened.getpixel(pixel) == (208, 208, 208)

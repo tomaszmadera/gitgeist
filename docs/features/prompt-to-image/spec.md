@@ -1,5 +1,7 @@
 # Prompt-to-Image: prompt composer, image backend i artefakty
 
+Kontrakt kompozytora promptu v2 (temat, dyrektywy, paleta, medium, seed i pasek podpisu) jest w [`docs/features/prompt-composer-v2/spec.md`](../prompt-composer-v2/spec.md). Ten plik zostaje źródłem dla wykrywania typu mediów, błędów OpenRouter, `image_format` i nazw artefaktów. Zdania o `EmotionalState` i `VisualLatentProfile` poniżej nie są już kontraktem kompozytora.
+
 Path: `docs/features/prompt-to-image/spec.md`
 
 ## Goal

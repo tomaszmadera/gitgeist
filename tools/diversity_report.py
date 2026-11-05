@@ -362,8 +362,10 @@ def analyse(name: str, repo: Path, live_dir: Path, source_commit: str, reference
     state = evaluate_emotional_state(features, source_commit=source_commit)
     profile = map_emotional_to_latent(state)
     live = {}
+    specs = {}
     for mode in REPRESENTATIONS:
         artifacts = _render_live(profile, mode, name, repo, live_dir / f"{name}-{mode}", features, reference_time)
+        specs[mode] = artifacts.state.spec
         live[mode] = json.loads(
             artifacts.state.model_dump_json(exclude={"engine_version", "repository_name"})
         )
@@ -380,8 +382,8 @@ def analyse(name: str, repo: Path, live_dir: Path, source_commit: str, reference
         "dominant_features": profile.dominant_features,
         "live_abstract": live["abstract"],
         "live_character": live["character"],
-        "prompt_abstract": compose_prompt(state, profile, mode="abstract"),
-        "prompt_character": compose_prompt(state, profile, mode="character"),
+        "prompt_abstract": compose_prompt(specs["abstract"]),
+        "prompt_character": compose_prompt(specs["character"]),
     }
     if has_normalization():
         layer["normalized"] = normalized_layer(features, reference_time)

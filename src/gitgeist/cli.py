@@ -135,8 +135,11 @@ def command_render(args: argparse.Namespace) -> int:
         Path(args.output) if args.output else Path.cwd() / DEFAULT_OUTPUT_ROOT / repository_name
     )
 
-    if args.mode != "live" and args.caption is not None:
-        print("error: --caption applies only to --mode live", file=sys.stderr)
+    if args.prompt_name and args.mode != "prompt-to-image":
+        print(
+            "error: --prompt-name applies only to --mode prompt-to-image",
+            file=sys.stderr,
+        )
         return 2
 
     backend: ImageGenerationBackend | None = None
@@ -152,7 +155,7 @@ def command_render(args: argparse.Namespace) -> int:
     elif args.image_format != "native":
         return _error("--image-format applies only to --mode prompt-to-image")
 
-    written, state, profile, features, traits = _analyze(repo_path, repository_name, output_dir)
+    written, _state, _profile, features, traits = _analyze(repo_path, repository_name, output_dir)
 
     if args.mode == "live":
         identity = compute_identity_seed(repo_path)
@@ -168,12 +171,15 @@ def command_render(args: argparse.Namespace) -> int:
     else:
         if backend is None:
             return _error("image generation backend is not configured")
+        identity = compute_identity_seed(repo_path)
+        spec = build_visual_spec(features, traits, identity, args.representation)
         artifacts = render_prompt(
-            state,
-            profile,
-            mode=args.representation,
-            backend=backend,
+            spec,
+            features=features,
             repository_name=repository_name,
+            include_name=args.prompt_name,
+            caption=args.caption != "off",
+            backend=backend,
             output_dir=output_dir,
             image_format=args.image_format,
         )
@@ -245,8 +251,16 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         choices=CAPTION_CHOICES,
         help=(
-            "HUD with three plain conclusions and hover details for --mode live "
-            "(both representations; default: on)"
+            "HUD for --mode live, and a caption strip under the portrait for "
+            "--mode prompt-to-image (default: on)"
+        ),
+    )
+    render.add_argument(
+        "--prompt-name",
+        action="store_true",
+        help=(
+            "put the repository directory name in the prompt "
+            "(--mode prompt-to-image only; default: off)"
         ),
     )
     render.set_defaults(func=command_render)

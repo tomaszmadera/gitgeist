@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import base64
-import hashlib
 import io
 import json
+import math
 import os
 import struct
 import urllib.request
@@ -14,6 +14,9 @@ from abc import ABC, abstractmethod
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
+
+from gitgeist.render.prompt_composer import _mass_hex, _round_half_up
+from gitgeist.schemas.visual_spec import VisualSpec
 
 DEFAULT_API_URL = "https://openrouter.ai/api/v1/images"
 DEFAULT_MODEL = "google/gemini-3.1-flash-lite-image"
@@ -85,7 +88,13 @@ class ImageGenerationBackend(ABC):
     """Interface for backends turning a prompt into detected-format image bytes."""
 
     @abstractmethod
-    def generate_image(self, prompt: str) -> GeneratedImage:
+    def generate_image(
+        self,
+        prompt: str,
+        *,
+        spec: VisualSpec | None = None,
+        seed: int | None = None,
+    ) -> GeneratedImage:
         """Return image bytes with their detected media type for the prompt."""
         raise NotImplementedError
 
@@ -114,7 +123,13 @@ class OpenRouterImageBackend(ImageGenerationBackend):
         self.model = model if model is not None else _first_env_model() or DEFAULT_MODEL
         self.timeout = timeout
 
-    def generate_image(self, prompt: str) -> GeneratedImage:
+    def generate_image(
+        self,
+        prompt: str,
+        *,
+        spec: VisualSpec | None = None,
+        seed: int | None = None,
+    ) -> GeneratedImage:
         if not isinstance(prompt, str):
             raise TypeError(f"Expected str prompt, got {type(prompt).__name__}")
         if not self.api_key:
@@ -122,9 +137,15 @@ class OpenRouterImageBackend(ImageGenerationBackend):
                 f"Missing API key for image generation backend; set {API_KEY_ENV} "
                 "or pass api_key explicitly"
             )
-        payload = json.dumps(
-            {"model": self.model, "prompt": prompt, "n": 1, "size": "1024x1024"}
-        ).encode("utf-8")
+        body: dict[str, object] = {
+            "model": self.model,
+            "prompt": prompt,
+            "n": 1,
+            "size": "1024x1024",
+        }
+        if seed is not None:
+            body["seed"] = seed
+        payload = json.dumps(body).encode("utf-8")
         request = urllib.request.Request(
             self.api_url,
             data=payload,
@@ -179,23 +200,88 @@ def encode_png(width: int, height: int, raw_rgb: bytes) -> bytes:
     return signature + _png_chunk(b"IHDR", ihdr) + _png_chunk(b"IDAT", idat) + _png_chunk(b"IEND", b"")
 
 
+_RASTER_SIZE = 64
+_RASTER_ORIGIN = 32
+_RASTER_SCALE = 28
+_GROUND_RGB = (18, 18, 24)
+_KNOT_RGB = (242, 242, 242)
+_CRACK_RGB = (208, 208, 208)
+
+
+def _hex_rgb(color: str) -> tuple[int, int, int]:
+    return int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16)
+
+
+def _put_pixel(buffer: bytearray, i: int, j: int, color: tuple[int, int, int]) -> None:
+    if not (0 <= i < _RASTER_SIZE and 0 <= j < _RASTER_SIZE):
+        return
+    offset = (j * _RASTER_SIZE + i) * 3
+    buffer[offset : offset + 3] = bytes(color)
+
+
+def _fill_disk(
+    buffer: bytearray,
+    cx: float,
+    cy: float,
+    radius: float,
+    color: tuple[int, int, int],
+) -> None:
+    limit = radius * radius
+    for j in range(_RASTER_SIZE):
+        for i in range(_RASTER_SIZE):
+            if (i - cx) ** 2 + (j - cy) ** 2 <= limit:
+                _put_pixel(buffer, i, j, color)
+
+
+def _spec_raster(spec: VisualSpec) -> bytes:
+    """64x64 RGB raster of a VisualSpec. The same spec returns the same bytes."""
+    buffer = bytearray(_GROUND_RGB * (_RASTER_SIZE * _RASTER_SIZE))
+    for mass in spec.masses:
+        _fill_disk(
+            buffer,
+            _RASTER_ORIGIN + mass.x * _RASTER_SCALE,
+            _RASTER_ORIGIN + mass.y * _RASTER_SCALE,
+            mass.radius * _RASTER_SCALE,
+            _hex_rgb(_mass_hex(mass.hue, spec.palette.saturation)),
+        )
+    if spec.knot is not None:
+        host = spec.masses[spec.knot.mass_index]
+        _fill_disk(
+            buffer,
+            _RASTER_ORIGIN + (host.x + spec.knot.offset_x) * _RASTER_SCALE,
+            _RASTER_ORIGIN + (host.y + spec.knot.offset_y) * _RASTER_SCALE,
+            spec.knot.radius * host.radius * _RASTER_SCALE,
+            _KNOT_RGB,
+        )
+    for mark in spec.cracks.marks:
+        host = spec.masses[mark.mass_index]
+        host_cx = _RASTER_ORIGIN + host.x * _RASTER_SCALE
+        host_cy = _RASTER_ORIGIN + host.y * _RASTER_SCALE
+        host_radius = host.radius * _RASTER_SCALE
+        polar = mark.v * math.tau
+        px = host_cx + math.cos(polar) * mark.u * host_radius
+        py = host_cy + math.sin(polar) * mark.u * host_radius
+        _put_pixel(
+            buffer,
+            min(_RASTER_SIZE - 1, max(0, _round_half_up(px))),
+            min(_RASTER_SIZE - 1, max(0, _round_half_up(py))),
+            _CRACK_RGB,
+        )
+    return encode_png(_RASTER_SIZE, _RASTER_SIZE, bytes(buffer))
+
+
 class FakeImageBackend(ImageGenerationBackend):
-    """Deterministic offline backend producing a valid PNG from the prompt."""
+    """Deterministic offline backend. The pixels are a function of the spec alone."""
 
-    _SIZE = 16
-
-    def generate_image(self, prompt: str) -> GeneratedImage:
+    def generate_image(
+        self,
+        prompt: str,
+        *,
+        spec: VisualSpec | None = None,
+        seed: int | None = None,
+    ) -> GeneratedImage:
         if not isinstance(prompt, str):
             raise TypeError(f"Expected str prompt, got {type(prompt).__name__}")
-        width = height = self._SIZE
-        needed = width * height * 3
-        seed = hashlib.sha256(prompt.encode("utf-8")).digest()
-        stream = bytearray()
-        counter = 0
-        while len(stream) < needed:
-            stream.extend(hashlib.sha256(seed + counter.to_bytes(4, "big")).digest())
-            counter += 1
-        return GeneratedImage(
-            image_bytes=encode_png(width, height, bytes(stream[:needed])),
-            media_type="png",
-        )
+        if not isinstance(spec, VisualSpec):
+            raise ValueError(f"Expected VisualSpec, got {type(spec).__name__}")
+        return GeneratedImage(image_bytes=_spec_raster(spec), media_type="png")

@@ -1,10 +1,11 @@
 """Facade and top-level entry points for live and prompt rendering."""
 
-import json
+import io
 from pathlib import Path
 from typing import Literal
 from pydantic import BaseModel, ConfigDict
 
+from gitgeist.render.captions import conclusions
 from gitgeist.render.html_template import generate_creature_html, generate_orbits_html
 from gitgeist.render.image_backend import (
     FakeImageBackend,
@@ -12,14 +13,19 @@ from gitgeist.render.image_backend import (
     detect_media_type,
     normalize_to_png,
 )
-from gitgeist.render.prompt_composer import RepresentationMode, compose_prompt
+from gitgeist.render.prompt_composer import _round_half_up, compose_prompt
+from gitgeist.schemas.features import RepositoryFeatures
 from gitgeist.schemas.identity import IdentitySeed
 from gitgeist.schemas.live_state import CreatureScene, OrbitsScene
-from gitgeist.schemas.visual_latent import VisualLatentProfile
-from gitgeist.schemas.emotional import EmotionalState
+from gitgeist.schemas.visual_spec import VisualSpec
 
 PORTRAIT_FILENAMES = {"png": "portrait.png", "jpeg": "portrait.jpg", "webp": "portrait.webp"}
 ImageFormat = Literal["native", "png"]
+_SEED_MASK = 2**53 - 1
+_STRIP_WIDTH = 480
+_GROUND_RGB = (18, 18, 24)
+_TEXT_RGB = (242, 242, 242)
+_PILLOW_HINT = "pip install gitgeist[image]"
 
 
 class LiveRenderArtifacts(BaseModel):
@@ -105,54 +111,125 @@ class PromptRenderArtifacts(BaseModel):
     image_path: Path | None = None
 
 
+def _require_pillow() -> None:
+    try:
+        from PIL import Image, ImageDraw, ImageFont
+    except ImportError as exc:
+        raise ValueError(
+            f"caption requires Pillow; install it with: {_PILLOW_HINT}"
+        ) from exc
+    del Image, ImageDraw, ImageFont
+
+
+def _fit_line(font, line: str) -> str:
+    text = line
+    while text and font.getlength(text) > _STRIP_WIDTH:
+        text = text[:-1]
+    return text
+
+
+def _caption_strip(image_bytes: bytes, media_type: str, features: RepositoryFeatures, spec: VisualSpec) -> bytes:
+    """Append the three HUD conclusions under the portrait. The portrait pixels stay."""
+    from PIL import Image, ImageDraw, ImageFont
+
+    with Image.open(io.BytesIO(image_bytes)) as opened:
+        rgba = opened.convert("RGBA")
+    ground = Image.new("RGBA", rgba.size, (*_GROUND_RGB, 255))
+    portrait = Image.alpha_composite(ground, rgba).convert("RGB")
+
+    font = ImageFont.load_default()
+    fitted = [_fit_line(font, line) for line in conclusions(features, spec)]
+    heights = []
+    for text in fitted:
+        box = font.getbbox(text or " ")
+        heights.append(box[3] - box[1])
+    strip = Image.new("RGB", (_STRIP_WIDTH, max(1, sum(heights))), _GROUND_RGB)
+    draw = ImageDraw.Draw(strip)
+    top = 0
+    for text, height in zip(fitted, heights):
+        draw.text((0, top), text, fill=_TEXT_RGB, font=font, anchor="lt")
+        top += height
+
+    width = portrait.width
+    scaled_height = _round_half_up(strip.height * width / _STRIP_WIDTH)
+    scaled = strip.resize((width, max(1, scaled_height)), Image.Resampling.NEAREST)
+    minimum = _round_half_up(width * 0.12)
+    if scaled.height < minimum:
+        extended = Image.new("RGB", (width, minimum), _GROUND_RGB)
+        extended.paste(scaled, (0, 0))
+        scaled = extended
+
+    composite = Image.new("RGB", (width, portrait.height + scaled.height))
+    composite.paste(portrait, (0, 0))
+    composite.paste(scaled, (0, portrait.height))
+    out = io.BytesIO()
+    if media_type == "png":
+        composite.save(out, format="PNG")
+    elif media_type == "jpeg":
+        composite.save(out, format="JPEG", quality=95, optimize=False, progressive=False)
+    else:
+        composite.save(out, format="WEBP", quality=90, lossless=False)
+    return out.getvalue()
+
+
 def render_prompt(
-    emotional_state: EmotionalState,
-    profile: VisualLatentProfile,
-    mode: RepresentationMode = "abstract",
+    spec: VisualSpec,
+    *,
+    features: RepositoryFeatures,
     repository_name: str | None = None,
+    include_name: bool = False,
+    caption: bool = True,
     backend: ImageGenerationBackend | None = None,
     output_dir: Path | str | None = None,
     image_format: ImageFormat = "native",
 ) -> PromptRenderArtifacts:
-    """Compose a prompt, generate a portrait image and optionally write artifacts.
+    """Compose a prompt from a VisualSpec, generate a portrait, and optionally write it.
 
     Args:
-        emotional_state: EmotionalState instance to describe in the prompt.
-        profile: VisualLatentProfile instance to describe in the prompt.
-        mode: Representation mode, either 'abstract' or 'character' (default 'abstract').
-        repository_name: Optional display name for the repository.
-        backend: ImageGenerationBackend used to generate the image; defaults to FakeImageBackend.
-        output_dir: Optional directory path to write 'prompt.txt' and a portrait file named
-            after the detected media type ('portrait.png', 'portrait.jpg', 'portrait.webp').
-        image_format: 'native' keeps the detected format; 'png' converts non-PNG output
-            to PNG through Pillow.
+        spec: Scene the prompt and the fake portrait are drawn from.
+        features: Repository features. The caption strip uses ``conclusions(features, spec)``.
+        repository_name: Name inserted only when ``include_name`` is true.
+        include_name: Add the repository line. Requires a non-empty ``repository_name``.
+        caption: Draw the Pillow caption strip. The default is on.
+        backend: Image backend. ``None`` selects ``FakeImageBackend``.
+        output_dir: Directory for ``prompt.txt`` and the portrait file. Older portraits of
+            another extension stay on disk.
+        image_format: ``native`` keeps the sniffed format; ``png`` converts through Pillow.
 
     Returns:
-        PromptRenderArtifacts bundle with prompt text, image bytes, the detected media
-        type and optional written paths.
+        Prompt text, image bytes, the sniffed media type, and any written paths.
 
     Raises:
-        TypeError: If emotional_state or profile is of unexpected type.
-        ValueError: If mode is not 'abstract' or 'character', image_format is unknown,
-            the image bytes have an unrecognized format, or normalization is requested
-            without Pillow.
+        TypeError: If ``spec`` is not a VisualSpec or ``features`` is not a RepositoryFeatures.
+        ValueError: If ``image_format`` is unknown, the bytes are not a known image, Pillow
+            is missing for ``caption`` or PNG normalization, or the style is unknown.
     """
-    if not isinstance(emotional_state, EmotionalState):
-        raise TypeError(f"Expected EmotionalState, got {type(emotional_state).__name__}")
-    if not isinstance(profile, VisualLatentProfile):
-        raise TypeError(f"Expected VisualLatentProfile, got {type(profile).__name__}")
+    if not isinstance(spec, VisualSpec):
+        raise TypeError(f"Expected VisualSpec, got {type(spec).__name__}")
+    if not isinstance(features, RepositoryFeatures):
+        raise TypeError(f"Expected RepositoryFeatures, got {type(features).__name__}")
     if image_format not in ("native", "png"):
         raise ValueError(f"Unsupported image format: {image_format!r}. Must be 'native' or 'png'.")
+    if caption:
+        _require_pillow()
 
-    prompt_text = compose_prompt(emotional_state, profile, mode=mode, repository_name=repository_name)
+    prompt_text = compose_prompt(
+        spec, include_name=include_name, repository_name=repository_name
+    )
     selected_backend = backend if backend is not None else FakeImageBackend()
-    generated = selected_backend.generate_image(prompt_text)
+    generated = selected_backend.generate_image(
+        prompt_text,
+        spec=spec,
+        seed=spec.seeds.effective_seed & _SEED_MASK,
+    )
     image_bytes = generated.image_bytes
     media_type = detect_media_type(image_bytes)
 
     if image_format == "png" and media_type != "png":
         image_bytes = normalize_to_png(image_bytes)
         media_type = "png"
+    if caption:
+        image_bytes = _caption_strip(image_bytes, media_type, features, spec)
 
     prompt_path: Path | None = None
     image_path: Path | None = None
