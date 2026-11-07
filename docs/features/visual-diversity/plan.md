@@ -2,7 +2,7 @@
 
 Path: `docs/features/visual-diversity/plan.md`
 
-Status: stage 0 decided on 2026-10-22; stage 1 done (merged in PR #3 on 2026-10-22, version 0.6.0); stage 2 done (spec in PR #5, implementation merged in PR #6, version 0.7.0); stage 3 done (spec approved on 2026-10-23, implementation merged in PR #17, version 0.8.0); stages 4 to 13 are not started. `D` means D v1 as defined in `tools/diversity_report.py`; baselines are in `analysis.md`. Evidence: `analysis.md`. Target design: `design.md`. Stages 0 to 8 build the counter strategy and the shared portrait format; stages 9 to 13 add the evaluation strategy.
+Status: stage 0 decided on 2026-10-22; stage 1 done (merged in PR #3 on 2026-10-22, version 0.6.0); stage 2 done (spec in PR #5, implementation merged in PR #6, version 0.7.0); stage 3 done (spec approved on 2026-10-23, implementation merged in PR #17, version 0.8.0); stage 6 implementation is under technical review in PR #24, with diversity and recognition evaluations outstanding after merge under the owner decision of 2026-11-07 21:33 Europe/Warsaw; stages 7 to 13 are not started. Historical stage 4 and stage 5 status notes below are not revised by this stage 6 acceptance amendment. `D` means D v1 as defined in `tools/diversity_report.py`; baselines are in `analysis.md`. Evidence: `analysis.md`. Target design: `design.md`. Stages 0 to 8 build the counter strategy and the shared portrait format; stages 9 to 13 add the evaluation strategy.
 
 ## Classification
 
@@ -106,10 +106,16 @@ Size: standard. Spec approved on 2026-11-05 (`docs/features/prompt-composer-v2/s
 - Fake backend draws a small raster of the spec.
 - Caption strip composited with Pillow under `--caption on`.
 
-Acceptance:
+Acceptance timing (owner decision, 2026-11-07 21:33 Europe/Warsaw):
 
-1. No prompt line other than fixed instructions is identical across the 12-repository corpus (today 20 of 48 are).
-2. Paid A/B run, only after your approval: 12 repositories, one model, old and new prompt (24 images). Success: with captions removed, you match at least 9 of 12 new portraits to their repositories, and fewer with the old set.
+**Before merge:** the implementation meets the technical contract in `docs/features/prompt-composer-v2/spec.md`, all required CI checks are green on the latest PR head, and the independent Code Reviewer gives technical approval. The current implementation is under technical review in PR #24; neither implementation merge nor technical approval declares the evaluations below passed.
+
+**Outstanding after merge:**
+
+1. **T1 — prompt diversity.** Evaluate substantive repository-specific descriptions on the corpus. Shared medium and true shared traits may repeat (owner decision, 2026-11-07 17:27 Europe/Warsaw); this supersedes the former requirement that every non-fixed line be unique. Repeated-line diagnostics alone do not establish failure or PASS. A measurable revised diversity criterion remains to be agreed with the owner; no numerical replacement is adopted here.
+2. **T2 — recognition.** Paid A/B run, only after explicit run approval: 12 repositories, one common model, old and new prompt (24 images). Success remains: with captions removed, match at least 9 of 12 new portraits to their repositories, and fewer with the old set. Moving this assessment after merge changes neither the count nor the threshold. A known-repository evaluation is planned; corpus selection and any changed count or criterion still require an explicit owner decision.
+
+The owner decision defers these evaluations until after implementation merge; it does not waive, score or mark either one passed. The earlier approved 44-image experiment completed generation (24 Gemini A/B plus 20 exploratory outputs, reported usage.cost USD1.53231475), but recognition remains ungraded/unmet, not FAIL by score. A new paid run, private-repository scan/transmission or grid reveal is not authorized by this amendment or by unused budget. The owner response is recorded in PR #24; no Plane write was performed.
 
 ### Stage 7: CLI and config
 

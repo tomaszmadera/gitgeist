@@ -4,6 +4,8 @@ Path: `docs/features/prompt-composer-v2/spec.md`
 
 Status: approved by Tomasz on 2026-11-05 (stage 6 of `docs/features/visual-diversity/plan.md`, Plane GITGEIST-19). Caption default is on. The behaviour below is the contract, including the sentence templates and the 0.33/0.66 cutoff.
 
+Acceptance timing amended by Tomasz on 2026-11-07 at 21:33 Europe/Warsaw: merge requires green required CI and independent technical Code Reviewer approval. Prompt-diversity evaluation (T1) and recognition evaluation (T2) remain outstanding post-merge milestones, not passed or waived. Implementation is under technical review in PR #24; this status does not declare stage 6 evaluation complete.
+
 ## Goal
 
 `gitgeist render --mode prompt-to-image` describes the repository's `VisualSpec` in a short prompt and draws a portrait from it. The prompt names visible facts (bodies, placement, palette, medium). It does not list trait scores. With the caption on, Pillow adds the same three conclusions the live HUD uses, under the picture. The audience of this contract is the implementer of that mode. Target version: 0.12.0.
@@ -35,7 +37,7 @@ Status: approved by Tomasz on 2026-11-05 (stage 6 of `docs/features/visual-diver
 
 ## Non-goals
 
-- The paid 12-repository A/B run (plan stage 6, acceptance 2). It stays out until a separate approval.
+- Executing the paid 12-repository A/B evaluation as a pre-merge implementation gate. T2 remains an outstanding post-merge milestone under the owner decision of 2026-11-07 21:33 Europe/Warsaw. Any new paid run needs its own explicit scope and cost approval; this criteria amendment authorizes no new generation.
 - `--style`, `--seed`, `--variety`, `--scale`, `--palette`, and the config file. Stage 7 owns them.
 - Styles other than `orbits` and `creature`. An unknown `spec.style` is an error, not a fallback.
 - `jev-real-integration`.
@@ -60,7 +62,7 @@ Line order:
 6. `No text, no letters, no logos, no code, no screens, no mascots.`
 7. `No watermarks and no captions inside the picture.`
 
-Lines 6 and 7 are the only lines that may be identical across repositories. The composer does not add a trailing space to any line.
+Shared seeded media, fixed instructions and other shared traits that are true of the input repositories may repeat. Descriptions must reflect substantive repository-specific facts rather than artificial wording uniqueness. This replaces the former restriction that only lines 6 and 7 may repeat, consistently with the owner decision of 2026-11-07 17:27 Europe/Warsaw. Diversity is evaluated in the post-merge T1 milestone; no numerical replacement threshold is introduced here. The composer does not add a trailing space to any line.
 
 The prompt must not contain a directory name, a file path, a trait number, or the repository name. The exception is the repository line when `include_name` is true: the name is inserted as given. Mass names and `knot.path` are directory names and paths, so they stay out. Body labels are `body 1`, `body 2`, and so on, in `spec.masses` order. Counts, percents, hertz, pixel sizes, and hex colors are allowed. `spec.representation` is not read. The subject and the medium follow `spec.style`.
 
@@ -188,7 +190,7 @@ The prompt-mode path builds the spec the way live mode does (`compute_traits`, t
 ## Business rules
 
 - One composer. Callers of `compose_prompt` and `render_prompt` pass a `VisualSpec`.
-- Fixed negative lines are the only prompt lines allowed to repeat across the corpus.
+- Shared medium and true shared traits may repeat across the corpus; substantive repository differences must remain grounded in actual inputs. Repeated-line counts are diagnostics, not an automatic diversity verdict.
 - The fake raster is a function of the spec alone.
 - The OpenRouter `seed` is the masked effective seed. A provider may ignore it.
 - Pillow stays an optional extra (`image` in `pyproject.toml`, also pulled in by `dev`). The strip and `image_format="png"` are the import sites. There is no silent fallback to an uncaptioned file when the caption was requested.
@@ -256,7 +258,9 @@ ImageGenerationBackend.generate_image(prompt: str, *, spec: VisualSpec | None = 
 - Sniffing, HTTP, missing API key, and `image_format="png"` without Pillow stay the old spec. Those failures also write no files.
 - CLI: `--prompt-name` on live mode exits 2 with the message above. It does not use the exit-1 helper.
 
-## Acceptance criteria
+## Pre-merge technical acceptance criteria
+
+Green required CI on the latest PR head and independent technical Code Reviewer approval are mandatory before merge. The criteria below cover implementation correctness; they do not constitute T1 or T2 evaluation success.
 
 1. The worked fixture produces the prompt in "Worked example", byte for byte, including the final newline. `include_name=True` with repository name `sample` inserts `Repository: sample.` as line 2 and changes nothing else.
 2. The fixture prompt contains neither `run.sh`, nor `Shell`, nor a trait value, nor the repository name (unless the flag is on).
@@ -267,7 +271,14 @@ ImageGenerationBackend.generate_image(prompt: str, *, spec: VisualSpec | None = 
 7. `render_prompt` still writes `prompt.txt` and a portrait whose extension matches the sniffed type, and `image_format="png"` still normalizes through Pillow.
 8. CLI: prompt mode with `--caption off` leaves the backend bytes uncaptioned; omitting `--caption` captions; `--prompt-name` on live mode exits 2 before a write; `--prompt-name` on prompt mode puts the directory name in the prompt.
 9. Sniffing, OpenRouter error, and artifact-name tests from the current suite still pass, updated only where they called the old composer signature.
-10. The dev script, given local checkouts of the 12 repositories named in `docs/features/visual-diversity/analysis.md:40`, writes a log under `docs/evidence/` that lists every prompt line and marks any non-fixed line that occurs more than once. It does not clone or fetch. A missing checkout is an error, not a skipped success. This script is not a CI test. The paid A/B run is not required.
+10. The dev script, given local checkouts of the 12 repositories named in `docs/features/visual-diversity/analysis.md:40`, writes a log under `docs/evidence/` that lists every prompt line and marks any non-fixed line that occurs more than once. It does not clone or fetch. A missing checkout is an error, not a skipped success. This script is not a CI test. Its corpus run and quality assessment belong to the post-merge T1 milestone; repeated true traits or shared media do not automatically fail it. The paid A/B recognition assessment belongs to post-merge T2, not to the pre-merge technical gate.
+
+## Outstanding post-merge evaluation milestones
+
+- **T1 — prompt diversity:** evaluate substantive repository-specific descriptions while allowing shared medium and true shared traits. The original per-line uniqueness restriction is superseded. A measurable revised diversity criterion still needs owner agreement before a verdict; no two-differences threshold or other scored replacement is adopted. Existing corpus diagnostics are evidence, not PASS.
+- **T2 — recognition:** retain the original 12-repository, one-common-model, old/new A/B design (24 images), with captions removed: at least 9 of 12 new portraits must be matched to their repositories, and fewer must be matched in the old set. These counts and thresholds are not amended by moving evaluation after merge. A known-repository evaluation is planned; corpus selection and any count or criterion changes require an explicit owner decision. Ask for repository paths before scanning and review outgoing data/company-policy permission before any new paid run.
+- The already approved 44-image experiment completed generation (24 Gemini A/B plus 20 exploratory outputs), with reported OpenRouter usage.cost USD1.53231475. Owner matching is ungraded; T2 remains unmet, not FAIL by an invented score. The unfamiliar external corpus is not meaningful recognition evidence for the owner. No answer-key/grid reveal or new paid generation follows automatically from this amendment, and no unused budget is new run authorization.
+- Merge is an implementation milestone only. Do not report stage 6 evaluation complete until these outstanding milestones have their agreed evidence and verdicts.
 
 ## Required tests
 
@@ -280,7 +291,7 @@ ImageGenerationBackend.generate_image(prompt: str, *, spec: VisualSpec | None = 
 ## Risks
 
 - Default `--caption on` makes a default prompt render require the optional Pillow extra. This is the open choice.
-- Image models may still ignore the new directives. That is what the paid A/B run would check, and this stage does not run it.
+- Image models may still ignore the new directives. Post-merge T2 checks recognition; implementation merge and green offline tests do not establish visual quality.
 - The corpus log needs the 12 local checkouts. The implementation records the log when they are present and records their absence when they are not. It does not clone them.
 
 ## Decisions
@@ -297,7 +308,13 @@ Also decided with the plan:
 - The empty-creature sentence.
 - The masked OpenRouter seed, without a new network check.
 - `--prompt-name` in this stage. The other new flags stay in stage 7.
-- The paid A/B run stays out of this implementation.
+- The paid A/B run stays out of the pre-merge implementation gate; it remains the outstanding post-merge T2 milestone under the later owner decision below.
+
+### Acceptance amendment — 2026-11-07
+
+Tomasz explicitly decided at 21:33 Europe/Warsaw (English translation of the owner response): "Change the stage 6 criteria: prompt-diversity evaluation and the recognizability test will be carried out after the implementation is merged. Before merge, green CI and technical approval from the Code Reviewer remain required."
+
+This changes the timing of this item's T1/T2 acceptance, not the central standing review rules. It neither scores nor waives either evaluation and does not change the original T2 corpus/count/recognition threshold. The earlier 17:27 decision permits repeated medium and true shared traits. The exact owner response and this timing decision are recorded in PR #24 for R10; Plane has not been updated because access is unavailable.
 
 ## Relevant SDD / ADR
 
