@@ -138,9 +138,17 @@ def _subject(spec: VisualSpec) -> str:
     placement = _placement(spec)
     if spec.style == "orbits":
         return f"An abstract composition of {bodies}, {placement}, on a dark ground."
+    limb_count = len(spec.masses) - 1
+    if limb_count == 0:
+        anatomy = "a single torso with no separate limbs"
+    elif limb_count == 1:
+        anatomy = "the largest body as its torso and one separate limb"
+    else:
+        limbs = _COUNT_WORDS[limb_count - 1]
+        anatomy = f"the largest body as its torso and {limbs} separate limbs"
     return (
-        "A creature whose torso is the largest body and whose other bodies are limbs, "
-        f"{placement}, on a dark ground."
+        f"A creature built from {bodies}, with {anatomy}, "
+        f"{placement}, on a dark ground. {_directive('alive', spec)}"
     )
 
 

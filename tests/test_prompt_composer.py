@@ -119,3 +119,67 @@ def test_missing_name_and_wrong_type() -> None:
         compose_prompt(spec, include_name=True, repository_name="")
     with pytest.raises(TypeError):
         compose_prompt(object())
+
+
+@pytest.mark.parametrize(
+    ("radii", "expected_bodies", "expected_limbs"),
+    [
+        ([1.0, 0.5, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+         "one large body, one medium body and six small bodies", "seven separate limbs"),
+        ([1.0, 0.9, 0.8, 0.5, 0.1, 0.1, 0.1],
+         "three large bodies, one medium body and three small bodies", "six separate limbs"),
+    ],
+)
+def test_character_subject_preserves_mass_counts_and_proportions(
+    radii: list[float], expected_bodies: str, expected_limbs: str
+) -> None:
+    spec = load_spec()
+    mass = spec.masses[0]
+    masses = [mass.model_copy(update={"radius": radius}) for radius in radii]
+    creature = spec.model_copy(update={"style": "creature", "masses": masses})
+    subject = compose_prompt(creature).splitlines()[0]
+    assert expected_bodies in subject
+    assert expected_limbs in subject
+    assert compose_prompt(creature) == compose_prompt(creature)
+
+
+@pytest.mark.parametrize(
+    ("radii", "anatomy"),
+    [([1.0], "a single torso with no separate limbs"),
+     ([1.0, 0.5], "the largest body as its torso and one separate limb"),
+     ([0.0, 0.0], "the largest body as its torso and one separate limb")],
+)
+def test_character_subject_handles_small_and_zero_radius_structures(
+    radii: list[float], anatomy: str
+) -> None:
+    spec = load_spec()
+    masses = [spec.masses[0].model_copy(update={"radius": radius}) for radius in radii]
+    creature = spec.model_copy(update={"style": "creature", "masses": masses})
+    assert anatomy in compose_prompt(creature).splitlines()[0]
+
+
+def test_character_subject_keeps_activity_when_directive_selection_omits_it() -> None:
+    spec = load_spec()
+    # Select five strongly expressed non-activity traits; alive stays near neutral.
+    values = {name: 0.5 for name in TRAIT_NAMES}
+    values.update({name: 0.0 for name in ("size", "age", "crowd", "care", "sprawl")})
+    traits = spec.traits.model_copy(update=values)
+    motion = spec.motion.model_copy(update={"speed_hz": 0.14})
+    creature = spec.model_copy(update={"style": "creature", "traits": traits, "motion": motion})
+    prompt = compose_prompt(creature)
+    assert "Vivid, moving at 0.14 Hz." in prompt.splitlines()[0]
+    directives = [line for line in prompt.splitlines() if line.startswith("- ")]
+    assert len(directives) == 5
+    assert not any("moving at" in line for line in directives)
+
+
+def test_character_subject_activity_uses_feature_value_not_a_repo_identifier() -> None:
+    spec = load_spec()
+    traits = spec.traits.model_copy(update={"alive": 0.1})
+    motion = spec.motion.model_copy(update={"speed_hz": 0.14})
+    creature = spec.model_copy(update={"style": "creature", "traits": traits, "motion": motion})
+    assert "Faded, moving at 0.14 Hz." in compose_prompt(creature).splitlines()[0]
+
+
+def test_character_fix_does_not_change_exact_abstract_fixture() -> None:
+    assert compose_prompt(load_spec()) == WORKED
