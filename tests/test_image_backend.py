@@ -1,10 +1,12 @@
 """Tests for image generation backends (fake and OpenRouter)."""
 
 import base64
+import io
 import json
 import sys
 import urllib.error
 import urllib.request
+from pathlib import Path
 
 import pytest
 
@@ -17,6 +19,7 @@ from gitgeist.render.image_backend import (
     detect_media_type,
     normalize_to_png,
 )
+from gitgeist.schemas.visual_spec import VisualSpec
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 JPEG_SAMPLE = b"\xff\xd8\xff\xe0" + b"jpeg-payload"
@@ -88,31 +91,50 @@ class TestNormalizeToPng:
             normalize_to_png(JPEG_SAMPLE)
 
 
+def _fixture_spec() -> VisualSpec:
+    path = Path(__file__).parent / "golden" / "visual_spec" / "single-script-abstract.json"
+    return VisualSpec.model_validate_json(path.read_text(encoding="utf-8"))
+
+
 class TestFakeImageBackend:
-    def test_deterministic_same_prompt(self):
+    def test_same_spec_ignores_prompt_and_seed(self):
+        spec = _fixture_spec()
         backend = FakeImageBackend()
-        first = backend.generate_image("a portrait of a calm repository")
-        second = backend.generate_image("a portrait of a calm repository")
+        first = backend.generate_image("prompt one", spec=spec, seed=1)
+        second = backend.generate_image("prompt two", spec=spec, seed=99)
         assert first == second
 
-    def test_different_prompts_differ(self):
+    def test_different_spec_differs(self):
+        spec = _fixture_spec()
+        other = spec.model_copy(update={"masses": [spec.masses[0].model_copy(update={"hue": None})]})
         backend = FakeImageBackend()
-        first = backend.generate_image("prompt one")
-        second = backend.generate_image("prompt two")
-        assert first != second
+        assert backend.generate_image("p", spec=spec) != backend.generate_image("p", spec=other)
+
+    def test_fixture_pixels(self):
+        pytest.importorskip("PIL")
+        from PIL import Image
+
+        image = FakeImageBackend().generate_image("ignored", spec=_fixture_spec())
+        opened = Image.open(io.BytesIO(image.image_bytes))
+        assert image.media_type == "png"
+        assert opened.size == (64, 64)
+        assert opened.getpixel((32, 32)) == (0x2A, 0xBB, 0x4C)
+        assert opened.getpixel((0, 0)) == (18, 18, 24)
 
     def test_produces_valid_png(self):
-        backend = FakeImageBackend()
-        image = backend.generate_image("any prompt")
+        image = FakeImageBackend().generate_image("any prompt", spec=_fixture_spec())
         assert isinstance(image, GeneratedImage)
         assert image.media_type == "png"
         assert image.image_bytes.startswith(PNG_SIGNATURE)
         assert image.image_bytes.rstrip().endswith(b"IEND\xaeB`\x82")
 
     def test_rejects_non_string_prompt(self):
-        backend = FakeImageBackend()
         with pytest.raises(TypeError):
-            backend.generate_image(123)
+            FakeImageBackend().generate_image(123, spec=_fixture_spec())
+
+    def test_missing_spec_raises(self):
+        with pytest.raises(ValueError):
+            FakeImageBackend().generate_image("p")
 
 
 class TestOpenRouterImageBackend:
@@ -143,7 +165,29 @@ class TestOpenRouterImageBackend:
         body = json.loads(captured["body"])
         assert body["prompt"] == "draw the repo"
         assert body["model"] == DEFAULT_MODEL
+        assert body["n"] == 1
+        assert body["size"] == "1024x1024"
+        assert "seed" not in body
         assert "test-key" not in captured["body"].decode()
+
+    def test_seed_is_added_when_given(self, monkeypatch):
+        captured = {}
+
+        def fake_urlopen(request, timeout=None):
+            captured["body"] = request.data
+            return make_url_response(
+                {"data": [{"b64_json": base64.b64encode(PNG_SIGNATURE + b"image").decode()}]}
+            )
+
+        monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+        backend = OpenRouterImageBackend(api_key="test-key")
+        backend.generate_image("draw the repo", seed=8904369301646676)
+        body = json.loads(captured["body"])
+        assert body["seed"] == 8904369301646676
+        assert body["model"] == DEFAULT_MODEL
+        assert body["prompt"] == "draw the repo"
+        assert body["n"] == 1
+        assert body["size"] == "1024x1024"
 
     def test_custom_model_and_timeout(self, monkeypatch):
         captured = {}

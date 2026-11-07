@@ -53,11 +53,11 @@ The abstract live portrait draws the repository's `VisualSpec` in the `orbits` s
 
 The character live portrait draws the same `VisualSpec` as a creature (style `creature`): the largest directory is the upright torso with its growth rings, every other directory is a limb in a left/right pair along the body (the pad at its end is the directory, thickness from its file share, reach from its churn share, `1 + nesting_levels` segments), strands as tendrils growing from the torso, the focal knot on the limb of the top hotspot, and the posture follows `alive`: a dormant repository has curled, barely moving limbs, an active one has extended, swaying limbs. The HUD, hover details and `--caption` work as for the abstract portrait.
 
-`live-state.json` holds the scene for both representations: an `OrbitsScene` (abstract) or a `CreatureScene` (character: the `VisualSpec`, the computed body plan, the conclusions and the hover text). `--caption` applies only to `--mode live`. From the library: `render_live(scene, output_dir=None, *, identity)` takes either scene (`build_orbits_scene` or `build_creature_scene`).
+`live-state.json` holds the scene for both representations: an `OrbitsScene` (abstract) or a `CreatureScene` (character: the `VisualSpec`, the computed body plan, the conclusions and the hover text). `--caption` defaults to on for live mode and for prompt mode. From the library: `render_live(scene, output_dir=None, *, identity)` takes either scene (`build_orbits_scene` or `build_creature_scene`).
 
 ### Portrait from an image generator
 
-Offline and deterministic with the default `fake` backend (the same prompt gives identical `portrait.png` bytes). The `fake` backend writes a 16x16 placeholder PNG derived from the prompt hash, not a real portrait:
+Offline and deterministic with the default `fake` backend. The portrait is a 64x64 raster of the repository's `VisualSpec` (the same spec gives the same pixels). `--caption` (default on) adds a Pillow strip of the three HUD conclusions under the picture, and `--caption off` leaves the raster alone. `--prompt-name` puts the repository directory name in the prompt; it applies only to this mode:
 
 ```bash
 .venv/bin/gitgeist render /path/to/repo --representation character --mode prompt-to-image
@@ -84,7 +84,7 @@ You can also set them in a `.env` file, which is loaded on every run. Sources in
 
 An empty value in a `.env` file (for example `OPENROUTER_IMAGE_API_KEY=` copied from `.env.example`) counts as not set, so a lower-priority source can still provide it.
 
-Without a key, the command exits with code 1; it does not silently switch to the `fake` backend. Both backends write `prompt.txt` and a portrait named after the detected byte format: `portrait.png`, `portrait.jpg`, or `portrait.webp`. `render_prompt` also returns the detected media type in the `media_type` field. The `--backend` and `--image-format` options apply only to `--mode prompt-to-image`.
+Without a key, the command exits with code 1; it does not silently switch to the `fake` backend. Both backends write `prompt.txt` and a portrait named after the detected byte format: `portrait.png`, `portrait.jpg`, or `portrait.webp`. `render_prompt` also returns the detected media type in the `media_type` field. The `--backend`, `--image-format` and `--prompt-name` options apply only to `--mode prompt-to-image`. `--caption off` skips the strip. A captioned render needs the `image` extra (`pip install gitgeist[image]`); without Pillow the command fails and writes no portrait.
 
 ### Convert the portrait to PNG
 
@@ -117,7 +117,7 @@ The same repository state gives a byte-identical `summary.md`. `profile.json` di
 
 The `normalized` layer holds every normalized input in the `absolute` and `corpus` scale modes (corpus with the quantile table shipped in the package), and `report.md` has a "Normalized inputs" section with the number of repositories at exactly 0 or 1 and with a clipped value per input. `--reference-time` (ISO 8601 with a zone, default: now) is the time recency is measured against; it is stored in `report.json`. `extract-time` prints the median time of `extract_features` over `--runs` runs (default 5) after one warm-up run.
 
-The `traits` layer records all nine portrait traits in both scale modes, using `--reference-time`. The `visual_spec` layer records one renderer-neutral scene per representation with the default `absolute` traits. The "Traits" report section includes correlation matrices, maximum |r| and participation ratios for both scales, plus nearest-neighbour spec distances for both representations. Stage 3 added these scene descriptions to the library and report; since 0.10.0 the abstract live renderer draws them and since 0.11.0 the character live renderer does too, while the prompt composer keeps its existing inputs. See the [VisualSpec schema](docs/features/traits-visualspec-seeds/visual-spec.md).
+The `traits` layer records all nine portrait traits in both scale modes, using `--reference-time`. The `visual_spec` layer records one renderer-neutral scene per representation with the default `absolute` traits. The "Traits" report section includes correlation matrices, maximum |r| and participation ratios for both scales, plus nearest-neighbour spec distances for both representations. Stage 3 added these scene descriptions to the library and report; since 0.10.0 the abstract live renderer draws them, since 0.11.0 the character live renderer does too, and since 0.12.0 the prompt composer reads the same `VisualSpec`. See the [VisualSpec schema](docs/features/traits-visualspec-seeds/visual-spec.md).
 
 ```bash
 .venv/bin/python tools/diversity_report.py run --out tmp/diversity /path/to/repo-a /path/to/repo-b /path/to/repo-c

@@ -1,10 +1,12 @@
 # Prompt-to-Image: prompt composer, image backend i artefakty
 
+Aktualizacja etapu 6 (0.12.0): publiczne API poniżej przyjmuje `VisualSpec`, a fasada wymaga nazwanego argumentu `features`. Szczegółowe szablony kompozytora v2, paleta, seed i pasek podpisu są w [`docs/features/prompt-composer-v2/spec.md`](../prompt-composer-v2/spec.md). Ten plik opisuje zgodne z nimi sygnatury, backendy, wykrywanie typu mediów, błędy OpenRouter, `image_format` i nazwy artefaktów; nie zachowuje starego API pozycyjnego.
+
 Path: `docs/features/prompt-to-image/spec.md`
 
 ## Goal
 
-Zbudować Fazę 5 architektury Gitgeist: tryb generowania `prompt_to_image_gen_llm`. System składa deterministyczny prompt tekstowy z emocjonalnego stanu repozytorium (`EmotionalState`) i profilu wizualnego (`VisualLatentProfile`), przekazuje go do konfigurowalnego backendu generowania obrazów i zapisuje artefakty (`prompt.txt`, portret o ekstensji zgodnej z rzeczywistym formatem bajtów: `portrait.png`, `portrait.jpg` lub `portrait.webp`). Celem jest uzyskanie jednego końcowego obrazu portretu w trybie reprezentacji `character` lub `abstract`, wiernie wynikającego z profilu, bez ręcznych stereotypów.
+Zbudować Fazę 5 architektury Gitgeist: tryb generowania `prompt_to_image_gen_llm`. System składa deterministyczny prompt tekstowy z wizualnej specyfikacji repozytorium (`VisualSpec`), przekazuje go do konfigurowalnego backendu generowania obrazów i zapisuje artefakty (`prompt.txt`, portret o ekstensji zgodnej z rzeczywistym formatem bajtów: `portrait.png`, `portrait.jpg` lub `portrait.webp`). Celem jest uzyskanie jednego końcowego obrazu portretu w trybie reprezentacji `character` lub `abstract`, wiernie wynikającego z profilu, bez ręcznych stereotypów.
 
 Uzupełnienie kontraktu (2026-09-19, zadanie `portrait-media-types`): backendy OpenRouter zwracają różne formaty; zmierzono 13 modeli: 8 PNG, 3 JPEG, 1 WebP, 2 błędy API. Artefakt portretu musi mieć ekstensję i zarejestrowany typ mediów zgodne z wykrytą zawartością (sniffing magii bajtów), nie z obietnicą API. Normalizacja do PNG jest dostępna jako opt-in przez Pillow.
 
@@ -20,19 +22,19 @@ Uzupełnienie kontraktu (2026-09-19, zadanie `portrait-media-types`): backendy O
 ## Scope
 
 1. Kompozytor promptu (`src/gitgeist/render/prompt_composer.py`):
-   - Funkcja `compose_prompt(emotional_state: EmotionalState, profile: VisualLatentProfile, mode: Literal["abstract", "character"] = "abstract", repository_name: str | None = None) -> str`.
-   - Prompt zawiera bloki zgodne z sekcją 20 dokumentu produktowego: blok tożsamości semantycznej, blok stanu emocjonalnego (nazwane osie z kwalifikatorami niski/średni/wysoki), blok profilu latentnego (osie + dominująca materiałowość), wybrany tryb reprezentacji, ograniczenia spójności oraz ograniczenia negatywne (zakaz dosłownych symboli programistycznych i memicznych personifikacji).
+   - Funkcja `compose_prompt(spec: VisualSpec, *, include_name: bool = False, repository_name: str | None = None) -> str`.
+   - Prompt zawiera zdanie tematu, 5–7 wybranych dyrektyw opisujących fakty z `VisualSpec`, paletę hex, medium wybrane z seed oraz ograniczenia negatywne. Nazwa repozytorium jest domyślnie wyłączona; `include_name=True` wymaga niepustego `repository_name`. Układ i selekcję określa specyfikacja kompozytora v2.
 2. Backend generowania obrazu (`src/gitgeist/render/image_backend.py`):
-   - Interfejs `ImageGenerationBackend` (ABC) z metodą `generate_image(prompt: str) -> GeneratedImage`, gdzie `GeneratedImage` jest zamrożonym modelem pydantic z polami `image_bytes: bytes` oraz `media_type: Literal["png", "jpeg", "webp"]` wykrytym z magii bajtów, nie z metadanych serwera.
+   - Interfejs `ImageGenerationBackend` (ABC) z metodą `generate_image(prompt: str, *, spec: VisualSpec | None = None, seed: int | None = None) -> GeneratedImage`, gdzie `GeneratedImage` jest zamrożonym modelem pydantic z polami `image_bytes: bytes` oraz `media_type: Literal["png", "jpeg", "webp"]` wykrytym z magii bajtów, nie z metadanych serwera.
    - Implementacja `OpenRouterImageBackend`: wywołanie OpenRouter Image API (parametry `api_url`, `api_key`, `model`, `timeout`), zbudowane na `urllib.request` ze standardowej biblioteki; bajty z `b64_json` lub URL są poddawane detekcji typu przed zwróceniem.
-   - Implementacja `FakeImageBackend`: deterministyczny, offline generator PNG na potrzeby testów i pracy bez sieci; zwraca `media_type="png"`.
+   - Implementacja `FakeImageBackend`: deterministyczny, offline raster 64×64 RGB rysowany z wymaganego `VisualSpec`; prompt i seed nie zmieniają pikseli. Brak poprawnego `spec` rzuca `ValueError`; wynik ma `media_type="png"`.
    - Detekcja formatu: PNG przy nagłówku `\x89PNG\r\n\x1a\n`; JPEG przy `\xff\xd8\xff`; WebP przy `RIFF` na pozycji 0 i `WEBP` na pozycji 8; każda inna zawartość rzuca `ValueError`.
 3. Fasada trybu prompt (`src/gitgeist/render/facade.py`):
-   - Funkcja `render_prompt(emotional_state: EmotionalState, profile: VisualLatentProfile, mode: Literal["abstract", "character"] = "abstract", repository_name: str | None = None, backend: ImageGenerationBackend | None = None, output_dir: Path | str | None = None, image_format: Literal["native", "png"] = "native") -> PromptRenderArtifacts`.
+   - Funkcja `render_prompt(spec: VisualSpec, *, features: RepositoryFeatures, repository_name: str | None = None, include_name: bool = False, caption: bool = True, backend: ImageGenerationBackend | None = None, output_dir: Path | str | None = None, image_format: Literal["native", "png"] = "native") -> PromptRenderArtifacts`.
    - Klasa wynikowa `PromptRenderArtifacts`: `prompt_text: str`, `image_bytes: bytes | None`, `media_type: str | None`, `prompt_path: Path | None`, `image_path: Path | None`.
    - Domyślnie (`backend=None`) używa `FakeImageBackend`; wywołanie z `OpenRouterImageBackend` pozostaje jawną decyzją wywołującego.
    - Zapis artefaktów: `prompt.txt` oraz portret nazwany wg wykrytego typu (`portrait.png`, `portrait.jpg`, `portrait.webp`) w `output_dir`; render nie usuwa portretów o innych ekstensjach z wcześniejszych uruchomień.
-   - Normalizacja: `image_format="png"` przy typie innym niż PNG przekodowuje bajty do PNG przez Pillow; przy `image_format="native"` (domyślnie) bajty pozostają bez zmian.
+   - Normalizacja: `image_format="png"` przy typie innym niż PNG przekodowuje bajty do PNG przez Pillow. `image_format="native"` zachowuje wykryty format, ale domyślne `caption=True` nadal dodaje pasek Pillow. Dopiero `caption=False` i brak normalizacji pozostawiają bajty backendu bez zmian.
 4. Re-eksport publicznego API (`gitgeist.render.compose_prompt`, `gitgeist.render.render_prompt`, `gitgeist.render.ImageGenerationBackend`, modele wynikowe) w pakiecie `gitgeist`.
 5. Zestaw testów jednostkowych i integracyjnych pokrywających kompozycję promptu, budowę żądania HTTP, obsługę błędów backendu, determinizm i zapis artefaktów.
 
@@ -46,25 +48,23 @@ Uzupełnienie kontraktu (2026-09-19, zadanie `portrait-media-types`): backendy O
 
 ## Behaviour
 
-- `compose_prompt` zwraca końcowy tekst promptu wyłącznie z danych wejściowych; identyczne `EmotionalState`, `VisualLatentProfile`, tryb i nazwa repo dają identyczny tekst promptu.
+- `compose_prompt` zwraca końcowy tekst wyłącznie z `VisualSpec` i argumentów nazwanych; identyczne wejścia dają identyczny tekst. Reprezentację wybiera `spec.style` (`orbits` lub `creature`), nie argument `mode`.
 - Treść promptu nie zawiera znaczników czasu (`calculated_at`), nazw plików ani ścieżek lokalnych.
-- Oś ciągła otrzymuje kwalifikator tekstowy: `<= 0.33` niski, `<= 0.66` średni, powyżej wysoki; progi są włączne dla dolnych granic przedziałów.
-- `render_prompt` komponuje prompt, wywołuje `backend.generate_image(prompt)`, wykrywa typ mediów z magii bajtów i przy `output_dir` zapisuje `prompt.txt` oraz portret o ekstensji wynikającej z typu: `png` -> `portrait.png`, `jpeg` -> `portrait.jpg`, `webp` -> `portrait.webp` (UTF-8 i bajty odpowiednio), tworząc katalog wraz z rodzicami w razie potrzeby.
+- Dobór 5–7 dyrektyw, progi 0.33/0.66, fakty o anatomii i aktywności, paleta oraz medium wynikają z kontraktu kompozytora v2, a nie z dawnych bloków osi `EmotionalState` i `VisualLatentProfile`.
+- `render_prompt` komponuje prompt, wywołuje `backend.generate_image(prompt, spec=spec, seed=spec.seeds.effective_seed & (2**53 - 1))`, wykrywa typ mediów z magii bajtów i przy `output_dir` zapisuje `prompt.txt` oraz portret o ekstensji wynikającej z typu: `png` -> `portrait.png`, `jpeg` -> `portrait.jpg`, `webp` -> `portrait.webp` (UTF-8 i bajty odpowiednio), tworząc katalog wraz z rodzicami w razie potrzeby.
 - `media_type` w `PromptRenderArtifacts` jest równy typowi zapisanego portretu; ekstensja pliku jest trwałym zapisem typu na dysku. `profile.json` nie zawiera pól zależnych od renderowania (kontrakt determinizmu `analyze`, README.md:71-73).
-- Przy `image_format="png"` portret o typie innym niż `png` jest przekodowywany do PNG przez Pillow przed zapisem; wynikowa ekstensja to zawsze `portrait.png`. Przy `image_format="native"` bajty nie są modyfikowane.
-- Prompt wprost wymusza tryb reprezentacji: `character` opisuje emergentny byt, `abstract` opisuje kompozycję abstrakcyjną; oba blokują dosłowne stereotypy („robot”, „maskotka”, symbole programisty).
+- Przy `image_format="png"` portret o typie innym niż `png` jest przekodowywany do PNG przez Pillow przed zapisem; wynikowa ekstensja to zawsze `portrait.png`. Przy `image_format="native"` nie ma konwersji formatu; `caption=True` po sniffingu i normalizacji dodaje pasek z `conclusions(features, spec)` i może zmienić bajty obrazu. `caption=False` wyłącza ten pasek.
+- Styl `creature` opisuje byt, a `orbits` kompozycję abstrakcyjną; CLI mapuje na nie odpowiednio `character` i `abstract`. Oba style zachowują ograniczenia negatywne z kontraktu v2.
 - Żądanie HTTP do backendu używa nagłówka `Authorization: Bearer <api_key>`, treści JSON i endpointu `api_url` (domyślnie `https://openrouter.ai/api/v1/images`); odpowiedź musi zawierać dane obrazu (pole `b64_json` lub URL pobierany dodatkowym żądaniem GET).
 - CLI: `gitgeist render --mode prompt-to-image` przyjmuje `--image-format {native,png}` (domyślnie `native`); flaga jest dozwolona wyłącznie w trybie `prompt-to-image`, jak `--backend`. Komunikat CLI wymienia faktyczną ścieżkę zapisanego portretu.
 
 ## Business rules
 
-- Kwalifikatory osi (niski/średni/wysoki) wynikają wyłącznie z wartości liczbowych pól `EmotionalScores` i `VisualLatentAxes`, bez twardych mapowań typu „wysoka kruchość = pęknięte szkło”.
-- Dominująca materiałowość (`materiality.dominant`) jest opisywana słownie w bloku profilu latentnego; wagi pozostałych materiałów nie trafiają do promptu.
-- Wybory dominant (`temperament`, `visual_tone`, `energy_profile` z `EmotionalChoices`) są opisywane słownie jako charakterystyka nastroju i tonu wizualnego.
-- `FakeImageBackend` zwraca poprawny plik PNG deterministycznie zależny wyłącznie od treści promptu (ten sam prompt: te same bajty) i zawsze `media_type="png"`.
+- Opisuje się fakty i wybrane cechy `VisualSpec`, bez symbolicznych stereotypów, nazw ścieżek ani sztucznego wymuszania unikalnych zdań. Medium i zgodne z prawdą wspólne cechy mogą się powtarzać. Stare bloki osi i dominant profilu nie są wejściem publicznego API kompozytora.
+- `FakeImageBackend` zwraca poprawny PNG zależny wyłącznie od wizualnych danych `spec`; ten sam `spec` z innym promptem lub seed daje te same bajty, zawsze `media_type="png"`.
 - `OpenRouterImageBackend` nie loguje klucza API i nie zapisuje go w artefaktach.
 - Typ mediów wynika wyłącznie z magii bajtów odpowiedzi; pola typu MIME od serwera nie mają wpływu na detekcję ani ekstensję.
-- Zależność Pillow jest opcjonalna: extra `[project.optional-dependencies] image = ["pillow>=10.0"]`; import następuje wyłącznie przy `image_format="png"` i typie innym niż PNG.
+- Zależność Pillow jest opcjonalna: extra `[project.optional-dependencies] image = ["pillow>=10.0"]`. Jest wymagana przy `caption=True` oraz przy normalizacji nie-PNG do PNG. Brak Pillow przy żądanym podpisie kończy się błędem przed wywołaniem backendu i zapisem; nie ma cichego pominięcia podpisu.
 
 ## Authorization
 
@@ -73,9 +73,10 @@ Dostęp do backendu obrazowego kontroluje posiadacz klucza API przekazanego do `
 ## Data / API
 
 - Wejście:
-  - `emotional_state`: `EmotionalState` (wymagane)
-  - `profile`: `VisualLatentProfile` (wymagane)
-  - `mode`: `Literal["abstract", "character"] = "abstract"`
+  - `spec`: `VisualSpec` (wymagane; jedyny argument pozycyjny obu funkcji)
+  - `features`: `RepositoryFeatures` (wymagany argument nazwany fasady; źródło wniosków podpisu)
+  - `include_name`: `bool = False`
+  - `caption`: `bool = True` (fasada)
   - `repository_name`: `str | None = None`
   - `backend`: `ImageGenerationBackend | None = None` (domyślnie `FakeImageBackend`)
   - `output_dir`: `Path | str | None = None`
@@ -107,33 +108,35 @@ Dostęp do backendu obrazowego kontroluje posiadacz klucza API przekazanego do `
 ## Kompatybilność
 
 - Zmiana typu zwracanego przez `ImageGenerationBackend.generate_image` z `bytes` na `GeneratedImage` jest łamiąca dla zewnętrznych implementacji ABC; projekt jest przed 1.0, zmiana wchodzi jako minor i jest odnotowana w komunikacie wydania.
-- `render_prompt` rozszerza sygnaturę wyłącznie o opcjonalny `image_format`; istniejące wywołania pozycyjne i nazwe pozostają poprawne.
+- Etap 6 (0.12.0) łamie stare API: `render_prompt` przyjmuje teraz `VisualSpec` oraz wymagane nazwane `features`; `compose_prompt` przyjmuje `VisualSpec`. Dawne wywołania z parą stan/profil lub argumentem `mode` nie są zgodne i rzucają `TypeError`. Nowe wywołanie fasady: `render_prompt(spec, features=features, caption=False, backend=backend, output_dir=directory)`.
+- Własne backendy muszą przyjmować nazwane `spec` i `seed`, ponieważ fasada przekazuje oba. `OpenRouterImageBackend.generate_image(prompt)` nadal działa z domyślnym `seed=None` i pomija wtedy seed w JSON; przy podanym seed przekazuje go do API. `FakeImageBackend.generate_image(prompt)` bez `spec` rzuca `ValueError`.
 - `PromptRenderArtifacts.image_path` zmienia ekstensję dla backendów zwracających JPEG lub WebP; konsumenci polegający na stałej nazwie `portrait.png` powinni używać `image_format="png"` lub czytać `media_type`.
 
 ## Edge cases
 
-- Ekstremalne wartości osi (wszystkie 0.0 lub 1.0): prompt powstaje bez błędów i bez wartości NaN.
-- Pusta lista `dominant_features` i brak `repository_name`: bloki opcjonalne są pomijane, prompt pozostaje kompletny.
+- Skrajne wartości cech poprawnego `VisualSpec`: prompt pozostaje poprawny; dobór dyrektyw określa kontrakt v2.
+- Pusta lista `masses`: temat opisuje brak ciał; brak nazwy przy `include_name=False` nie dodaje wiersza repozytorium. Przy `include_name=True` brak niepustej nazwy jest błędem.
 - Backend zwraca odpowiedź bez danych obrazu lub o nierozpoznanym formacie: rzuca wyjątek, nie zapisuje portretu, ale `prompt.txt` pozostaje zapisywalny przy kolejnej próbie.
 - Odpowiedź w formacie innym niż wybrany `image_format`: portret jest przekodowywany lub zapisany pod ekstensją typu, nigdy pod błędną ekstensją.
 - Portret z poprzedniego uruchomienia w innym formacie pozostaje na dysku; render go nie usuwa i nie nadpisuje.
-- Długi prompt (wiele cech): treść pozostaje w granicach rozsądnej długości (kompozycja blokowa, bez duplikacji).
+- Prompt zawiera 5–7 wybranych dyrektyw; dopuszczalne wspólne cechy i medium nie są automatycznym błędem różnorodności. Ocena T1/T2 pozostaje po scaleniu według decyzji właściciela z 2026-11-07 21:33 Europe/Warsaw.
 
 ## Errors
 
-- Przekazanie obiektu innego niż `EmotionalState` lub `VisualLatentProfile` rzuca `TypeError`.
-- Nieznany tryb reprezentacji rzuca `ValueError`.
+- Kompozytor i fasada wymagają `VisualSpec`; fasada dodatkowo `RepositoryFeatures` w `features`. Błędny typ rzuca `TypeError`.
+- Nieznany `spec.style` lub `include_name=True` bez niepustej nazwy rzuca `ValueError`. Nie ma starego argumentu `mode`.
+- `FakeImageBackend` bez poprawnego `VisualSpec` rzuca `ValueError`.
 - Wywołanie `OpenRouterImageBackend.generate_image` bez klucza API rzuca `ValueError` (brak cichego fallbacku).
 - Zawartość obrazu o nierozpoznanym formacie rzuca `ValueError` z jawnym komunikatem; nic nie jest zapisywane jako portret.
-- `image_format="png"` bez zainstalowanego Pillow rzuca `ValueError` z podpowiedzią instalacji `pip install gitgeist[image]`; brak cichego fallbacku na zapis natywnego formatu.
+- Żądanie podpisu (`caption=True`) lub normalizacji nie-PNG do PNG bez Pillow rzuca `ValueError` z podpowiedzią `pip install gitgeist[image]`; brak cichego fallbacku na obraz bez podpisu lub format natywny.
 - Błędy HTTP (`HTTPError`, `URLError`, `TimeoutError`) propagują się z `urllib` bez tłumienia; treść błędu nie zawiera klucza API.
 - Błąd zapisu pliku rzuca standardowy `OSError`.
 
 ## Acceptance criteria
 
-1. `compose_prompt` zwraca prompt zawierający bloki: tożsamość semantyczna, stan emocjonalny, profil latentny, tryb reprezentacji, ograniczenia spójności i negatywne; dla `mode="character"` i `mode="abstract"` treść opisu formy jest różna.
-2. Identyczne dane wejściowe dają bajt w bajt identyczny prompt; zmiana dowolnej osi zmienia treść promptu.
-3. `FakeImageBackend` zwraca deterministyczne, poprawne bajty PNG (ten sam prompt: te same bajty; różne prompty: różne bajty) z `media_type="png"`.
+1. `compose_prompt` opisuje `VisualSpec`: temat, 5–7 wybranych dyrektyw, paletę hex, seeded medium i ograniczenia negatywne; style `creature` i `orbits` mają właściwe dla nich tematy.
+2. Identyczne `VisualSpec` i argumenty nazwane dają bajt w bajt identyczny prompt; selekcja dyrektyw, paleta, medium i opt-in nazwy są sprawdzane zgodnie z kontraktem v2. Nie wymaga się zmiany tekstu po każdej dowolnej małej zmianie liczbowej.
+3. `FakeImageBackend` zwraca deterministyczny poprawny PNG 64×64 z `media_type="png"`; ten sam `spec` z różnym promptem lub seed zachowuje bajty. Test obejmuje brak wymaganego `spec`.
 4. `OpenRouterImageBackend` buduje poprawne żądanie (URL, metoda, nagłówki z `Bearer`, treść JSON) bez wykonywania prawdziwego połączenia sieciowego w testach; bajty odpowiedzi otrzymują wykryty typ mediów.
 5. `render_prompt` zapisuje `prompt.txt` i portret o ekstensji zgodnej z wykrytym typem (`portrait.png`, `portrait.jpg`, `portrait.webp`) w podanym `output_dir`, tworząc katalogi, i zwraca kompletne `PromptRenderArtifacts` z ustawionymi ścieżkami oraz `media_type`.
 6. Detekcja formatu rozpoznaje PNG, JPEG i WebP z magii bajtów; nierozpoznana zawartość kończy się `ValueError` bez zapisu portretu.
@@ -144,7 +147,7 @@ Dostęp do backendu obrazowego kontroluje posiadacz klucza API przekazanego do `
 
 ## Required tests
 
-- `tests/test_prompt_composer.py`: kompozycja bloków promptu, determinizm, kwalifikatory osi, różnice między trybami, brak znaczników czasu, zakaz stereotypów w treści.
+- `tests/test_prompt_composer.py`: układ i wzorzec v2, determinizm, selekcja dyrektyw, tematy obu stylów, anatomia/aktywność postaci, paleta, medium, opt-in nazwy i błędne wejścia.
 - `tests/test_image_backend.py`: kontrakt `FakeImageBackend`, budowa żądania `OpenRouterImageBackend` (URL, nagłówki, JSON) na fasadzie `urllib`, brak klucza rzuca `ValueError`, obsługa odpowiedzi `b64_json` i błędów HTTP bez połączenia sieciowego, detekcja typu dla PNG/JPEG/WebP i `ValueError` dla nierozpoznanych bajtów.
 - `tests/test_prompt_render.py`: fasada `render_prompt`, zapis i treść artefaktów z ekstensją wg typu, tworzenie katalogów, przepływ błędów typów i trybów, normalizacja `image_format="png"` dla bajtów JPEG i WebP, błąd przy braku Pillow.
 

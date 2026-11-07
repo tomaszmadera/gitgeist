@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 This file starts at 0.6.0. Earlier versions (tags `0.0.1` to `0.5.1`) have no changelog entries.
 
+## [0.12.0] - 2026-11-05
+
+Prompt composer v2 (plan stage 6, GITGEIST-19; spec `docs/features/prompt-composer-v2/spec.md`).
+
+### Changed
+
+- `gitgeist render --mode prompt-to-image` builds the prompt and the fake portrait from `VisualSpec`. The prompt is a subject sentence, five to seven visible-trait lines, a hex palette, a seeded medium and two fixed negative lines. The repository name stays out unless `--prompt-name` is set.
+- Breaking: `compose_prompt(spec, *, include_name=False, repository_name=None)` and `render_prompt(spec, *, features, ...)` take a `VisualSpec`. The old `EmotionalState` and `VisualLatentProfile` parameters raise `TypeError`. Before and after:
+
+  ```python
+  # 0.11.0
+  compose_prompt(state, profile, mode="abstract", repository_name="repo")
+  render_prompt(state, profile, mode="abstract", repository_name="repo")
+  # 0.12.0
+  spec = build_visual_spec(features, compute_traits(features), identity, "abstract")
+  compose_prompt(spec, include_name=True, repository_name="repo")
+  render_prompt(spec, features=features, include_name=True, repository_name="repo")
+  ```
+
+- `FakeImageBackend` draws a 64x64 RGB raster of the spec (ground, mass disks, knot, crack pixels) instead of a 16x16 hash of the prompt. A call without a `VisualSpec` raises `ValueError`. The same spec returns the same bytes.
+- `OpenRouterImageBackend.generate_image(prompt, *, spec=None, seed=None)` adds an integer `seed` to the JSON body when `seed` is not `None`. `render_prompt` passes `effective_seed` masked to 53 bits. A call without `seed` sends the previous body.
+- `--caption` works for prompt mode and defaults to on, as it does for live mode. The strip is the three HUD conclusions drawn with Pillow under the portrait. Without Pillow the command fails with `pip install gitgeist[image]` and writes no portrait. `--caption off` returns the backend bytes and does not draw the strip.
+- `--prompt-name` is a render flag, default off, valid only for `--mode prompt-to-image`. On live mode the command exits 2 before it analyses or writes.
+
+### Added
+
+- `tools/prompt_corpus_check.py`, a development script that logs prompt lines for the 12-repository corpus under `docs/evidence/`. It does not clone or fetch. A missing checkout is an error.
+
 ## [0.11.0] - 2026-11-03
 
 Live renderer v2 for the character representation (plan stage 5, GITGEIST-18; spec `docs/features/live-renderer-v2/character-spec.md`).
@@ -139,6 +167,7 @@ Live renderer v2 for the abstract representation (plan stage 4, GITGEIST-17; spe
 - The default `gitgeist-output` directory is skipped when scanning, so a rerun inside the repository does not analyse its own artifacts.
 - Empty values in a local `.env` no longer shadow the user-level `~/.config/gitgeist/.env`.
 
+[0.12.0]: https://github.com/tomaszmadera/gitgeist/compare/0.11.0...0.12.0
 [0.11.0]: https://github.com/tomaszmadera/gitgeist/compare/0.10.0...0.11.0
 [0.10.0]: https://github.com/tomaszmadera/gitgeist/compare/0.9.0...0.10.0
 [0.9.0]: https://github.com/tomaszmadera/gitgeist/compare/0.8.0...0.9.0

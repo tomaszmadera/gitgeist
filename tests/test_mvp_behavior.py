@@ -25,8 +25,6 @@ from gitgeist.schemas.emotional import EmotionalState
 from gitgeist.schemas.visual_latent import VisualLatentProfile
 from gitgeist.visual import build_visual_spec, compute_traits
 
-LOW_MEDIUM_BOUNDARY = 0.33
-MEDIUM_HIGH_BOUNDARY = 0.66
 DIFFERENCE_THRESHOLD = 0.1
 MINIMUM_DIFFERING_COUNT = 3
 VOLATILE_KEYS = {"calculated_at", "extracted_at", "source_commit", "engine_version"}
@@ -54,47 +52,6 @@ def _strip_volatile(value):
     if isinstance(value, list):
         return [_strip_volatile(item) for item in value]
     return value
-
-
-def _qualifier(value: float) -> str:
-    if value <= LOW_MEDIUM_BOUNDARY:
-        return "low"
-    if value <= MEDIUM_HIGH_BOUNDARY:
-        return "medium"
-    return "high"
-
-
-def _drop_mode_block(prompt: str) -> str:
-    lines = prompt.splitlines()
-    for index, line in enumerate(lines):
-        if line.startswith("Representation mode: "):
-            del lines[index : index + 2]
-            break
-    return "\n".join(lines)
-
-
-def _parse_prompt_core(prompt: str) -> tuple[dict[str, str], dict[str, str], str]:
-    scores: dict[str, str] = {}
-    axes: dict[str, str] = {}
-    dominant_material = ""
-    section = ""
-    for line in prompt.splitlines():
-        if line == "":
-            section = ""
-            continue
-        if line == "Emotional state:":
-            section = "scores"
-            continue
-        if line == "Visual latent profile:":
-            section = "axes"
-            continue
-        if line.startswith("- dominant material: "):
-            dominant_material = line.removeprefix("- dominant material: ")
-            continue
-        if line.startswith("- ") and section in {"scores", "axes"}:
-            name, _, value = line[2:].partition(": ")
-            (scores if section == "scores" else axes)[name] = value
-    return scores, axes, dominant_material
 
 
 def test_test1_different_repos_produce_different_profiles(
@@ -140,8 +97,8 @@ def test_test2_same_snapshot_produces_stable_profile(clean_modular_repo: Path) -
     live_b = render_live(_creature_scene(features_b, identity, "same-repo"), identity=identity)
     assert live_a.state_json == live_b.state_json
 
-    prompt_a = render_prompt(state_a, profile_a, mode="character").prompt_text
-    prompt_b = render_prompt(state_b, profile_b, mode="character").prompt_text
+    prompt_a = render_prompt(live_a.state.spec, features=features_a, caption=False).prompt_text
+    prompt_b = render_prompt(live_b.state.spec, features=features_b, caption=False).prompt_text
     assert prompt_a == prompt_b
 
 
@@ -161,24 +118,32 @@ def test_test5_representation_modes_share_semantic_identity(
     assert live_character.state.spec.seeds.identity_seed == identity.identity_seed
     assert live_character.state_json != live_abstract.state_json
 
-    prompt_character = render_prompt(state, profile, mode="character").prompt_text
-    prompt_abstract = render_prompt(state, profile, mode="abstract").prompt_text
+    traits = compute_traits(features)
+    prompt_character = render_prompt(
+        build_visual_spec(features, traits, identity, "character"),
+        features=features,
+        caption=False,
+    ).prompt_text
+    prompt_abstract = render_prompt(
+        build_visual_spec(features, traits, identity, "abstract"),
+        features=features,
+        caption=False,
+    ).prompt_text
     assert prompt_character != prompt_abstract
-    assert _drop_mode_block(prompt_character) == _drop_mode_block(prompt_abstract)
+    assert prompt_character.startswith("A creature ")
+    assert prompt_abstract.startswith("An abstract composition of ")
+    assert "identity-repo" not in prompt_character
+    assert "identity-repo" not in prompt_abstract
 
 
 def test_test6_live_and_prompt_share_core(clean_modular_repo: Path) -> None:
-    features, state, profile = _run_pipeline(clean_modular_repo)
-    prompt = compose_prompt(state, profile, mode="character", repository_name="core-repo")
+    features, _state, _profile = _run_pipeline(clean_modular_repo)
     identity = compute_identity_seed(clean_modular_repo)
     live = render_live(_creature_scene(features, identity, "core-repo"), identity=identity)
+    prompt = compose_prompt(live.state.spec)
+    named = compose_prompt(live.state.spec, include_name=True, repository_name="core-repo")
 
-    prompt_scores, prompt_axes, prompt_material = _parse_prompt_core(prompt)
-
-    assert prompt_material == profile.materiality.dominant
     assert live.state.spec.seeds.identity_seed == identity.identity_seed
-
-    for name, qualifier in prompt_scores.items():
-        assert _qualifier(getattr(state.scores, name)) == qualifier
-    for name, qualifier in prompt_axes.items():
-        assert _qualifier(getattr(profile.axes, name)) == qualifier
+    assert prompt == compose_prompt(live.state.spec)
+    assert "core-repo" not in prompt
+    assert named.splitlines()[1] == "Repository: core-repo."
