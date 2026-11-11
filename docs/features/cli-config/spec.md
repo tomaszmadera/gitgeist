@@ -10,7 +10,7 @@ Status: draft for Tomasz's review (stage 7 of `docs/features/visual-diversity/pl
 
 ## Related requirements
 
-- `docs/features/visual-diversity/plan.md:120-127` (stage 7 scope and acceptance; depends only on stage 3).
+- `docs/features/visual-diversity/plan.md:120-129` (stage 7 scope and acceptance; depends only on stage 3).
 - `docs/features/visual-diversity/design.md:391-412` ("Configuration and CLI": flag table, defaults, config precedence, unknown keys are an error).
 - `docs/features/visual-diversity/design.md:137` (`--palette seeded` drops the language rule for the palette), `:155` (`--style`), `:168` (`--variety`), `:173` (`--seed <int>` or `--seed random`, which prints and records the value).
 - `docs/features/traits-visualspec-seeds/spec.md:52-53`, `:91` and O8 (flags and `--palette seeded` deferred to stage 7; `random` is resolved by the flag, not the library).
@@ -20,7 +20,7 @@ Status: draft for Tomasz's review (stage 7 of `docs/features/visual-diversity/pl
 - `src/gitgeist/visual/spec_builder.py:50-61` (`build_visual_spec(..., *, style="auto", user_seed=None, variety="medium")`) and `:69-72` (hue offset and `language_hue`).
 - `src/gitgeist/visual/styles.py:25` (`registered_styles`), `:32` (`select_style`), `:48` (`variety_limits`).
 - `src/gitgeist/visual/seeds.py:6` (`validate_user_seed`, 0 to 2^63 - 1), `:30` (`sub_seed`).
-- `src/gitgeist/visual/palette.py:15-28` (`hue_offset`, `language_hue`).
+- `src/gitgeist/visual/palette.py:15-27` (`hue_offset`, `language_hue`).
 - `src/gitgeist/schemas/visual_spec.py:51-54` (`Palette.mode: Literal["language"]`).
 - `src/gitgeist/visual/traits.py:16` (`compute_traits(features, scale="absolute", ...)`) and `src/gitgeist/normalization/scale.py:17-18` (`ScaleMode = Literal["absolute", "corpus"]`).
 - `src/gitgeist/env.py:67-71` (`user_env_file`: `$XDG_CONFIG_HOME/gitgeist/.env`, else `Path.home() / ".config" / "gitgeist" / ".env"`).

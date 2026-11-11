@@ -219,7 +219,7 @@ Validators on `CreatureScene`: every index of `spec.masses` appears exactly once
 - `build_creature_scene`: `spec.representation` not `character` or `spec.style` not `creature`: `ValueError`; `features` not `RepositoryFeatures` or `spec` not `VisualSpec`: `TypeError`; `spec.masses` not matching `features.structure.masses`: `ValueError`.
 - `render_live` (C8 (a)): `scene` not an `OrbitsScene` or `CreatureScene`: `TypeError`; `identity` not an `IdentitySeed`: `TypeError`.
 - `generate_creature_html`: `scene` not a `CreatureScene`: `TypeError`.
-- CLI: unchanged (`--caption` with `--mode prompt-to-image` exits 2).
+- CLI: unchanged (`--caption` with `--mode prompt-to-image` exits 2; superseded by stage 6, `docs/features/prompt-composer-v2/spec.md`, where `--caption` is valid for prompt mode).
 
 ## Acceptance criteria
 

@@ -196,7 +196,7 @@ def render_live(
 
 - `build_orbits_scene`: `spec.representation` not `abstract` or `spec.style` not `orbits`: `ValueError`; `features` not `RepositoryFeatures` or `spec` not `VisualSpec`: `TypeError`.
 - `render_live`: `mode="abstract"` with `scene=None` or not an `OrbitsScene`: `TypeError`; `mode="character"` with a scene: `ValueError`; unknown mode: `ValueError` as today.
-- CLI: `--caption` with `--mode prompt-to-image`: exit 2 with the message `--caption applies only to --mode live` before anything is analysed or written. (`--backend` with `--mode live` exits 1 through the generic error path; this flag exits 2 as written here.) `--caption` with `--representation character --mode live` is accepted and has no effect until stage 5.
+- CLI (superseded by stage 6, `docs/features/prompt-composer-v2/spec.md`: `--caption` is now valid for `--mode prompt-to-image`): `--caption` with `--mode prompt-to-image`: exit 2 with the message `--caption applies only to --mode live` before anything is analysed or written. (`--backend` with `--mode live` exits 1 through the generic error path; this flag exits 2 as written here.) `--caption` with `--representation character --mode live` is accepted and has no effect until stage 5.
 
 ## Acceptance criteria
 
