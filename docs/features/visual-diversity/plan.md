@@ -2,7 +2,7 @@
 
 Path: `docs/features/visual-diversity/plan.md`
 
-Status: stage 0 decided on 2026-10-22; stage 1 done (merged in PR #3 on 2026-10-22, version 0.6.0); stage 2 done (spec in PR #5, implementation merged in PR #6, version 0.7.0); stage 3 done (spec approved on 2026-10-23, implementation merged in PR #17, version 0.8.0); stage 6 implementation is under technical review in PR #24, with diversity and recognition evaluations outstanding after merge under the owner decision of 2026-11-07 21:33 Europe/Warsaw; stages 7 to 13 are not started. Historical stage 4 and stage 5 status notes below are not revised by this stage 6 acceptance amendment. `D` means D v1 as defined in `tools/diversity_report.py`; baselines are in `analysis.md`. Evidence: `analysis.md`. Target design: `design.md`. Stages 0 to 8 build the counter strategy and the shared portrait format; stages 9 to 13 add the evaluation strategy.
+Status: stage 0 decided on 2026-10-22; stage 1 done (merged in PR #3 on 2026-10-22, version 0.6.0); stage 2 done (spec in PR #5, implementation merged in PR #6, version 0.7.0); stage 3 done (spec approved on 2026-10-23, implementation merged in PR #17, version 0.8.0); stage 6 implementation is under technical review in PR #24, with diversity and recognition evaluations outstanding after merge under the owner decision of 2026-11-07 21:33 Europe/Warsaw; stage 7 spec is drafted and awaiting approval (`docs/features/cli-config/spec.md`, Plane GITGEIST-21); stages 8 to 13 are not started. Historical stage 4 and stage 5 status notes below are not revised by this stage 6 acceptance amendment. `D` means D v1 as defined in `tools/diversity_report.py`; baselines are in `analysis.md`. Evidence: `analysis.md`. Target design: `design.md`. Stages 0 to 8 build the counter strategy and the shared portrait format; stages 9 to 13 add the evaluation strategy.
 
 ## Classification
 
@@ -120,6 +120,8 @@ The owner decision defers these evaluations until after implementation merge; it
 ### Stage 7: CLI and config
 
 Size: small.
+
+Status: spec drafted on 2026-11-11 (`docs/features/cli-config/spec.md`, Plane GITGEIST-21), open points O1-O7 awaiting your decision; no implementation yet.
 
 - Flags `--style`, `--seed`, `--variety`, `--scale`, `--palette`, `--caption`, `--prompt-name`.
 - Config file lookup: CLI, `./gitgeist.toml`, `~/.config/gitgeist/config.toml`, defaults; unknown keys are an error.
