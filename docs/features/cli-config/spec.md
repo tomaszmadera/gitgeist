@@ -2,7 +2,7 @@
 
 Path: `docs/features/cli-config/spec.md`
 
-Status: draft for Tomasz's review (stage 7 of `docs/features/visual-diversity/plan.md`, Plane GITGEIST-21). Open points O1-O7 are not decided yet. Written on 2026-11-11 against `main` at `b4765ec` (tag 0.12.0). Spec only: no code changes on this branch.
+Status: approved (stage 7 of `docs/features/visual-diversity/plan.md`, Plane GITGEIST-21). Spec merged in PR #26 on 2026-11-12; Tomasz decided open points O1-O7 on 2026-11-12, option (a) in each (see "Decisions"). Written on 2026-11-11 against `main` at `b4765ec` (tag 0.12.0). Implementation is not started.
 
 ## Goal
 
@@ -309,7 +309,19 @@ Config (new `tests/test_config.py` for the module, plus CLI cases):
 - Seeded hues can make two unrelated repositories look related by chance; that is the intended trade-off of `design.md:438`.
 - Windows path behaviour depends on Python's `Path.home()`. The `verify-windows` job proves it; there is no other Windows coverage.
 
-## Open points for Tomasz
+## Decisions
+
+Decided by Tomasz on 2026-11-12: option (a) for each of O1-O7. The text below keeps the options as they were offered; the contract in this spec already describes option (a).
+
+- O1: (a) one seeded base hue, golden angle between masses, unknown-language masses stay grey.
+- O2: (a) one flat `style` key; a mismatch with `--representation` exits 2 and names the file.
+- O3: (a) the user config lives next to the user `.env` (`XDG_CONFIG_HOME`, else `Path.home()/.config/gitgeist/`).
+- O4: (a) `./gitgeist.toml` means the current working directory only.
+- O5: (a) `--seed random` prints `seed: N` on stdout; no new artifact.
+- O6: (a) the caption stays unchanged; the gap is recorded in `design.md`.
+- O7: (a) `prompt_name = true` from a file is ignored in live mode; only the command-line flag exits 2.
+
+## Open points as offered
 
 O1. Seeded palette rule (`design.md:137` names the flag, not the rule). (a) As in "Palette": one seeded base hue, the golden angle between masses, unknown-language masses stay grey, `hue_offset` 0. (b) An independent random hue per mass (neighbours may share a family). (c) (a), but unknown-language masses also get a hue. Recommendation: (a).
 
