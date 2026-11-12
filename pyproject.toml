@@ -16,6 +16,12 @@ dependencies = [
 dev = [
     "pytest>=8.0.0",
     "pillow>=10.0.0",
+    "networkx>=3.2",
+    "numpy>=1.26",
+]
+anatomy = [
+    "networkx>=3.2",
+    "numpy>=1.26",
 ]
 image = [
     "pillow>=10.0.0",

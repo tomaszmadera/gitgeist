@@ -325,3 +325,146 @@ def _init_synthetic(target_dir: Path, files: dict[str, str]) -> None:
         path = target_dir / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8", newline="\n")
+
+
+ANATOMY_FIRST_COMMIT: dict[str, str | bytes] = {
+    "README.md": "# anatomy fixture\n",
+    ".gitattributes": "generated/** linguist-vendored\n",
+    "app/Models/User.php": (
+        "<?php\n"
+        "namespace App\\Models;\n"
+        "\n"
+        "class User\n"
+        "{\n"
+        "    public function name() { return $_GET['n']; }\n"
+        "}\n"
+    ),
+    "app/Http/Controller.php": (
+        "<?php\n"
+        "declare(strict_types=1);\n"
+        "namespace App\\Http;\n"
+        "\n"
+        "use App\\Models\\User;\n"
+        "use Psr\\Log\\LoggerInterface;\n"
+        "\n"
+        "class Controller\n"
+        "{\n"
+        "    public function run(): User\n"
+        "    {\n"
+        "        $u = new User();\n"
+        "        require_once __DIR__ . '/../../legacy/helpers.php';\n"
+        "        return $u;\n"
+        "    }\n"
+        "}\n"
+    ),
+    # A source file whose name starts with "license" is not a licence marker.
+    "app/license_check.php": "<?php\nfunction license_ok() { return true; }\n",
+    "legacy/helpers.php": (
+        "<?php\n"
+        "function old_query($q)\n"
+        "{\n"
+        "    global $db;\n"
+        "    $r = mysql_query($q);\n"
+        "    $parts = split(',', $_POST['x']);\n"
+        "    Acme::boot();\n"
+        "    return $_SESSION['u'];\n"
+        "}\n"
+        "include $dynamic;\n"
+    ),
+    # ISO-8859-2 bytes: not UTF-8, still text, so the file is blamed.
+    "legacy/latin.php": b"<?php\n// za\xbf\xf3\xb3\xe6\nglobal $cfg;\n",
+    "lib/acme/LICENSE": "MIT\n",
+    "lib/acme/Acme.php": "<?php\nclass Acme\n{\n    public static function boot() {}\n}\n",
+    "vendor/psr/log/Logger.php": "<?php\nclass Logger {}\n",
+    "node_modules/react/index.js": "module.exports = {};\n",
+    "tsconfig.json": (
+        "{\n"
+        "  // JSONC: comments and trailing commas are allowed\n"
+        "  \"compilerOptions\": {\n"
+        "    \"strict\": true,\n"
+        "    \"baseUrl\": \".\",\n"
+        "    \"paths\": { \"@lib/*\": [\"web/lib/*\"] },\n"
+        "  },\n"
+        "}\n"
+    ),
+    "web/lib/math.ts": (
+        "export const add = (a: number, b: number): number => a + b;\n"
+        "export function loose(x: any) { return x as any; }\n"
+    ),
+    "web/lib/format.ts": "export const fmt = (n: number) => String(n);\n",
+    "web/app.ts": (
+        "import { add } from '@lib/math';\n"
+        "import { fmt } from './lib/format';\n"
+        "import React from 'react';\n"
+        "const lazy = import('./lib/math');\n"
+        "// @ts-ignore\n"
+        "export const out = fmt(add(1, 2));\n"
+    ),
+    "web/legacy.js": (
+        "const fmt = require('./lib/format');\n"
+        "const plugin = require(name);\n"
+        "const locale = import(`./locale/${lang}`);\n"
+        "module.exports = fmt;\n"
+    ),
+    "web/dist/app.min.js": "var a=1;\n",
+    "generated/schema.js": "module.exports = {};\n",
+    "src/pkg/__init__.py": "",
+    "src/pkg/core.py": "def run(x: int) -> int:\n    return x\n\n\ndef helper(y):\n    return y\n",
+    "src/pkg/cli.py": (
+        "import os\n"
+        "import pkg.core\n"
+        "from .core import run\n"
+        "from . import core\n"
+        "\n"
+        "\n"
+        "def main(\n"
+        "    argv: list[str],\n"
+        ") -> None:\n"
+        "    run(1)\n"
+    ),
+    "src/pkg/blob.py": b"\x00\x01\x02binary\n",
+    "tests/test_core.py": "from pkg.core import run\n\n\ndef test_run():\n    assert run(1) == 1\n",
+    "assets/logo.png": b"\x89PNG\r\n\x1a\n\x00\x00",
+}
+
+
+def create_anatomy_repo(target_dir: Path) -> Path:
+    """PHP, TypeScript/JavaScript and Python sources with vendored, test and binary files, two commits.
+
+    The first commit is dated 2019-03-01 and the second 2024-06-01, so
+    app/Models/User.php and web/app.ts carry lines from two author years.
+    """
+    target_dir.mkdir(parents=True, exist_ok=True)
+    _run_git(target_dir, ["init", "-b", "main"])
+    for name, content in ANATOMY_FIRST_COMMIT.items():
+        path = target_dir / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if isinstance(content, bytes):
+            path.write_bytes(content)
+        else:
+            path.write_text(content, encoding="utf-8", newline="\n")
+    _commit_at(target_dir, "first anatomy commit", "2019-03-01")
+
+    user = target_dir / "app" / "Models" / "User.php"
+    user_text = user.read_text(encoding="utf-8")
+    user.write_text(
+        user_text.removesuffix("}\n") + "    public function id() { return 1; }\n}\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    app = target_dir / "web" / "app.ts"
+    app.write_text(app.read_text(encoding="utf-8") + "export const twice = add(out, out);\n", encoding="utf-8", newline="\n")
+    _commit_at(target_dir, "second anatomy commit", "2024-06-01")
+    return target_dir
+
+
+def create_source_repo(target_dir: Path, files: dict[str, str]) -> Path:
+    """One commit dated 2020-01-01 holding ``files`` (repository-relative path -> text)."""
+    target_dir.mkdir(parents=True, exist_ok=True)
+    _run_git(target_dir, ["init", "-b", "main"])
+    for name, content in files.items():
+        path = target_dir / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8", newline="\n")
+    _commit_at(target_dir, "source commit", "2020-01-01")
+    return target_dir
