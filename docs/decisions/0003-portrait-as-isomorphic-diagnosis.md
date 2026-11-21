@@ -23,9 +23,9 @@ ADR 0001 lets each trait own one abstract channel. That keeps the score layer: t
 ## Decision
 
 1. Add a portrait drawn isomorphically from raw repository structure. Each repository element maps to one body element, and each measured quantity maps to a visual quantity through a monotonic function with no thresholds:
-   - file: a body segment, length by line count;
-   - directory: a limb or organ grouping its segments, following the tree;
-   - import, include or `use` edge between files: a sinew between their segments;
+   - file: a cell, area by line count;
+   - group of mutually dependent files (a community in the dependency graph): an organ with one skin. Directories do not shape the body. Amended on 2026-11-12 (was "directory: a limb following the tree"); see `docs/features/anatomy-representation/spec.md`, decision D1;
+   - import, include or `use` edges between organs: a sinew (tendon) between them;
    - line age from `git blame`: tissue strata, old lines darker and deeper;
    - test file covering a module: covering tissue over that module;
    - change frequency (hotspots): wear on the segment surface.

@@ -13,3 +13,11 @@ stage 5 shares page code with the creature page and must not change the abstract
 at gitgeist 0.11.0, the regression anchor of the body plan and the scene JSON.
 `tests/test_creature_scene.py::test_creature_scene_matches_the_0_11_0_snapshot` compares it the same way. If the body
 plan changes on purpose, regenerate it with `python -m tests.regen_creature_snapshot` and review the diff.
+
+## Anatomy (0.13.0)
+
+`anatomy-0.13.0-live-preview.html` is the anatomy page of `tests.anatomy_helpers.make_anatomy_scene()`, a hand-built
+`AnatomyScene` with fixed coordinates, so it does not depend on the `networkx`, `numpy` and `scipy` versions. It holds
+the embedded scene JSON, the CSS, the HUD, the legend and the script. `tests/test_anatomy_live.py::test_anatomy_page_matches_the_snapshot`
+compares it the same way. If the page changes on purpose, regenerate it with
+`PYTHONPATH=src python -m tests.regen_anatomy_snapshot` and review the diff.
