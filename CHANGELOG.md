@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 This file starts at 0.6.0. Earlier versions (tags `0.0.1` to `0.5.1`) have no changelog entries.
 
+## [0.13.0] - 2026-11-21
+
+Anatomy representation (ADR 0003; spec `docs/features/anatomy-representation/spec.md`).
+
+### Added
+
+- `gitgeist render <repo> --representation anatomy --mode live` draws the repository one to one from its raw structure, with no score: PHP, TypeScript/JavaScript and Python files at `HEAD` are cells, dependency-graph communities are organs, dependencies between organs are tendons, files without an internal dependency are dust, and vendored files are grey cysts. Cells show lines per blame year as strata, changes as surface wear, test files and their tested files, and the measured language facts in a neutral palette. The page has a HUD of raw counts, a legend, hover details and a breathing that is the same for every body. It writes `profile.json`, `summary.md`, `live-preview.html`, `live-state.json` and `identity-seed.json`.
+- Optional extra `anatomy` (`networkx`, `numpy`, `scipy`). Without it, an anatomy render exits 1 with `pip install gitgeist[anatomy]` before the analysis starts. The base package imports without these libraries.
+- Library: `scan_anatomy(path)` (`gitgeist.ingest.anatomy`), `build_anatomy_scene(scan)` (`gitgeist.render.anatomy`), `generate_anatomy_html(scene)`, and the `AnatomyScene` schema. `render_live` accepts an `AnatomyScene`. The same commit and the same library versions give a byte-identical `live-state.json`.
+
+### Changed
+
+- `--mode prompt-to-image` with `--representation anatomy` exits 2 and writes nothing.
+- The abstract and character pages and scenes are unchanged.
+
 ## [0.12.0] - 2026-11-05
 
 Prompt composer v2 (plan stage 6, GITGEIST-19; spec `docs/features/prompt-composer-v2/spec.md`).

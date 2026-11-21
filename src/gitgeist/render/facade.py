@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Literal
 from pydantic import BaseModel, ConfigDict
 
+from gitgeist.render.anatomy_page import generate_anatomy_html
 from gitgeist.render.captions import conclusions
 from gitgeist.render.html_template import generate_creature_html, generate_orbits_html
 from gitgeist.render.image_backend import (
@@ -16,7 +17,7 @@ from gitgeist.render.image_backend import (
 from gitgeist.render.prompt_composer import _round_half_up, compose_prompt
 from gitgeist.schemas.features import RepositoryFeatures
 from gitgeist.schemas.identity import IdentitySeed
-from gitgeist.schemas.live_state import CreatureScene, OrbitsScene
+from gitgeist.schemas.live_state import AnatomyScene, CreatureScene, OrbitsScene
 from gitgeist.schemas.visual_spec import VisualSpec
 
 PORTRAIT_FILENAMES = {"png": "portrait.png", "jpeg": "portrait.jpg", "webp": "portrait.webp"}
@@ -33,7 +34,7 @@ class LiveRenderArtifacts(BaseModel):
 
     model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
 
-    state: OrbitsScene | CreatureScene
+    state: OrbitsScene | CreatureScene | AnatomyScene
     html_content: str
     state_json: str
     html_path: Path | None = None
@@ -42,16 +43,17 @@ class LiveRenderArtifacts(BaseModel):
 
 
 def render_live(
-    scene: OrbitsScene | CreatureScene,
+    scene: OrbitsScene | CreatureScene | AnatomyScene,
     output_dir: Path | str | None = None,
     *,
     identity: IdentitySeed,
 ) -> LiveRenderArtifacts:
-    """Render a live interactive preview and its scene JSON from an ``OrbitsScene`` or a ``CreatureScene``.
+    """Render a live interactive preview and its scene JSON from an ``OrbitsScene``, a ``CreatureScene`` or an ``AnatomyScene``.
 
     Args:
-        scene: Abstract scene built with ``gitgeist.render.orbits.build_orbits_scene`` or character
-            scene built with ``gitgeist.render.creature.build_creature_scene``. The representation
+        scene: Abstract scene built with ``gitgeist.render.orbits.build_orbits_scene``, character
+            scene built with ``gitgeist.render.creature.build_creature_scene``, or anatomy scene built
+            with ``gitgeist.render.anatomy.build_anatomy_scene``. The representation
             is the one of the scene; the repository name is the scene's.
         output_dir: Optional directory path to write 'live-preview.html', 'live-state.json'
             and 'identity-seed.json'.
@@ -62,7 +64,7 @@ def render_live(
         LiveRenderArtifacts bundle with HTML, JSON and optional written file paths.
 
     Raises:
-        TypeError: If scene is not an OrbitsScene or a CreatureScene, or identity is not an IdentitySeed.
+        TypeError: If scene is not an OrbitsScene, a CreatureScene or an AnatomyScene, or identity is not an IdentitySeed.
     """
     if not isinstance(identity, IdentitySeed):
         raise TypeError(f"Expected IdentitySeed, got {type(identity).__name__}")
@@ -70,8 +72,10 @@ def render_live(
         html_content = generate_orbits_html(scene)
     elif isinstance(scene, CreatureScene):
         html_content = generate_creature_html(scene)
+    elif isinstance(scene, AnatomyScene):
+        html_content = generate_anatomy_html(scene)
     else:
-        raise TypeError(f"Expected OrbitsScene or CreatureScene, got {type(scene).__name__}")
+        raise TypeError(f"Expected OrbitsScene, CreatureScene or AnatomyScene, got {type(scene).__name__}")
 
     state_json = scene.model_dump_json(indent=2)
 

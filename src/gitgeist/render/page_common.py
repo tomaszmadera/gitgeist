@@ -1,15 +1,18 @@
-"""Page code shared by the abstract ``orbits`` and the character ``creature`` live pages.
+"""Page code shared by the abstract ``orbits``, the character ``creature`` and the ``anatomy`` live pages.
 
 Both pages use the same CSS, HUD and hover box markup, the same seed reading and mulberry32
 generator, the same timeline pulse, window resize and frame loop, and the same hover tooltip
 text (stage 5 spec C10). The orbits page assembled from these parts is byte-identical to the
 0.10.0 page (``tests/test_orbits_snapshot.py``). Everything else (constants, seeded parts,
-drawing, hit test) belongs to the style.
+drawing, hit test) belongs to the style. The anatomy page uses the CSS, the page skeleton, the
+script head, the window resize and the frame loop; it adds its own HUD lines, CSS and legend markup.
 """
 
 import html
 
-from gitgeist.schemas.live_state import CreatureScene, OrbitsScene
+from gitgeist.schemas.live_state import AnatomyScene, CreatureScene, OrbitsScene
+
+LiveScene = OrbitsScene | CreatureScene | AnatomyScene
 
 PAGE_CSS = """
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -164,31 +167,44 @@ JS_HOVER_TAIL = """      var detail = null;
 """
 
 
-def hud_markup(scene: OrbitsScene | CreatureScene) -> tuple[str, str]:
-    """HUD and hover box markup of a scene; both are empty when the scene has no caption."""
+def hud_markup(scene: LiveScene, lines: list[str]) -> tuple[str, str]:
+    """HUD (title and ``lines``) and hover box markup of a scene; both are empty when the scene has no caption."""
     if not scene.caption:
         return "", ""
     repo_title = html.escape(scene.repository_name or "Repository")
-    items = "\n".join(f"      <li>{html.escape(text)}</li>" for text in scene.conclusions)
+    items = "\n".join(f"      <li>{html.escape(text)}</li>" for text in lines)
     hud = f'  <div id="hud">\n    <h1>{repo_title}</h1>\n    <ul>\n{items}\n    </ul>\n  </div>\n'
     return hud, '  <div id="hover"></div>\n'
 
 
-def page_html(scene: OrbitsScene | CreatureScene, representation_title: str, script: str) -> str:
-    """Assemble the self-contained page around a style's script (``script`` starts with a newline)."""
+def page_html(
+    scene: LiveScene,
+    representation_title: str,
+    script: str,
+    *,
+    hud_lines: list[str] | None = None,
+    extra_css: str = "",
+    extra_markup: str = "",
+) -> str:
+    """Assemble the self-contained page around a style's script (``script`` starts with a newline).
+
+    ``hud_lines`` defaults to ``scene.conclusions``. ``extra_css`` is appended to ``PAGE_CSS`` and
+    ``extra_markup`` follows the HUD and hover box; both default to nothing, which keeps the abstract
+    and character pages unchanged.
+    """
     # "<\/" is a valid JSON escape: the payload cannot close its own script tag early.
     scene_json = scene.model_dump_json(indent=2).replace("</", "<\\/")
     repo_title = html.escape(scene.repository_name or "Repository")
-    hud, hover = hud_markup(scene)
+    hud, hover = hud_markup(scene, scene.conclusions if hud_lines is None else hud_lines)
     return (
         "<!DOCTYPE html>\n"
         '<html lang="en">\n<head>\n'
         '  <meta charset="UTF-8">\n'
         '  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
         f"  <title>Gitgeist Live Portrait - {repo_title} ({representation_title})</title>\n"
-        f"  <style>{PAGE_CSS}  </style>\n"
+        f"  <style>{PAGE_CSS}{extra_css}  </style>\n"
         "</head>\n<body>\n"
-        f"{hud}{hover}"
+        f"{hud}{hover}{extra_markup}"
         '  <div id="canvas-container">\n    <canvas id="gitgeist-canvas"></canvas>\n  </div>\n\n'
         f'  <script id="gitgeist-state" type="application/json">\n{scene_json}\n  </script>\n\n'
         f"  <script>{script}  </script>\n"

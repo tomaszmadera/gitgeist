@@ -55,6 +55,17 @@ The character live portrait draws the same `VisualSpec` as a creature (style `cr
 
 `live-state.json` holds the scene for both representations: an `OrbitsScene` (abstract) or a `CreatureScene` (character: the `VisualSpec`, the computed body plan, the conclusions and the hover text). `--caption` defaults to on for live mode and for prompt mode. From the library: `render_live(scene, output_dir=None, *, identity)` takes either scene (`build_orbits_scene` or `build_creature_scene`).
 
+### Anatomy portrait (HTML, no network)
+
+The anatomy representation draws the repository one to one from its raw structure, with no score: every PHP, TypeScript/JavaScript and Python file at `HEAD` is a cell, files that depend on each other grow into organs (dependency-graph communities), dependencies between organs are tendons, files without an internal dependency drift as dust, and vendored code is a grey cyst. Strata inside a cell are its lines per blame year, grains on its edge are its changes, and its texture shows the measured language facts. It needs the `anatomy` extra (`networkx`, `numpy`, `scipy`) and works only with `--mode live`:
+
+```bash
+.venv/bin/pip install -e ".[anatomy]"
+.venv/bin/gitgeist render /path/to/repo --representation anatomy --mode live
+```
+
+It writes the same five files as the other live renders; `live-state.json` holds an `AnatomyScene`. The same commit and the same `networkx`, `numpy` and `scipy` versions give a byte-identical `live-state.json` (the versions are recorded in the scene). The page shows raw counts in the HUD, a legend of every visual property, hover details for cells, organs and cysts, and a slow breathing that is the same for every body. `--caption off` removes the HUD and hover but keeps the legend. `--mode prompt-to-image` exits with code 2. Without the extra, the command exits with code 1 and the install hint before it analyses anything. The target must be a Git repository root with at least one commit. From the library: `render_live(build_anatomy_scene(scan_anatomy(path)), output_dir, identity=...)`. Contract: `docs/features/anatomy-representation/spec.md`.
+
 ### Portrait from an image generator
 
 Offline and deterministic with the default `fake` backend. The portrait is a 64x64 raster of the repository's `VisualSpec` (the same spec gives the same pixels). `--caption` (default on) adds a Pillow strip of the three HUD conclusions under the picture, and `--caption off` leaves the raster alone. `--prompt-name` puts the repository directory name in the prompt; it applies only to this mode:

@@ -62,7 +62,7 @@ def test_render_live_save_to_disk(representation: str, tmp_path: Path):
 
 @pytest.mark.parametrize("bad", [None, "scene", {"a": 1}])
 def test_render_live_requires_a_scene(bad):
-    with pytest.raises(TypeError, match="OrbitsScene or CreatureScene"):
+    with pytest.raises(TypeError, match="OrbitsScene, CreatureScene or AnatomyScene"):
         render_live(bad, identity=SAMPLE_IDENTITY)
 
 

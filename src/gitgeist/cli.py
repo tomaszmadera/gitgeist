@@ -17,9 +17,11 @@ from gitgeist import __version__
 from gitgeist.env import load_dotenv
 from gitgeist.explain import explain
 from gitgeist.features.extractor import extract_features
+from gitgeist.ingest.anatomy import scan_anatomy
 from gitgeist.ingest.identity import compute_identity_seed
 from gitgeist.interpretation.emotional_model import evaluate_emotional_state
 from gitgeist.mapping.latent_mapper import map_emotional_to_latent
+from gitgeist.render.anatomy import AnatomyExtraMissing, build_anatomy_scene, require_layout_libraries
 from gitgeist.render.facade import render_live, render_prompt
 from gitgeist.render.creature import build_creature_scene
 from gitgeist.render.orbits import build_orbits_scene
@@ -35,7 +37,7 @@ from gitgeist.schemas.traits import Traits
 from gitgeist.schemas.visual_latent import VisualLatentProfile
 from gitgeist.visual import build_visual_spec, compute_traits
 
-REPRESENTATION_MODES = ("character", "abstract")
+REPRESENTATION_MODES = ("character", "abstract", "anatomy")
 GENERATION_MODES = ("live", "prompt-to-image")
 BACKEND_CHOICES = ("fake", "openrouter")
 IMAGE_FORMAT_CHOICES = ("native", "png")
@@ -135,6 +137,10 @@ def command_render(args: argparse.Namespace) -> int:
         Path(args.output) if args.output else Path.cwd() / DEFAULT_OUTPUT_ROOT / repository_name
     )
 
+    if args.representation == "anatomy" and args.mode != "live":
+        print("error: --representation anatomy supports only --mode live", file=sys.stderr)
+        return 2
+
     if args.prompt_name and args.mode != "prompt-to-image":
         print(
             "error: --prompt-name applies only to --mode prompt-to-image",
@@ -154,6 +160,9 @@ def command_render(args: argparse.Namespace) -> int:
         return _error("--backend applies only to --mode prompt-to-image")
     elif args.image_format != "native":
         return _error("--image-format applies only to --mode prompt-to-image")
+
+    if args.representation == "anatomy":
+        return _render_anatomy(repo_path, repository_name, output_dir, caption=args.caption != "off")
 
     written, _state, _profile, features, traits = _analyze(repo_path, repository_name, output_dir)
 
@@ -186,6 +195,29 @@ def command_render(args: argparse.Namespace) -> int:
         written.extend(
             path for path in (artifacts.image_path, artifacts.prompt_path) if path is not None
         )
+    _report_written(written)
+    return 0
+
+
+def _render_anatomy(repo_path: Path, repository_name: str, output_dir: Path, *, caption: bool) -> int:
+    """Anatomy live run: import check, scan and layout first, then the analysis artifacts and the page.
+
+    The scene is built before anything is written, so a scan or layout failure leaves no file behind.
+    Scan errors (``AnatomyScanError``) and a non-converging organ separation are ``RuntimeError`` and
+    exit 1 through ``main``.
+    """
+    try:
+        require_layout_libraries()
+    except AnatomyExtraMissing as exc:
+        return _error(str(exc))
+    scene = build_anatomy_scene(scan_anatomy(repo_path), repository_name=repository_name, caption=caption)
+    written, *_ = _analyze(repo_path, repository_name, output_dir)
+    artifacts = render_live(scene, output_dir, identity=compute_identity_seed(repo_path))
+    written.extend(
+        path
+        for path in (artifacts.json_path, artifacts.html_path, artifacts.identity_seed_path)
+        if path is not None
+    )
     _report_written(written)
     return 0
 

@@ -1,5 +1,7 @@
-"""Live and prompt renderers for Gitgeist portraits (Abstract and Character modes)."""
+"""Live and prompt renderers for Gitgeist portraits (Abstract, Character and Anatomy modes)."""
 
+from gitgeist.render.anatomy import build_anatomy_scene
+from gitgeist.render.anatomy_page import generate_anatomy_html
 from gitgeist.render.facade import LiveRenderArtifacts, PromptRenderArtifacts, render_live, render_prompt
 from gitgeist.render.creature import build_creature_scene
 from gitgeist.render.html_template import generate_creature_html, generate_orbits_html
@@ -21,10 +23,12 @@ __all__ = [
     "LiveRenderArtifacts",
     "OpenRouterImageBackend",
     "PromptRenderArtifacts",
+    "build_anatomy_scene",
     "build_creature_scene",
     "build_orbits_scene",
     "compose_prompt",
     "detect_media_type",
+    "generate_anatomy_html",
     "generate_creature_html",
     "generate_orbits_html",
     "normalize_to_png",
