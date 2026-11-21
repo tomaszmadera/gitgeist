@@ -134,7 +134,7 @@ One trait, one primary channel ([ADR 0001](../../decisions/0001-trait-per-abstra
 
 Symmetry is no longer a parameter. It appears only when the data is balanced (similar mass sizes, even timeline). The rotated-copy kaleidoscope (`html_template.py:184-213`) and the fixed spine profile (`html_template.py:248`) are removed.
 
-Language hues make same-language repositories share a family (`click`, `flask`, `requests` are all Python). Layout, rings, knot and strands still separate them, and the seed shifts the hue inside the family. If that is not enough, `--palette seeded` drops the language rule for palette and keeps it in the caption.
+Language hues make same-language repositories share a family (`click`, `flask`, `requests` are all Python). Layout, rings, knot and strands still separate them, and the seed shifts the hue inside the family. If that is not enough, `--palette seeded` drops the language rule for the palette. The earlier claim that this "keeps it in the caption" is a gap: the HUD phrases (`captions.conclusions`) do not name languages in any palette (stage 7 decision O6 (a) in `docs/features/cli-config/spec.md`). The caption stays unchanged; language remains in `live-state.json`.
 
 ### Composition and layout
 

@@ -121,7 +121,7 @@ The owner decision defers these evaluations until after implementation merge; it
 
 Size: small.
 
-Status: spec drafted on 2026-11-11 (`docs/features/cli-config/spec.md`, Plane GITGEIST-21), open points O1-O7 awaiting your decision; no implementation yet.
+Status: spec approved (merged in PR #26 on 2026-11-12, `docs/features/cli-config/spec.md`, Plane GITGEIST-21); open points O1-O7 were decided the same day, all option (a), recorded in the "Decisions" section of that spec; implementation is not started.
 
 - Flags `--style`, `--seed`, `--variety`, `--scale`, `--palette`, `--caption`, `--prompt-name`.
 - Config file lookup: CLI, `./gitgeist.toml`, `~/.config/gitgeist/config.toml`, defaults; unknown keys are an error.
