@@ -1,6 +1,6 @@
 """Anatomy layout and scene: partition, determinism, dust stability, ordering ties and the scene schema.
 
-These tests need the ``anatomy`` extra (``networkx`` and ``numpy``); without it they fail with the
+These tests need the ``anatomy`` extra (``networkx``, ``numpy`` and ``scipy``); without it they fail with the
 install hint instead of being skipped.
 """
 
@@ -262,10 +262,105 @@ def test_foreign_only_repository_gives_cysts_only() -> None:
 def test_scene_records_installed_library_versions_and_its_inputs() -> None:
     import networkx
     import numpy
+    import scipy
 
     scene = build_anatomy_scene(_rich_scan(), repository_name="demo", caption=False)
-    assert scene.library_versions.model_dump() == {"networkx": networkx.__version__, "numpy": numpy.__version__}
+    assert scene.library_versions.model_dump() == {
+        "networkx": networkx.__version__,
+        "numpy": numpy.__version__,
+        "scipy": scipy.__version__,
+    }
     assert (scene.repository_name, scene.caption, scene.representation) == ("demo", False, "anatomy")
+
+
+def test_crowded_organs_separate_without_chasing_float_rounding() -> None:
+    """32 organs around a hub: overlaps shrink to about 1e-13 and must count as resolved."""
+    import random
+
+    import networkx
+    import numpy
+
+    rnd = random.Random(0)
+    count = rnd.randint(20, 40)
+    radii = [round(rnd.uniform(10, 230), 3) for _ in range(count)]
+    cross = {(0, i): rnd.randint(1, 30) for i in range(1, count)}
+    for _ in range(count):
+        a, b = sorted(rnd.sample(range(count), 2))
+        cross[(a, b)] = cross.get((a, b), 0) + 1
+    centres = layout._place_organs(networkx, numpy, radii, cross, "hub.py")
+    for i, j in itertools.combinations(range(count), 2):
+        distance = math.hypot(centres[j][0] - centres[i][0], centres[j][1] - centres[i][1])
+        assert distance >= radii[i] + radii[j] + layout.ORGAN_GAP - layout.SEPARATION_TOLERANCE
+
+
+def test_separation_that_does_not_converge_names_the_body(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(layout, "SEPARATION_ROUNDS", 0)
+    with pytest.raises(RuntimeError, match=r"did not converge in 0 rounds \(2 organs, body of pkg/a/m00.py\)"):
+        build_anatomy_scene(_rich_scan())
+
+
+def test_every_cell_lies_inside_its_organ() -> None:
+    hub = _file("big/hub.py", 2000)
+    leaves = [_file(f"big/leaf{i:03d}.py", 10 + i % 7) for i in range(519)]
+    big = _scan([hub, *leaves], [(hub.path, leaf.path, 1) for leaf in leaves])
+    for scene in (build_anatomy_scene(_rich_scan()), build_anatomy_scene(big)):
+        for body in scene.bodies:
+            for organ in body.organs:
+                for cell in organ.cells:
+                    reach = math.hypot(cell.x - organ.x, cell.y - organ.y)
+                    assert reach <= organ.r * layout.ORGAN_SPREAD + 1e-3
+                    assert reach + cell.r <= organ.r + 1e-3
+
+
+def test_one_large_cell_does_not_collapse_its_organ() -> None:
+    """Review F14: only a cell that would stick out is pulled in; the other cells keep their spread."""
+    chain = [_file(f"c/f{i:02d}.py", 20) for i in range(29)] + [_file("c/f29.py", 20000)]
+    scene = build_anatomy_scene(_scan(chain, [(chain[i].path, chain[i + 1].path, 1) for i in range(29)]))
+    organ = next(o for b in scene.bodies for o in b.organs if o.cells[0].path == "c/f29.py")
+    big, small = organ.cells[0], organ.cells[1:]
+    assert math.hypot(big.x - organ.x, big.y - organ.y) + big.r <= organ.r + 1e-3
+    reach = max(math.hypot(c.x - organ.x, c.y - organ.y) for c in small)
+    assert reach >= 0.5 * organ.r
+    assert any(math.hypot(c.x - big.x, c.y - big.y) + c.r > big.r for c in small)
+
+
+def test_one_file_change_moves_only_its_own_body_relative_to_the_centres() -> None:
+    """Acceptance criterion 5: other bodies keep their internal layout and dust stays put."""
+    scan = _rich_scan()
+    grown = scan.model_copy(
+        update={
+            "files": [
+                f.model_copy(update={"lines": f.lines + 1, "line_years": {2020: f.lines + 1}})
+                if f.path == "pkg/a/m03.py"
+                else f
+                for f in scan.files
+            ]
+        }
+    )
+    before, after = build_anatomy_scene(scan), build_anatomy_scene(grown)
+
+    def relative(body):  # cell positions relative to their body centre
+        return [(c.path, c.x - body.x, c.y - body.y, c.r) for o in body.organs for c in o.cells]
+
+    for old, new in zip(before.bodies[1:], after.bodies[1:], strict=True):
+        assert [(p, r) for p, _, _, r in relative(old)] == [(p, r) for p, _, _, r in relative(new)]
+        # both sides are rounded to 4 decimals before subtracting, so allow two rounding steps
+        flat = [[v for _, x, y, _ in relative(body) for v in (x, y)] for body in (old, new)]
+        assert flat[1] == pytest.approx(flat[0], abs=2e-4)
+    assert before.dust == after.dust
+    assert relative(before.bodies[0]) != relative(after.bodies[0])
+
+
+def test_an_organ_of_500_or_more_files_is_laid_out_whole_and_deterministically() -> None:
+    """networkx.spring_layout uses scipy for 500 or more nodes (sparse or energy method, depending on the
+    networkx version); no sampling is allowed."""
+    hub = _file("big/hub.py", 40)
+    leaves = [_file(f"big/leaf{i:03d}.py", 10 + i % 7) for i in range(519)]
+    scan = _scan([hub, *leaves], [(hub.path, leaf.path, 1) for leaf in leaves])
+    scene = build_anatomy_scene(scan)
+    assert [len(organ.cells) for body in scene.bodies for organ in body.organs] == [520]
+    assert len({(cell.x, cell.y) for cell in _cells(scene)}) == 520
+    assert _dump(build_anatomy_scene(scan)) == _dump(scene)
 
 
 def test_scene_roundtrips_through_json_and_forbids_extra_fields() -> None:
@@ -301,16 +396,17 @@ def test_scene_rejects_a_file_drawn_twice_or_miscounted() -> None:
         AnatomyScene.model_validate(bad_tendon)
 
 
-def test_missing_extra_raises_the_install_hint(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setitem(sys.modules, "networkx", None)
+@pytest.mark.parametrize("library", ["networkx", "numpy", "scipy"])
+def test_missing_extra_raises_the_install_hint(monkeypatch: pytest.MonkeyPatch, library: str) -> None:
+    monkeypatch.setitem(sys.modules, library, None)
     with pytest.raises(AnatomyExtraMissing, match=r"pip install gitgeist\[anatomy\]"):
         build_anatomy_scene(_scan([]))
-    assert "networkx and numpy" in ANATOMY_EXTRA_HINT
+    assert "networkx, numpy and scipy" in ANATOMY_EXTRA_HINT
 
 
-def test_base_package_imports_without_networkx_and_numpy() -> None:
+def test_base_package_imports_without_networkx_numpy_and_scipy() -> None:
     code = (
-        "import sys; sys.modules['networkx'] = None; sys.modules['numpy'] = None; "
+        "import sys; sys.modules['networkx'] = None; sys.modules['numpy'] = None; sys.modules['scipy'] = None; "
         "import gitgeist.cli, gitgeist.render, gitgeist.render.anatomy, gitgeist.schemas.live_state"
     )
     env = {**os.environ, "PYTHONPATH": str(SRC)}

@@ -22,7 +22,7 @@ Taken by Tomasz on 2026-11-12.
 
 - D1. Organs come from the dependency graph (communities), not from the directory tree. This amends ADR 0003 decision 1 in the same change.
 - D2. Per-file language facts (typing discipline, superglobals, deprecated calls) are drawn as raw measured facts in a neutral palette. No colour or mark expresses good or bad.
-- D3. Graph layout and community detection use `networkx` and `numpy`, shipped as the optional extra `gitgeist[anatomy]`.
+- D3. Graph layout and community detection use `networkx`, `numpy` and `scipy`, shipped as the optional extra `gitgeist[anatomy]`. `scipy` is needed because `networkx.spring_layout` uses scipy for graphs of 500 or more nodes (a sparse or an energy method, depending on the networkx version), and organs are never sampled (amended 2026-11-21 by the owner's decision, option (a); the largest R2 organ has more than 500 files).
 - D4. The first output is the live HTML page, like `abstract` and `character`.
 
 ## Scope
@@ -31,7 +31,7 @@ Taken by Tomasz on 2026-11-12.
 2. A new ingest step, the anatomy scan, that collects per-file raw facts, the internal dependency graph, line ages from `git blame`, and per-file change counts.
 3. A deterministic layout that turns the scan into an `AnatomyScene` (bodies, organs, cells, tendons, dust, cysts) with all coordinates computed in Python.
 4. A live page that draws the scene on a canvas, with HUD, legend, hover and a slow uniform breathing motion.
-5. The optional extra `anatomy` in `pyproject.toml` with `networkx` and `numpy`.
+5. The optional extra `anatomy` in `pyproject.toml` with `networkx`, `numpy` and `scipy`.
 
 ## Non-goals
 
@@ -50,7 +50,7 @@ Taken by Tomasz on 2026-11-12.
 - It writes `profile.json` and `summary.md` exactly as other render runs do, then `live-preview.html`, `live-state.json` and `identity-seed.json` through the same writer as `render_live` (`src/gitgeist/render/facade.py:44`).
 - `--mode prompt-to-image` with `anatomy`: exit 2, `error: --representation anatomy supports only --mode live`, no files written.
 - After stage 7 lands, `--style`, `--seed`, `--variety` or `--palette` given on the command line with `anatomy`: exit 2 naming the flag (`error: --seed does not apply to --representation anatomy`). The same keys from a config file are ignored for `anatomy`.
-- Without the extra: exit 1, `error: --representation anatomy requires networkx and numpy; install them with: pip install gitgeist[anatomy]`, and no `live-*` file written. The import check runs before analysis starts.
+- Without the extra: exit 1, `error: --representation anatomy requires networkx, numpy and scipy; install them with: pip install gitgeist[anatomy]`, and no `live-*` file written. The import check runs before analysis starts.
 
 ### Which files are scanned
 
@@ -83,7 +83,7 @@ An undirected graph whose nodes are scanned files and whose edges are resolved i
 
 ### Layout
 
-All coordinates are computed in Python and stored in the scene. The same repository commit and the same installed `networkx` and `numpy` versions give a byte-identical `live-state.json`.
+All coordinates are computed in Python and stored in the scene. The same repository commit and the same installed `networkx`, `numpy` and `scipy` versions give a byte-identical `live-state.json`.
 
 - Own files (not foreign) form the own graph. Each connected component with two or more files is a body; a component of one file is dust.
 - Organs: Louvain communities of each body (`networkx.community.louvain_communities`, `seed=7`, default resolution). Every body is partitioned, whatever its size; a body may be one organ.
@@ -140,10 +140,10 @@ none
 
 ## Data / API
 
-- New schema `AnatomyScene` in `src/gitgeist/schemas/live_state.py`: `schema_version: "1"`, `representation: "anatomy"`, `repository_name`, `engine_version`, `caption`, `library_versions` (`networkx`, `numpy`), `counts` (HUD numbers), `blame_years` (first, last), `bodies` (each with organs, each organ with cells: path, x, y, r, facts), `tendons`, `dust`, `cysts`, `unresolved_references`. Frozen, `extra="forbid"`, like the existing scenes.
+- New schema `AnatomyScene` in `src/gitgeist/schemas/live_state.py`: `schema_version: "1"`, `representation: "anatomy"`, `repository_name`, `engine_version`, `caption`, `library_versions` (`networkx`, `numpy`, `scipy`), `counts` (HUD numbers), `blame_years` (first, last), `bodies` (each with organs, each organ with cells: path, x, y, r, facts), `tendons`, `dust`, `cysts`, `unresolved_references`. Frozen, `extra="forbid"`, like the existing scenes.
 - `render_live` accepts `AnatomyScene` in addition to the two existing scenes.
-- New modules: the anatomy scan under `src/gitgeist/ingest/`, the layout under `src/gitgeist/render/`. Only the layout module imports `networkx` and `numpy`.
-- `pyproject.toml`: `anatomy = ["networkx>=3.2", "numpy>=1.26"]`; `dev` gains both.
+- New modules: the anatomy scan under `src/gitgeist/ingest/`, the layout under `src/gitgeist/render/`. Only the layout module imports `networkx`, `numpy` and `scipy`.
+- `pyproject.toml`: `anatomy = ["networkx>=3.2", "numpy>=1.26", "scipy>=1.11"]`; `dev` gains all three.
 - Version: 0.13.0 if stage 7 has not shipped by then, otherwise the next minor.
 
 ## Edge cases
@@ -160,6 +160,7 @@ none
 - `git` missing, not a repository, or no commits: exit 1 naming the cause.
 - A `git blame` or `git log` call that fails for a reason other than a binary file, or runs longer than 120 seconds: exit 1 naming the file and the Git error. No partial page is written.
 - Invalid flag combination: exit 2 as in "Command line".
+- Organ separation inside a body that does not converge in 10000 rounds: exit 1 naming the organ count and the body's first path. No partial page is written.
 
 No silent fallback: the scan never skips a file or an edge type without counting it in the scene.
 
@@ -169,7 +170,7 @@ No silent fallback: the scan never skips a file or an edge type without counting
 2. Two runs on the same fixture commit give byte-identical `live-state.json`.
 3. On the fixture repository, every scanned file appears exactly once in the scene, and the bodies, organs, dust and cysts match the expected partition stored in the test.
 4. A PHP `use`, a TS relative import with an alias, and a Python relative import in the fixture each produce the expected edge; an import of an external package produces none and increments `unresolved_references`.
-5. Changing only one file's line count changes only that cell's radius and the positions in its own body; dust positions of other files stay the same.
+5. Changing only one file's line count changes only that cell's radius, the positions in its own body, and the packed positions of bodies and cysts (packing depends on every item's size); dust positions and the layout of every other body relative to its centre stay the same (amended 2026-11-21, review finding F7).
 6. `--mode prompt-to-image --representation anatomy` exits 2 and writes nothing. Without `networkx` importable, the run exits 1 with the install hint and writes no `live-*` file.
 7. The page contains no colour in the red or green hue ranges (hue 340-20 and 90-150 at saturation above 40 %), checked on the generated CSS and script constants.
 8. `--caption off` removes HUD and hover but keeps the legend.

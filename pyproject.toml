@@ -18,10 +18,12 @@ dev = [
     "pillow>=10.0.0",
     "networkx>=3.2",
     "numpy>=1.26",
+    "scipy>=1.11",
 ]
 anatomy = [
     "networkx>=3.2",
     "numpy>=1.26",
+    "scipy>=1.11",
 ]
 image = [
     "pillow>=10.0.0",

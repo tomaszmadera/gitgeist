@@ -1,15 +1,17 @@
 """Deterministic layout of the anatomy scene: bodies, Louvain organs, cells, tendons, dust and cysts.
 
 See ``docs/features/anatomy-representation/spec.md``, section "Layout". Every coordinate is computed
-here; the page only draws. ``networkx`` and ``numpy`` come from the optional extra
+here; the page only draws. ``networkx``, ``numpy`` and ``scipy`` come from the optional extra
 ``gitgeist[anatomy]`` and are imported only when a scene is built, so the base package imports
-without them.
+without them. ``scipy`` is needed because ``networkx.spring_layout`` uses scipy for graphs of 500 or
+more nodes (a sparse or an energy method, depending on the networkx version); organs are never sampled
+to stay below that size.
 
 Determinism: graphs are built with integer nodes (the index of the file in the path-sorted scan) and
 edges inserted in sorted order, so neither Louvain nor the spring layout depends on string hashing or
 dict order. Every list is ordered by size (lines or radius, descending) and then by path. The same scan
-and the same ``networkx`` and ``numpy`` versions give a byte-identical scene JSON; the versions are
-recorded in the scene.
+and the same ``networkx``, ``numpy`` and ``scipy`` versions give a byte-identical scene JSON; the
+versions are recorded in the scene.
 """
 
 from __future__ import annotations
@@ -35,15 +37,16 @@ from gitgeist.schemas.live_state import (
 )
 
 ANATOMY_EXTRA_HINT = (
-    "--representation anatomy requires networkx and numpy; install them with: pip install gitgeist[anatomy]"
+    "--representation anatomy requires networkx, numpy and scipy; install them with: pip install gitgeist[anatomy]"
 )
 LAYOUT_SEED = 7
 ORGAN_ITERATIONS = 60
 CONDENSED_ITERATIONS = 200
-ORGAN_SPREAD = 0.8  # cell centres reach this share of the organ radius
+ORGAN_SPREAD = 0.8  # cell centres reach at most this share of the organ radius
 ORGAN_GAP = 3.0
 BODY_SPAN = 1.2
 SEPARATION_ROUNDS = 10_000
+SEPARATION_TOLERANCE = 1e-9  # overlap left by float rounding; far below the 4-decimal coordinates
 PACK_GAP = 6.0
 PACK_STEP = 0.15
 PACK_RADIAL = 2.2
@@ -56,21 +59,22 @@ DECIMALS = 4
 
 
 class AnatomyExtraMissing(ImportError):
-    """``networkx`` or ``numpy`` is not importable; the message carries the install hint."""
+    """``networkx``, ``numpy`` or ``scipy`` is not importable; the message carries the install hint."""
 
 
-def require_layout_libraries() -> tuple[Any, Any]:
-    """Import and return ``(networkx, numpy)``.
+def require_layout_libraries() -> tuple[Any, Any, Any]:
+    """Import and return ``(networkx, numpy, scipy)``.
 
     Raises:
-        AnatomyExtraMissing: If either library cannot be imported.
+        AnatomyExtraMissing: If any of the three libraries cannot be imported.
     """
     try:
         import networkx
         import numpy
+        import scipy
     except ImportError as exc:
         raise AnatomyExtraMissing(ANATOMY_EXTRA_HINT) from exc
-    return networkx, numpy
+    return networkx, numpy, scipy
 
 
 def cell_radius(lines: int) -> float:
@@ -105,20 +109,40 @@ def _graph(nx: Any, nodes: list[int], edges: list[tuple[int, int, int]]) -> Any:
 def _layout_organ(
     nx: Any, np: Any, nodes: list[int], edges: list[tuple[int, int, int]], radii: list[float]
 ) -> tuple[dict[int, tuple[float, float]], float]:
-    """Cell offsets from the organ centre (spring layout scaled to the organ radius) and the radius."""
+    """Cell offsets from the organ centre and the organ radius.
+
+    The spring layout is scaled by the largest centre distance so that no cell centre lies beyond
+    ``ORGAN_SPREAD`` of the radius. A cell that would still stick out of the organ is pulled toward
+    the centre along its own direction until centre distance plus cell radius equals the organ
+    radius; the other cells keep their spring positions, so one large cell does not collapse the
+    whole organ.
+    """
     radius = organ_radius([radii[node] for node in nodes])
     if len(nodes) == 1:
         return {nodes[0]: (0.0, 0.0)}, radius
     positions = nx.spring_layout(_graph(nx, nodes, edges), seed=LAYOUT_SEED, iterations=ORGAN_ITERATIONS)
     points = np.array([positions[node] for node in nodes], dtype=float)
     points -= points.mean(axis=0)
-    scale = float(np.abs(points).max()) or 1.0
-    points = points / scale * radius * ORGAN_SPREAD
+    distances = np.hypot(points[:, 0], points[:, 1])
+    cell_radii = np.array([radii[node] for node in nodes], dtype=float)
+    reach = float(distances.max())
+    factor = radius * ORGAN_SPREAD / reach if reach > 0 else 0.0
+    scaled = distances * factor
+    limit = radius - cell_radii  # positive: the organ radius exceeds every cell radius
+    clamp = np.where(scaled > limit, limit / np.where(scaled > 0, scaled, 1.0), 1.0)
+    points = points * (factor * clamp)[:, None]
     return {node: (float(points[i, 0]), float(points[i, 1])) for i, node in enumerate(nodes)}, radius
 
 
-def _place_organs(nx: Any, np: Any, radii: list[float], cross: dict[tuple[int, int], int]) -> list[list[float]]:
-    """Organ centres inside a body: condensed spring layout, then pairwise separation, then centring."""
+def _place_organs(
+    nx: Any, np: Any, radii: list[float], cross: dict[tuple[int, int], int], first_path: str
+) -> list[list[float]]:
+    """Organ centres inside a body: condensed spring layout, then pairwise separation, then centring.
+
+    Raises:
+        RuntimeError: If separation does not converge in ``SEPARATION_ROUNDS`` rounds; the message names
+            the organ count and ``first_path``, the body's first file path.
+    """
     if len(radii) == 1:
         return [[0.0, 0.0]]
     count = len(radii)
@@ -134,7 +158,7 @@ def _place_organs(nx: Any, np: Any, radii: list[float], cross: dict[tuple[int, i
                 dy = centres[j][1] - centres[i][1]
                 distance = math.hypot(dx, dy)
                 need = radii[i] + radii[j] + ORGAN_GAP
-                if distance < need:
+                if need - distance > SEPARATION_TOLERANCE:
                     ux, uy = (dx / distance, dy / distance) if distance > 0 else (1.0, 0.0)
                     push = (need - distance) / 2
                     centres[i][0] -= ux * push
@@ -145,7 +169,10 @@ def _place_organs(nx: Any, np: Any, radii: list[float], cross: dict[tuple[int, i
         if not moved:
             break
     else:
-        raise RuntimeError(f"organ separation did not converge in {SEPARATION_ROUNDS} rounds ({count} organs)")
+        raise RuntimeError(
+            f"organ separation did not converge in {SEPARATION_ROUNDS} rounds "
+            f"({count} organs, body of {first_path})"
+        )
     mean_x = sum(c[0] for c in centres) / count
     mean_y = sum(c[1] for c in centres) / count
     return [[c[0] - mean_x, c[1] - mean_y] for c in centres]
@@ -196,11 +223,11 @@ def build_anatomy_scene(
 
     Raises:
         TypeError: If scan is not an ``AnatomyScan``.
-        AnatomyExtraMissing: If ``networkx`` or ``numpy`` is not importable.
+        AnatomyExtraMissing: If ``networkx``, ``numpy`` or ``scipy`` is not importable.
     """
     if not isinstance(scan, AnatomyScan):
         raise TypeError(f"Expected AnatomyScan, got {type(scan).__name__}")
-    nx, np = require_layout_libraries()
+    nx, np, sp = require_layout_libraries()
 
     files = scan.files  # sorted by path, so index order is path order
     index = {file.path: i for i, file in enumerate(files)}
@@ -249,7 +276,7 @@ def build_anatomy_scene(
             else:
                 cross[(min(oa, ob), max(oa, ob))] += 1
         shapes = [_layout_organ(nx, np, members, inner[o], radii) for o, members in enumerate(organs)]
-        centres = _place_organs(nx, np, [radius for _, radius in shapes], cross)
+        centres = _place_organs(nx, np, [radius for _, radius in shapes], cross, files[nodes[0]].path)
         extent = 0.0
         for (offsets, radius), centre in zip(shapes, centres):
             extent = max(extent, math.hypot(*centre) + radius)
@@ -320,7 +347,9 @@ def build_anatomy_scene(
         representation="anatomy",
         repository_name=repository_name,
         caption=caption,
-        library_versions=AnatomyLibraryVersions(networkx=nx.__version__, numpy=np.__version__),
+        library_versions=AnatomyLibraryVersions(
+            networkx=nx.__version__, numpy=np.__version__, scipy=sp.__version__
+        ),
         counts=AnatomyCounts(
             files=len(files),
             edges=len(scan.edges),

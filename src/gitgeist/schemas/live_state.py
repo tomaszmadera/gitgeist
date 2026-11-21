@@ -132,6 +132,7 @@ class AnatomyLibraryVersions(BaseModel):
 
     networkx: str
     numpy: str
+    scipy: str
 
 
 class AnatomyCounts(BaseModel):
