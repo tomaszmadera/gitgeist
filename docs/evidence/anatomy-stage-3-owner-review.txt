@@ -1,0 +1,31 @@
+Anatomy representation, Stage 3: owner visual check
+=====================================================
+
+Date: 2026-11-21
+Reviewer: repository owner
+Code: commit 4d0a1de on feat/anatomy-representation (gitgeist 0.13.0)
+Command: gitgeist render <repo> --representation anatomy --mode live
+Libraries: networkx 3.7, numpy 2.5.4, scipy 1.18.1
+Repositories: private evaluation repositories, named here only by label.
+
+Scene counts and render time (live-state.json, wall clock on the laptop)
+
+| Label | Files | Edges | Bodies | Organs in largest body | Dust | Cysts | Lines | Foreign lines | Render |
+|---|---|---|---|---|---|---|---|---|---|
+| R1 | 748 | 87 | 8 | 4 | 478 | 6 | 171705 | 66186 | 11 s |
+| R2 | 10661 | 27855 | 23 | 35 | 3063 | 173 | 1672067 | 36709 | 234 s |
+| R5 | 288 | 1049 | 1 | 9 | 4 | 0 | 30827 | 0 | 3 s |
+
+Every run exited 0 and wrote the five artifacts. The pages were opened in a
+desktop browser.
+
+Owner verdict
+
+1. Bodies and organs match the known structure of each repository: accepted.
+2. Dust is visible above the bodies (correction S1): accepted.
+3. Heavy cell overlap inside organs comes from the Stage 2 layout: accepted
+   for this task; candidate follow-up together with the deferred F8-F9
+   scaling work.
+4. Warm Python hue (45) and no texture on cells under 3 px: accepted.
+
+Stage 3 is accepted.
